@@ -1,0 +1,19 @@
+# ToDo
+
+## Concept?
+1. Eerst proberen om pythonprogramma te ontwerpen die op de backend draait en de gegevens verwerkt, erna kijken om deze data via requests op de frontend te krijgen (statisch)
+2. Het bovenstaande in realtime doen werken ...
+
+## Backend
+
+## Frontend
+Goeie HTML/Bootstrap-template vinden.
+
+Enkele voorbeelden voor de website/dashboard:
+- https://www.tooplate.com/view/2135-mini-finance
+- https://www.w3schools.com/w3css/tryw3css_templates_analytics.htm# van [w3schools](https://www.w3schools.com/w3css/w3css_templates.asp)
+- https://bootstrapmade.com/demo/NiceAdmin/ van [Bootstrapmade](https://bootstrapmade.com/free-website-templates/)
+
+Enkele voorbeelden voor leaderboard:
+- https://edit.org/blog/templates-ranking-leaderboards-free
+- https://codepen.io/tag/leaderboard
