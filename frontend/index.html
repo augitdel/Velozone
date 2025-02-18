@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Race Stats</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #2A5368;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+        .container {
+            display: flex;
+            width: 90%;
+            max-width: 1200px;
+            gap: 20px;
+        }
+        .average-times, .top-laps {
+            background-color: #2A5368;
+            padding: 20px;
+            overflow: hidden;
+            word-wrap: break-word;
+        }
+        .average-times {
+            flex: 3;
+            max-width: 70%;
+        }
+        .top-laps {
+            flex: 2;
+            max-width: 30%;
+            background-color: #000;
+        }
+        .column {
+            display: flex;
+            flex-direction:column;
+            gap: 20px;
+        }
+        .sub-column {
+            flex: 1;
+        }
+        h2 {
+            text-align: center;
+        }
+        ol {
+          text-align: center;
+            padding-left: 20px;
+        }
+        ol li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Average Lap Times -->
+        <div class="average-times">
+            <h2>AVERAGE LAP time</h2>
+            <div class="column">
+                {% set halfway = (averages|length // 2) + (averages|length % 2) %}
+                <div class="sub-column">
+                    <ol>
+                        {% for item in averages[:halfway] %}
+                        <li>Transponder {{ item[0] }} -- {{ item[1]}}</li>
+                        {% endfor %}
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top 5 Fastest Laps -->
+        <div class="top-laps">
+            <h2>Top 5 Fastest Laps</h2>
+            <ol>
+                {% for lap in top_laps %}
+                <li>Transponder {{ lap[0] }} -- {{ lap[1]}}</li>
+                {% endfor %}
+            </ol>
+        </div>
+    </div>
+</body>
+</html>
