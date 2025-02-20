@@ -107,6 +107,9 @@ def diesel_engine(file, minimum_incalculated=10, window=20):
     
     Returns:
         DataFrame: A DataFrame containing the transponder ID and consistency metrics.
+
+    Disclaimer:
+        function made with the help of AI
     """
     # Load data from the CSV file
     df = load_file(file)
