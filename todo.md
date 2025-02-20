@@ -5,6 +5,11 @@
 2. Het bovenstaande in realtime doen werken ...
 
 ## Backend
+Via python de dataverwerking verzorgen.
+
+de gewenste gegevens worden dan in json-format doorgespeeld naar de Frontend.
+Dit gebeurt door vanuit python een websocket te activeren die json-berichten kan hosten.
+(Video die dit principe uilegt: https://youtu.be/nDgdldBPoE0?si=3LzH3Do6G7C9CuSm)
 
 ## Frontend
 Goeie HTML/Bootstrap-template vinden.
@@ -17,3 +22,5 @@ Enkele voorbeelden voor de website/dashboard:
 Enkele voorbeelden voor leaderboard:
 - https://edit.org/blog/templates-ranking-leaderboards-free
 - https://codepen.io/tag/leaderboard
+
+Jonas zal kijken om een minimale website op te zetten die de ontvangen json data kan visualiseren.
