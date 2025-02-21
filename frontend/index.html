@@ -8,37 +8,46 @@
         body {
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* Align items to the top */
             min-height: 100vh;
             margin: 0;
             background-color: #2A5368;
             font-family: Arial, sans-serif;
             color: white;
         }
+        .container {
+            display: flex;
+            width: 100%;
+        }
         .container_left {
+            flex: 0 0 65%; /* Take up 65% of the screen */
             display: flex;
             flex-direction: column;
-            width: 200%;
-            gap: 20px;
-            padding-left: 2%;
-            padding-right: 5%;
-            padding-top: 5%;
-            padding-bottom: 5%;
+            gap: 20%;
+            padding: 2%;
         }
         .container_right {
+            flex: 1; /* Take up the remaining space */
             display: flex;
             flex-direction: column;
-            width: 100%;
-            
             gap: 0%;
+            padding-top: 2%;
+            
         }
         .average-times{
             background-color: #2A5368;
-            padding: 2%;
+            padding: 20px;
             border: 2px solid #fff;
             border-radius: 8px;
             overflow: hidden;
             word-wrap: break-word;
+        }
+        .performances{
+            border: 2px solid #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #000;
+            margin-right: 1%;
         }
         .top-laps, .slowest-laps, .worst-lap, .diesel-engine {
             background-color: #000;
@@ -47,21 +56,14 @@
         .column {
             display: flex;
             flex-direction: row;
-            gap:15%;
+            gap: 30%;
             margin-left: 10%;
-            margin-right: 0%;
         }
-        .sub-column-left {
+        .sub-column-left, .sub-column-right {
             flex: 1;
             flex-direction: column;
             max-width: max-content;
             text-align: left;
-        }
-        .sub-column-right{
-            flex: 1;
-            flex-direction:column;
-            padding-left: 5%;
-            max-width: max-content;
         }
         h2 {
             text-align: center;
@@ -70,10 +72,10 @@
         }
         ol, ul {
             text-align: center;
-            padding-left: 20px;
+            padding-left:0%;
         }
         li, ul {
-            list-style-type:decimal-leading-zero;
+            list-style-type: decimal-leading-zero;
             text-align: left;
         }
         ol li, ul li {
@@ -82,54 +84,62 @@
     </style>
 </head>
 <body>
-    <div class="container_left">
-        <!-- Average Lap Times -->
-        <div class="average-times">
-            <h2>Average Lap Time</h2>
-            <div class="column">
-                {% set halfway = (averages|length // 2) + (averages|length % 2) %}
-                <div class="sub-column-left">
-                    <ol>
-                        {% for item in averages[:halfway] %}
-                        <li>{{ item[0] }} -- {{ item[1] }}s</li>
-                        {% endfor %}
-                    </ol>
-                </div>
-                <div class="sub-column-right">
-                    <ol start="{{ halfway + 1 }}">
-                        {% for item in averages[halfway:] %}
-                        <li>{{ item[0] }} -- {{ item[1] }}s</li>
-                        {% endfor %}
-                    </ol>
+    <div class="container">
+        <div class="container_left">
+            <!-- Average Lap Times -->
+            <div class="average-times">
+                <h2>Average Lap Time</h2>
+                <div class="column">
+                    {% set halfway = (averages|length // 2) + (averages|length % 2) %}
+                    <div class="sub-column-left">
+                        <ol>
+                            {% for item in averages[:halfway] %}
+                            <li>{{ item[0] }} -- {{ item[1] }}s</li>
+                            {% endfor %}
+                        </ol>
+                    </div>
+                    <div class="sub-column-right">
+                        <ol start="{{ halfway + 1 }}">
+                            {% for item in averages[halfway:] %}
+                            <li>{{ item[0] }} -- {{ item[1] }}s</li>
+                            {% endfor %}
+                        </ol>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <div class="container_right">
-        <!-- Top 5 Fastest Laps -->
-        <div class="top-laps">
-            <h2>Top 5 Fastest Laps</h2>
-            <ol>
-                {% for lap in top_laps %}
-                <li>{{ lap[0] }} -- {{ lap[1] }}s</li>
-                {% endfor %}
-            </ol>
-        </div>
+        
+        <div class="container_right">
+            <!-- Top 5 Fastest Laps -->
+            <div class = 'performances'>
+                <div class="top-laps">
+                    <h2>Top 5 Fastest Laps</h2>
+                    <ol>
+                        {% for lap in top_laps %}
+                        <li> <center>
+                            {{ lap[0] }} -- {{ lap[1] }}s
+                        </center></li>
+                        {% endfor %}
+                    </ol>
+                </div>
 
-        <!-- Worst Lap Time -->
-        <div class="worst-lap">
-            <h2>Worst Lap Time</h2>
+                <!-- Worst Lap Time -->
+                <div class="worst-lap">
+                    <h2>Worst Lap Time</h2>
+                    {{ badman_lap[0][0] }} -- {{ badman_lap[0][1] }}s
+                </div>
 
-            {{ badman_lap[0][0] }} -- {{ badman_lap[0][1] }}s
-        </div>
-
-        <!-- Diesel Engine (Most Consistent Rider) -->
-        <div class="diesel-engine">
-            <h2>Diesel Engine (Most Consistent Rider)</h2>
-            <ul>
-                {{diesel[0][0]}} -- {{diesel[0][2]}}s
-            </ul>
+                <!-- Diesel Engine (Most Consistent Rider) -->
+                <div class="diesel-engine">
+                    <h2>Diesel Engine (Most Consistent Rider)</h2>
+                    <ul>
+                        <center>
+                            {{diesel[0][0]}} -- {{diesel[0][2]}}s
+                        </center>
+                        
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 </body>
