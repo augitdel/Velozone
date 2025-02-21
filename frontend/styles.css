@@ -1,0 +1,76 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Align items to the top */
+    min-height: 100vh;
+    margin: 0;
+    background-color: #2A5368;
+    font-family: Arial, sans-serif;
+    color: white;
+}
+.container {
+    display: flex;
+    width: 100%;
+}
+.container_left {
+    flex: 0 0 65%; /* Take up 65% of the screen */
+    display: flex;
+    flex-direction: column;
+    gap: 20%;
+    padding: 2%;
+}
+.container_right {
+    flex: 1; /* Take up the remaining space */
+    display: flex;
+    flex-direction: column;
+    gap: 0%;
+    padding-top: 2%;
+    
+}
+.average-times{
+    background-color: #2A5368;
+    padding: 20px;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    word-wrap: break-word;
+}
+.performances{
+    border: 2px solid #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #000;
+    margin-right: 1%;
+}
+.top-laps, .slowest-laps, .worst-lap, .diesel-engine {
+    background-color: #000;
+    text-align: center;
+}
+.column {
+    display: flex;
+    flex-direction: row;
+    gap: 30%;
+    margin-left: 10%;
+}
+.sub-column-left, .sub-column-right {
+    flex: 1;
+    flex-direction: column;
+    max-width: max-content;
+    text-align: left;
+}
+h2 {
+    text-align: center;
+    text-transform: uppercase;
+    margin-bottom: 15px;
+}
+ol, ul {
+    text-align: center;
+    padding-left:0%;
+}
+li, ul {
+    list-style-type: decimal-leading-zero;
+    text-align: left;
+}
+ol li, ul li {
+    margin-bottom: 10px;
+}

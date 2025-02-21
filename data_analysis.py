@@ -155,5 +155,5 @@ def diesel_engine(file, minimum_incalculated=10, window=20):
     
     return diesel_engine
 
-print(f'diesel_engine=\n {diesel_engine("RecordingContext_20250214.csv")}')
-print(average_lap_time("RecordingContext_20250214.csv").values.tolist())
+# print(f'diesel_engine=\n {diesel_engine("RecordingContext_20250214.csv")}')
+# print(average_lap_time("RecordingContext_20250214.csv").values.tolist())
