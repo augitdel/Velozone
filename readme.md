@@ -4,10 +4,10 @@ You should install 'Flask'
 we run a webpage via http://127.0.0.1:5000
 It is a development server
 
-TO USE GITHUB
-1. PULL CODE
---> git pull
-2. AFTER MAKING CHANGES
---> git add .
---> git commit -m 'some message'
---> git push
+TO USE GITHUB<br>
+**PULL CODE**<br>
+_git pull_<br>
+**AFTER MAKING CHANGES**<br>
+  _git add ._<br>
+  _git commit -m 'some message'_<br>
+  _git push_<br>
