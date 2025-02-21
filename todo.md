@@ -1,5 +1,8 @@
 # ToDo
 
+## Te implementeren
+- Klok/real time tijd kunnen zien
+
 ## Concept?
 1. Eerst proberen om pythonprogramma te ontwerpen die op de backend draait en de gegevens verwerkt, erna kijken om deze data via requests op de frontend te krijgen (statisch)
 2. Het bovenstaande in realtime doen werken ...
