@@ -30,9 +30,12 @@ def average_lap_time(file):
     # Sort the data by TransponderID for better visualization and analysis
     df_sorted = df.sort_values(by=['transponder_id','utcTime']).where(df['loop'] =='L01')
     df_sorted = df_sorted.dropna(subset='loop')
-    print(df_sorted['lapTime'].head())
+    
+    # Calculate the average lap time for each transponder ID
     average_lap_time = df_sorted.groupby('transponder_id')['lapTime'].mean().reset_index()
+    average_lap_time = average_lap_time.sort_values(by = 'lapTime')
     average_lap_time.columns = ['transponder_id', 'average_lap_time']
+    print(average_lap_time.head())
     return average_lap_time
 
 
@@ -60,6 +63,7 @@ def fastest_lap(file):
     IQR = Q3 - Q1
     df_sorted = df_sorted[(df_sorted['lapTime'] >= (Q1 - 1.5 * IQR)) & (df_sorted['lapTime'] <= (Q3 + 1.5 * IQR))]
     
+    # Calculate the fastest lap time for each transponder ID
     fastest_lap_time = df_sorted.groupby('transponder_id')['lapTime'].min().reset_index()
     fastest_lap_time.columns = ['transponder_id', 'fastest_lap_time']
     
@@ -95,6 +99,7 @@ def badman(file):
 
     badman = df_sorted.loc[df_sorted['lapTime'].idxmax(), ['transponder_id', 'lapTime']].to_frame().T
     badman.columns = ['transponder_id', 'worst_lap_time']
+    
     
     return slowest_lap_time, badman
 
@@ -151,3 +156,4 @@ def diesel_engine(file, minimum_incalculated=10, window=20):
     return diesel_engine
 
 print(f'diesel_engine=\n {diesel_engine("RecordingContext_20250214.csv")}')
+print(average_lap_time("RecordingContext_20250214.csv").values.tolist())

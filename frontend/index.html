@@ -15,72 +15,121 @@
             font-family: Arial, sans-serif;
             color: white;
         }
-        .container {
+        .container_left {
             display: flex;
-            width: 90%;
-            max-width: 1200px;
+            flex-direction: column;
+            width: 200%;
             gap: 20px;
+            padding-left: 2%;
+            padding-right: 5%;
+            padding-top: 5%;
+            padding-bottom: 5%;
         }
-        .average-times, .top-laps {
+        .container_right {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            
+            gap: 0%;
+        }
+        .average-times{
             background-color: #2A5368;
-            padding: 20px;
+            padding: 2%;
+            border: 2px solid #fff;
+            border-radius: 8px;
             overflow: hidden;
             word-wrap: break-word;
         }
-        .average-times {
-            flex: 3;
-            max-width: 70%;
-        }
-        .top-laps {
-            flex: 2;
-            max-width: 30%;
+        .top-laps, .slowest-laps, .worst-lap, .diesel-engine {
             background-color: #000;
+            text-align: center;
         }
         .column {
             display: flex;
-            flex-direction:column;
-            gap: 20px;
+            flex-direction: row;
+            gap:15%;
+            margin-left: 10%;
+            margin-right: 0%;
         }
-        .sub-column {
+        .sub-column-left {
             flex: 1;
+            flex-direction: column;
+            max-width: max-content;
+            text-align: left;
+        }
+        .sub-column-right{
+            flex: 1;
+            flex-direction:column;
+            padding-left: 5%;
+            max-width: max-content;
         }
         h2 {
             text-align: center;
+            text-transform: uppercase;
+            margin-bottom: 15px;
         }
-        ol {
-          text-align: center;
+        ol, ul {
+            text-align: center;
             padding-left: 20px;
         }
-        ol li {
+        li, ul {
+            list-style-type:decimal-leading-zero;
+            text-align: left;
+        }
+        ol li, ul li {
             margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container_left">
         <!-- Average Lap Times -->
         <div class="average-times">
-            <h2>AVERAGE LAP time</h2>
+            <h2>Average Lap Time</h2>
             <div class="column">
                 {% set halfway = (averages|length // 2) + (averages|length % 2) %}
-                <div class="sub-column">
+                <div class="sub-column-left">
                     <ol>
                         {% for item in averages[:halfway] %}
-                        <li>Transponder {{ item[0] }} -- {{ item[1]}}</li>
+                        <li>{{ item[0] }} -- {{ item[1] }}s</li>
+                        {% endfor %}
+                    </ol>
+                </div>
+                <div class="sub-column-right">
+                    <ol start="{{ halfway + 1 }}">
+                        {% for item in averages[halfway:] %}
+                        <li>{{ item[0] }} -- {{ item[1] }}s</li>
                         {% endfor %}
                     </ol>
                 </div>
             </div>
         </div>
-
+    </div>
+    
+    <div class="container_right">
         <!-- Top 5 Fastest Laps -->
         <div class="top-laps">
             <h2>Top 5 Fastest Laps</h2>
             <ol>
                 {% for lap in top_laps %}
-                <li>Transponder {{ lap[0] }} -- {{ lap[1]}}</li>
+                <li>{{ lap[0] }} -- {{ lap[1] }}s</li>
                 {% endfor %}
             </ol>
+        </div>
+
+        <!-- Worst Lap Time -->
+        <div class="worst-lap">
+            <h2>Worst Lap Time</h2>
+
+            {{ badman_lap[0][0] }} -- {{ badman_lap[0][1] }}s
+        </div>
+
+        <!-- Diesel Engine (Most Consistent Rider) -->
+        <div class="diesel-engine">
+            <h2>Diesel Engine (Most Consistent Rider)</h2>
+            <ul>
+                {{diesel[0][0]}} -- {{diesel[0][2]}}s
+            </ul>
         </div>
     </div>
 </body>
