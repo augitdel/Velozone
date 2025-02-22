@@ -11,7 +11,7 @@ _git pull_<br>
   _git add ._<br>
   _git commit -m 'some message'_<br>
   _git push_<br>
-**UPDATES JONAS**
+**UPDATES website**
 WebsiteV1.0.html contains all website code
 execute via app.py in visual studio code -> website and websocket live at http://127.0.0.1:5000
 folder structure should be:
