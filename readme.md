@@ -13,7 +13,7 @@ _git pull_<br>
   _git push_<br>
 **UPDATES JONAS**
 WebsiteV1.0.html contains all website code
-execute via app.py 
+execute via app.py in visual studio code -> website and websocket live at http://127.0.0.1:5000
 folder structure should be:
 - app.py and data_analysis.py in main folder
 - static folder with img, css and js folder
