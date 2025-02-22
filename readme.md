@@ -19,3 +19,5 @@ folder structure should be:
 - static folder with img, css and js folder
 - frontend folder with Website_V1.0.html
 ![image](https://github.ugent.be/audlbeke/Sport_Gand_Adaptive/assets/18048/e11dc212-82cd-4378-82c4-185c65d9595f)
+**TODO jonas**
+backend maken met python + Flask + SQLite/PostgreSQL voor login en registratiesysteem
