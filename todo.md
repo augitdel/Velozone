@@ -26,4 +26,6 @@ Enkele voorbeelden voor leaderboard:
 - https://edit.org/blog/templates-ranking-leaderboards-free
 - https://codepen.io/tag/leaderboard
 
-Jonas zal kijken om een minimale website op te zetten die de ontvangen json data kan visualiseren.
+Idee:
+- Visualisatie maken voor op het leaderboard om te broadcasten tijdens het rijden
+- Personal Account space met eigen data 
