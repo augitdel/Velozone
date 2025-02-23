@@ -31,7 +31,7 @@
                 <img src="{{ url_for('static', filename='img/jonas_v.jpg') }}" alt="Jonas" class="small-profile-img">
             </div>
             <div class="w3-col s8 w3-bar">
-                <span>Welcome, <strong>Jonas</strong></span><br>
+                <span>Welcome, <strong>{{ username }}</strong></span><br>
                 <a href="#" class="w3-bar-item w3-button"><i class="fa fa-user"></i></a>
                 <a href="#" class="w3-bar-item w3-button"><i class="fa fa-cog"></i></a>
             </div>
@@ -45,6 +45,7 @@
             <a href="#" class="w3-bar-item w3-button w3-padding w3-blue"><i class="fa fa-users fa-fw"></i>� Overview</a>
             <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-bullseye fa-fw"></i>� Transponder speed</a>
             <a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-diamond fa-fw"></i>� Leaderboards</a>
+            <a href="{{url_for('logout')}}" class="btn btn-logout">Logout</a>
         </div>
     </nav>
 
@@ -145,7 +146,7 @@
 
                     <!-- Worst Lap Time -->
                     <div class="w3-card w3-padding w3-margin-top">
-                        <h2>Bad-man &#x1F987;</h2>
+                        <h2>Worst Lap Time</h2>
                         <center>
                             <p>{{ badman_lap[0][0] }} -- {{ badman_lap[0][1] }}s</p>
                         </center>
