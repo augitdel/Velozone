@@ -12,12 +12,15 @@ _git pull_<br>
   _git commit -m 'some message'_<br>
   _git push_<br>
 **UPDATES website**
-WebsiteV1.0.html contains all website code
-execute via app.py in visual studio code -> website and websocket live at http://127.0.0.1:5000
-folder structure should be:
-- app.py and data_analysis.py in main folder
-- static folder with img, css and js folder
-- frontend folder with Website_V1.0.html
-![image](https://github.ugent.be/audlbeke/Sport_Gand_Adaptive/assets/18048/e11dc212-82cd-4378-82c4-185c65d9595f)
+WebsiteV1.0.html contains all website code<br>
+execute via app.py in visual studio code -> website and websocket live at http://127.0.0.1:5000<br>
+folder structure should be:<br>
+- main.py and data_analysis.py in main folder<br>
+- static folder with img, css and js folder<br>
+- instance folder with users.db<br>
+- frontend folder with Website_V1.0.html, login.html and base.html<br>
+- ![image](https://github.ugent.be/audlbeke/Sport_Gand_Adaptive/assets/18048/19594795-e906-4eb6-9969-5b74d2770633)<br>
+<br>
 **TODO jonas**
-backend maken met python + Flask + SQLite/PostgreSQL voor login en registratiesysteem
+backend maken met python + Flask + SQLite/PostgreSQL voor login en registratiesysteem - done
+website opkuisen en structureren
