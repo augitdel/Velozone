@@ -11,7 +11,8 @@ _git pull_<br>
   _git add ._<br>
   _git commit -m 'some message'_<br>
   _git push_<br>
-**UPDATES website**
+  
+**UPDATES website**<br>
 main.py contains all website code for routing (fuse of app.py and routing code i created)<br>
 website contains 3 html scripts for login, website dashboard and base<br>
 execute via app.py in visual studio code -> website and websocket live at http://127.0.0.1:5000<br>
@@ -22,6 +23,6 @@ folder structure should be:<br>
 - frontend folder with Website_V1.0.html, login.html and base.html<br>
 - ![image](https://github.ugent.be/audlbeke/Sport_Gand_Adaptive/assets/18048/19594795-e906-4eb6-9969-5b74d2770633)<br>
 <br>
-**TODO jonas**
+**TODO jonas**<br>
 backend maken met python + Flask + SQLite/PostgreSQL voor login en registratiesysteem - done
 website opkuisen en structureren
