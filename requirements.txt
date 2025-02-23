@@ -1,5 +1,5 @@
 flask
 pandas
 flask_socketio
-werkzeug.utility
+werkzeug
 flask_sqlalchemy
