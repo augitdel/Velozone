@@ -111,7 +111,7 @@ def diesel_engine(file, minimum_incalculated=10, window=20):
         file (str): The file path of the CSV recording lap time data.
     
     Returns:
-        DataFrame: A DataFrame containing the transponder ID and consistency metrics.
+        DataFrame: A DataFrame containing the transponder ID and consistency metrics. (all in SI units: the speed should still be calculated to km/h!)
 
     Disclaimer:
         function made with the help of AI
@@ -155,5 +155,61 @@ def diesel_engine(file, minimum_incalculated=10, window=20):
     
     return diesel_engine
 
+def electric_motor(file, window=5, lap_distance=250):
+    """
+    Identify the transponder with the greatest acceleration over a short period of time ("Electric Motor").
+    
+    Parameters:
+        file (str): The file path of the CSV recording lap time data.
+        window (int): The rolling window size for calculating acceleration.
+        lap_distance (float): Assumed lap distance [m].
+    
+    Returns:
+        DataFrame: A DataFrame containing the transponder ID and peak acceleration metrics in m/s.
+    """
+    # Load data from the CSV file
+    df = load_file(file)
+    
+    # Filter only laps recorded at loop 'L01' for complete lap measurements
+    df_filtered = df[df['loop'] == 'L01'].copy()
+    
+    # Drop any rows where 'lapTime' is missing
+    df_filtered.dropna(subset=['lapTime'], inplace=True)
+    
+    # Convert 'lapTime' to numeric values for calculation
+    df_filtered['lapTime'] = pd.to_numeric(df_filtered['lapTime'])
+    
+    # Calculate lap speed (assuming lap distance is provided or normalized)
+    df_filtered['lapSpeed'] = lap_distance / df_filtered['lapTime']
+    
+    # Select relevant columns and drop NaN values
+    df_filtered = df_filtered[['transponder_id', 'utcTimestamp', 'lapSpeed']].dropna()
+    
+    # Convert relevant columns to numeric values
+    df_filtered['utcTimestamp'] = pd.to_numeric(df_filtered['utcTimestamp'])
+    df_filtered['lapSpeed'] = pd.to_numeric(df_filtered['lapSpeed'])
+    
+    # Sort by transponder and timestamp to ensure correct time sequence
+    df_filtered.sort_values(by=['transponder_id', 'utcTimestamp'], inplace=True)
+    
+    # Calculate speed differences over time
+    df_filtered['speed_diff'] = df_filtered.groupby('transponder_id')['lapSpeed'].diff()
+    df_filtered['time_diff'] = df_filtered.groupby('transponder_id')['utcTimestamp'].diff()
+    
+    # Calculate acceleration (change in speed over change in time)
+    df_filtered['acceleration'] = df_filtered['speed_diff'] / df_filtered['time_diff']
+    
+    # Compute rolling maximum acceleration for each transponder
+    df_filtered['rolling_acceleration'] = df_filtered.groupby('transponder_id')['acceleration'].transform(lambda x: x.rolling(window=window, min_periods=1).max())
+    
+    # Find the transponder with the highest peak acceleration
+    peak_acceleration = df_filtered.groupby('transponder_id')['rolling_acceleration'].max().reset_index()
+    peak_acceleration.columns = ['transponder_id', 'peak_acceleration']
+    
+    # Identify the transponder with the absolute highest acceleration
+    electric_motor = peak_acceleration.nlargest(1, 'peak_acceleration')
+    
+    return electric_motor
+
 # print(f'diesel_engine=\n {diesel_engine("RecordingContext_20250214.csv")}')
-# print(average_lap_time("RecordingContext_20250214.csv").values.tolist())
+# print(f'electric_motor=\n {electric_motor("RecordingContext_20250214.csv")}')
