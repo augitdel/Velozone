@@ -1,28 +1,44 @@
-You should install 'Flask'
---> pip install flask
+# Velozone
 
-we run a webpage via http://127.0.0.1:5000
-It is a development server
+## Installation
+(pip) Install the required packages available in [requirements.txt](requirements.txt)
 
-TO USE GITHUB<br>
-**PULL CODE**<br>
-_git pull_<br>
-**AFTER MAKING CHANGES**<br>
-  _git add ._<br>
-  _git commit -m 'some message'_<br>
-  _git push_<br>
-  
-**UPDATES website**<br>
-main.py contains all website code for routing (fuse of app.py and routing code i created)<br>
-website contains 3 html scripts for login, website dashboard and base<br>
-execute via app.py in visual studio code -> website and websocket live at http://127.0.0.1:5000<br>
-folder structure should be:<br>
-- main.py and data_analysis.py in main folder<br>
-- static folder with img, css and js (containing gamification.js and script.js) folder<br>
-- instance folder with users.db<br>
+## Usage
+Run the following command in the terminal. This starts a webpage via http://127.0.0.1:5000, which is a development server.
+
+    python app.py
+
+## UPDATES website
+[main.py](main.py) contains all website code for routing (use of [app.py](app.py) and routing code i created)<br>
+website contains 3 html scripts:
+1. login
+2. website dashboard
+3. base
+
+folder structure should be:
+- main.py and data_analysis.py in main folder
+- static folder with img, css and js (containing gamification.js and script.js) folder
+- instance folder with users.db
 - frontend folder with Website_V1.0.html, login.html and base.html<br>
-![image](https://github.ugent.be/audlbeke/Sport_Gand_Adaptive/assets/18048/19594795-e906-4eb6-9969-5b74d2770633)<br>
-<br>
-**TODO jonas**<br>
-backend maken met python + Flask + SQLite/PostgreSQL voor login en registratiesysteem - done
-website opkuisen en structureren
+![image](https://github.ugent.be/audlbeke/Sport_Gand_Adaptive/assets/18048/19594795-e906-4eb6-9969-5b74d2770633)
+
+
+
+
+## Github usage
+### Pulling Code
+To get the latest code from github, run the following command:
+
+    git pull
+
+### Pushing Code
+After making changes to the code, you can commit the changes. A commit makes a local 'checkpoint':
+
+    git add .
+    git commit -m 'some message'
+
+When a commit is made, it is still in your local repository. You don't necessarily need to perform a push after each commit. You can either choose to keep on coding or to push the commit to the remote repository (on github).
+
+To push the code:
+
+    git push
