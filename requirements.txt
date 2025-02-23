@@ -3,5 +3,3 @@ pandas
 flask_socketio
 werkzeug.utility
 flask_sqlalchemy
-json
-time
