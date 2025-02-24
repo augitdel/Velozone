@@ -24,7 +24,7 @@ folder structure should be:
 
 
 ## Deployment to the world wide web
-[link](https://medium.com/@mutabletechke/step-by-step-guide-deploying-a-flask-application-to-a-linux-server-e98b0be68ce6) naas site die 'eenvoudig' uitlegt hoe je een flask app kunt deployen op een linux server
+[link](https://medium.com/@mutabletechke/step-by-step-guide-deploying-a-flask-application-to-a-linux-server-e98b0be68ce6) naar site die 'eenvoudig' uitlegt hoe je een flask app kunt deployen op een linux server
 
 ## Github usage
 ### Pulling Code
