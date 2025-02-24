@@ -2,6 +2,7 @@
 
 ## Te implementeren
 - Klok/real time tijd kunnen zien
+- Animatie van de renners na de sessie op basis van self.file in data_analysis.py
 
 ### Jonas
 - backend maken met python + Flask + SQLite/PostgreSQL voor login registratiesysteem - done
