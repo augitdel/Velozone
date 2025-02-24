@@ -9,7 +9,7 @@ Run the following command in the terminal. This starts a webpage via http://127.
     python app.py
 
 ## UPDATES website
-[main.py](main.py) contains all website code for routing (use of [app.py](app.py) and routing code i created)<br>
+[main.py](main.py) contains all website code for routing (fuse of [app.py](app.py) and application routing code i created)<br>
 website contains 3 html scripts:
 1. login
 2. website dashboard
