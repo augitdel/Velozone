@@ -12,6 +12,7 @@ def load_file(file):
     
     return df
 
+class DataAnalysis:
 
 def average_lap_time(file):
     """
