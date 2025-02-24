@@ -20,13 +20,13 @@ class DataAnalysis:
 
         self.debug = debug
 
-        self.average_lap_time = pd.DataFrame()
+        self.info_per_transponder = pd.DataFrame(columns=['transponder_id', 'fastest_lap_time', 'average_lap_time'])
 
-    def cleanup(self)
+    def cleanup(self):
         self.file = self.file.dropna().sort_values(by=['transponder_id','utcTime'])
         self.newlines = self.newlines.dropna().sort_values(by=['transponder_id','utcTime'])
 
-    def update(self, changed_file)
+    def update(self, changed_file):
         changed_file_pd = load_file(changed_file)
         self.file = pd.concat([self.file, changed_file_pd]).drop_duplicates(subset=['transponder_id', 'utcTimestamp'], keep='last')
         self.newlines = pd.merge(changed_file_pd, self.file, how='outer', indicator=True, on=['transponder_id', 'utcTimestamp']).loc[lambda x : x['_merge']=='left_only']
@@ -45,18 +45,19 @@ class DataAnalysis:
 
         """
         # Sort the data by TransponderID for better visualization and analysis
-        df_sorted = self.file.where(self.file['loop'] =='L01').dropna(subset='loop')
+        # df_sorted = self.file.where(self.file['loop'] =='L01').dropna(subset='loop') # I think this isn't needed, as the csv file already contains a column lapTime
         
         # Calculate the average lap time for each transponder ID
-        average_lap_time = df_sorted.groupby('transponder_id')['lapTime'].mean().reset_index()
+        # TODO: think about how to delete and add the column average_lap_time to the info_per_transponder DataFrame
+        average_lap_time = self.file.groupby('transponder_id')['lapTime'].mean().reset_index()
         self.average_lap_time = average_lap_time.sort_values(by = 'lapTime')
         self.average_lap_time.columns = ['transponder_id', 'average_lap_time']
         if self.debug:
-            print(average_lap_time.head())
+            print(self.info_per_transponder.head())
     
     def fastest_lap(self):
         """
-        Function that calculates the fastest lap time for each transponder
+        Function that calculates the fastest lap time for each transponder.
 
         Parameters:
             file (str): The file path of the CSV recording context data
@@ -64,7 +65,15 @@ class DataAnalysis:
         Returns:
             DataFrame: A DataFrame containing the transponder IDs and their respective fastest lap times
         """
+        # df_sorted = self.file.where(self.file['loop'] =='L01').dropna(subset='loop') # I think this isn't needed, as the csv file already contains a column lapTime
         
+        # Optionally, remove outliers based on IQR or other method
+        Q1 = self.file['lapTime'].quantile(0.25)
+        Q3 = self.file['lapTime'].quantile(0.75)
+        IQR = Q3 - Q1
+        df_sorted = self.file[(self.file['lapTime'] >= (Q1 - 1.5 * IQR)) & (self.file['lapTime'] <= (Q3 + 1.5 * IQR))]
+
+        # TODO: only look at current times for the newly added transponders and for those transponders look if the new laptime is faster than the previous fastest laptime
 
 
 
