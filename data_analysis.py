@@ -4,7 +4,7 @@ from flask import Flask, render_template
 
 app = Flask(__name__)
 
-def load_file(file):
+def load_file(file: str) -> pd.DataFrame:
     try:
         df = pd.read_csv(file, delimiter=',', on_bad_lines='skip')
     except:
@@ -13,31 +13,59 @@ def load_file(file):
     return df
 
 class DataAnalysis:
+    def __init__(self, new_file, debug=False):
+        self.file = load_file(new_file)
+        self.newlines = load_file(new_file)
+        self.cleanup()
 
-def average_lap_time(file):
-    """
-    Function that calculates the average laptime of all the transponders
+        self.debug = debug
 
-    Parameters:
-        file (str): The file path of the CSV recording context data
+        self.average_lap_time = pd.DataFrame()
 
-    Returns:
-        DataFrame: A DataFrame containing the transponder IDs and their respective average lap times
+    def cleanup(self)
+        self.file = self.file.dropna().sort_values(by=['transponder_id','utcTime'])
+        self.newlines = self.newlines.dropna().sort_values(by=['transponder_id','utcTime'])
 
-    """
-    # Load the data
-    df = load_file(file)
+    def update(self, changed_file)
+        changed_file_pd = load_file(changed_file)
+        self.file = pd.concat([self.file, changed_file_pd]).drop_duplicates(subset=['transponder_id', 'utcTimestamp'], keep='last')
+        self.newlines = pd.merge(changed_file_pd, self.file, how='outer', indicator=True, on=['transponder_id', 'utcTimestamp']).loc[lambda x : x['_merge']=='left_only']
+        self.cleanup()  # TODO: does the whole file needs to be cleaned up/sorted after an update, or is cleanup from the newlines enough?
+        # call all functions that need to be updated
+
+    def average_lap_time(self):
+        """
+        Function that calculates the average laptime of all the transponders
+
+        Parameters:
+            file (str): The file path of the CSV recording context data
+
+        Returns:
+            DataFrame: A DataFrame containing the transponder IDs and their respective average lap times
+
+        """
+        # Sort the data by TransponderID for better visualization and analysis
+        df_sorted = self.file.where(self.file['loop'] =='L01').dropna(subset='loop')
+        
+        # Calculate the average lap time for each transponder ID
+        average_lap_time = df_sorted.groupby('transponder_id')['lapTime'].mean().reset_index()
+        self.average_lap_time = average_lap_time.sort_values(by = 'lapTime')
+        self.average_lap_time.columns = ['transponder_id', 'average_lap_time']
+        if self.debug:
+            print(average_lap_time.head())
     
-    # Sort the data by TransponderID for better visualization and analysis
-    df_sorted = df.sort_values(by=['transponder_id','utcTime']).where(df['loop'] =='L01')
-    df_sorted = df_sorted.dropna(subset='loop')
-    
-    # Calculate the average lap time for each transponder ID
-    average_lap_time = df_sorted.groupby('transponder_id')['lapTime'].mean().reset_index()
-    average_lap_time = average_lap_time.sort_values(by = 'lapTime')
-    average_lap_time.columns = ['transponder_id', 'average_lap_time']
-    print(average_lap_time.head())
-    return average_lap_time
+    def fastest_lap(self):
+        """
+        Function that calculates the fastest lap time for each transponder
+
+        Parameters:
+            file (str): The file path of the CSV recording context data
+        
+        Returns:
+            DataFrame: A DataFrame containing the transponder IDs and their respective fastest lap times
+        """
+        
+
 
 
 def fastest_lap(file):
