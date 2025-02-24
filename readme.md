@@ -6,7 +6,7 @@
 ## Usage
 Run the following command in the terminal. This starts a webpage via http://127.0.0.1:5000, which is a development server.
 
-    python app.py
+    python main.py
 
 ## UPDATES website
 [main.py](main.py) contains all website code for routing (fuse of [app.py](app.py) and application routing code i created)<br>
@@ -23,7 +23,8 @@ folder structure should be:
 ![image](https://github.ugent.be/audlbeke/Sport_Gand_Adaptive/assets/18048/19594795-e906-4eb6-9969-5b74d2770633)
 
 
-
+## Deployment to the world wide web
+[link](https://medium.com/@mutabletechke/step-by-step-guide-deploying-a-flask-application-to-a-linux-server-e98b0be68ce6) naas site die 'eenvoudig' uitlegt hoe je een flask app kunt deployen op een linux server
 
 ## Github usage
 ### Pulling Code
