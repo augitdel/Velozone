@@ -14,13 +14,16 @@ def load_file(file: str) -> pd.DataFrame:
 
 class DataAnalysis:
     def __init__(self, new_file, debug=False):
-        self.file = load_file(new_file)
+        self.file = pd.DataFrame()
         self.newlines = load_file(new_file)
         self.cleanup()
 
-        self.debug = debug
-
         self.info_per_transponder = pd.DataFrame(columns=['transponder_id', 'fastest_lap_time', 'average_lap_time'])
+        self.newlines_without_outliers = pd.DataFrame()
+
+        self.outliers = pd.DataFrame()
+
+        self.debug = debug
 
     def cleanup(self):
         self.file = self.file.dropna().sort_values(by=['transponder_id','utcTime'])
@@ -31,7 +34,9 @@ class DataAnalysis:
         self.file = pd.concat([self.file, changed_file_pd]).drop_duplicates(subset=['transponder_id', 'utcTimestamp'], keep='last')
         self.newlines = pd.merge(changed_file_pd, self.file, how='outer', indicator=True, on=['transponder_id', 'utcTimestamp']).loc[lambda x : x['_merge']=='left_only']
         self.cleanup()  # TODO: does the whole file needs to be cleaned up/sorted after an update, or is cleanup from the newlines enough?
+        
         # call all functions that need to be updated
+
 
     def average_lap_time(self):
         """
@@ -42,20 +47,31 @@ class DataAnalysis:
 
         Returns:
             DataFrame: A DataFrame containing the transponder IDs and their respective average lap times
-
         """
         # Sort the data by TransponderID for better visualization and analysis
         # df_sorted = self.file.where(self.file['loop'] =='L01').dropna(subset='loop') # I think this isn't needed, as the csv file already contains a column lapTime
         
         # Calculate the average lap time for each transponder ID
-        # TODO: think about how to delete and add the column average_lap_time to the info_per_transponder DataFrame
-        average_lap_time = self.file.groupby('transponder_id')['lapTime'].mean().reset_index()
-        self.average_lap_time = average_lap_time.sort_values(by = 'lapTime')
-        self.average_lap_time.columns = ['transponder_id', 'average_lap_time']
+        new_average_lap_time = self.file[self.file['transponder_id'].isin(self.newlines['transponder_id'])].groupby('transponder_id')['lapTime'].mean().reset_index()   # only calculate the averages for the updated transponders
+        self.info_per_transponder.update(new_average_lap_time.set_index('transponder_id')[['average_lap_time']])
+
         if self.debug:
             print(self.info_per_transponder.head())
+
+    def remove_outliers(self, outlier_threshold=100):      # TODO: only remove outliers if number of lines of self.file is greater than a certain amount? Which is this amount?
+        if len(self.file) < outlier_threshold:
+            self.newlines_without_outliers = self.newlines
+            return
+
+
+        Q1 = self.file['lapTime'].quantile(0.25)
+        Q3 = self.file['lapTime'].quantile(0.75)
+        IQR = Q3 - Q1
+
+        self.newlines_without_outliers = self.newlines[(self.newlines['lapTime'] >= (Q1 - 1.5 * IQR)) & (self.newlines['lapTime'] <= (Q3 + 1.5 * IQR))]
+        
     
-    def fastest_lap(self):
+    def fastest_lap(self):      # self.remove_ouliers should be run before this function is called
         """
         Function that calculates the fastest lap time for each transponder.
 
@@ -66,14 +82,12 @@ class DataAnalysis:
             DataFrame: A DataFrame containing the transponder IDs and their respective fastest lap times
         """
         # df_sorted = self.file.where(self.file['loop'] =='L01').dropna(subset='loop') # I think this isn't needed, as the csv file already contains a column lapTime
+        new_potential_fastest_lap_time = self.newlines_without_outliers.groupby('transponder_id')['lapTime'].min().reset_index()
         
-        # Optionally, remove outliers based on IQR or other method
-        Q1 = self.file['lapTime'].quantile(0.25)
-        Q3 = self.file['lapTime'].quantile(0.75)
-        IQR = Q3 - Q1
-        df_sorted = self.file[(self.file['lapTime'] >= (Q1 - 1.5 * IQR)) & (self.file['lapTime'] <= (Q3 + 1.5 * IQR))]
-
-        # TODO: only look at current times for the newly added transponders and for those transponders look if the new laptime is faster than the previous fastest laptime
+        for index, row in new_potential_fastest_lap_time.iterrows():
+            if self.info_per_transponder.loc[self.info_per_transponder['transponder_id'] == row['transponder_id'], 'fastest_lap_time'].values[0] > row['lapTime']:
+                self.info_per_transponder.loc[self.info_per_transponder['transponder_id'] == row['transponder_id'], 'fastest_lap_time'] = row['lapTime']
+        # TODO: research if it is possible without a for loop (i don't think so as there has to happen a term by term comparison)
 
 
 
