@@ -2,4 +2,6 @@ flask
 pandas
 flask_socketio
 werkzeug
-flask_sqlalchemy
+flask-sqlalchemy
+Pandas
+gevent gevent-websocket

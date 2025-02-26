@@ -4,7 +4,7 @@ from flask import Flask
 
 app = Flask(__name__)
 
-def load_file(file: str) -> pd.DataFrame:
+def load_file(file):
     try:
         df = pd.read_csv(file, delimiter=',', on_bad_lines='skip')
     except:
@@ -65,11 +65,11 @@ class DataAnalysis:
         """
         Function that calculates the average laptime of all the transponders
 
-        Parameters:
-            file (str): The file path of the CSV recording context data
+    Parameters:
+        file (str): The file path of the CSV recording context data
 
-        Returns:
-            DataFrame: A DataFrame containing the transponder IDs and their respective average lap times
+    Returns:
+        DataFrame: A DataFrame containing the transponder IDs and their respective average lap times
 
         """
         # Sort the data by TransponderID for better visualization and analysis
