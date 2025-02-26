@@ -1,26 +1,30 @@
 from flask import Flask, render_template
 from flask_socketio import SocketIO
 import pandas as pd
-import data_analysis
+from data_analysis import DataAnalysis
 import json
 import time
+
+
 
 app = Flask(__name__, template_folder='frontend')
 socketio = SocketIO(app)
 fast_lap_json = json.dumps([])  # Placeholder JSON data
 
-def get_lap_times(file):
-    """
-    Function that calculates the fastest lap and average lap time for each transponder
-    """
-    fastest_lap_times = data_analysis.fastest_lap(file)
-    average_lap_times = data_analysis.average_lap_time(file)
+# We don't need this code anymore
+# def get_lap_times(file):
+#     """
+#     Function that calculates the fastest lap and average lap time for each transponder
+#     """
+#     DA = DataAnalysis(file, debug=True)
+#     fastest_lap_times = data_analysis.fastest_lap(file)
+#     average_lap_times = data_analysis.average_lap_time(file)
 
-    # Merge data for display
-    lap_times = pd.merge(fastest_lap_times, average_lap_times, on='transponder_id')
-    lap_times.columns = ['transponder_id', 'fastest_lap_time', 'average_lap_time']
+#     # Merge data for display
+#     lap_times = pd.merge(fastest_lap_times, average_lap_times, on='transponder_id')
+#     lap_times.columns = ['transponder_id', 'fastest_lap_time', 'average_lap_time']
     
-    return lap_times, fastest_lap_times, average_lap_times
+#     return lap_times, fastest_lap_times, average_lap_times
 
 def limit_numeric_to_2_decimals(data):
     # Function to limit numeric values to 2 decimal places
@@ -34,18 +38,20 @@ def limit_numeric_to_2_decimals(data):
         return data
 
 @app.route('/')
+@app.route('/')
 def index():
     fileName = 'RecordingContext_20250214.csv'
     
-    # Load data
-    _, fastest_lap_times, average_lap_times = get_lap_times(fileName)
+    # Use the DataAnalysis class instance
+    data_obj = DataAnalysis(fileName, debug=True)
 
-    # Convert DataFrames to lists
-    avg_lap = limit_numeric_to_2_decimals(average_lap_times.values.tolist())
-    fast_lap = limit_numeric_to_2_decimals(fastest_lap_times.head(5).values.tolist())
-    slow_lap = limit_numeric_to_2_decimals(data_analysis.badman(fileName)[0].values.tolist())
-    badman = limit_numeric_to_2_decimals(data_analysis.badman(fileName)[1].values.tolist())
-    diesel = limit_numeric_to_2_decimals(data_analysis.diesel_engine(fileName).values.tolist())
+    # Convert DataFrames to lists for rendering
+    avg_lap = limit_numeric_to_2_decimals(data_obj.average_lap.values.tolist())
+    fast_lap = limit_numeric_to_2_decimals(data_obj.fastest_lap.head(5).values.tolist()) 
+    slow_lap = limit_numeric_to_2_decimals(data_obj.slowest_lap.values.tolist())
+    badman = limit_numeric_to_2_decimals(data_obj.badman.values.tolist())
+    diesel = limit_numeric_to_2_decimals(data_obj.diesel.values.tolist())
+    electric = limit_numeric_to_2_decimals(data_obj.electric.values.tolist())
 
     # Convert fastest lap times to JSON
     global fast_lap_json
@@ -53,12 +59,14 @@ def index():
 
     print(fast_lap_json)  # Debugging output
 
-    return render_template('Website_V1.0.html', 
+    return render_template('index.html', 
                            averages=avg_lap, 
                            top_laps=fast_lap, 
                            slow_lap=slow_lap, 
                            badman_lap=badman,
-                           diesel=diesel)
+                           diesel=diesel,
+                           electric=electric)
+
 
 @socketio.on('connect')
 def handle_connect():
