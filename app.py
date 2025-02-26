@@ -1,7 +1,7 @@
 from flask import Flask, render_template
 from flask_socketio import SocketIO
 import pandas as pd
-from data_analysis import DataAnalysis
+from data_analysis_classes import DataAnalysis
 import json
 import time
 
