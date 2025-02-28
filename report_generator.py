@@ -8,7 +8,7 @@ from datetime import datetime
 from scipy.ndimage import gaussian_filter1d
 import urllib
 
-# from utils.analysis import remove_initial_lap, preprocess_lap_times
+from data_analysis import remove_initial_lap, preprocess_lap_times
 
 # ------------------------------------------------------------
 # 1. Load & Preprocess Data
@@ -26,8 +26,8 @@ def load_and_preprocess_data(csv_file_path):
     # Drop rows with missing critical values (e.g., transponder_id or loop)
     df.dropna(subset=['transponder_id', 'loop', 'utcTimestamp'], inplace=True)
 
-    # df = remove_initial_lap(df)
-    # df = preprocess_lap_times(df)
+    df = remove_initial_lap(df)
+    df = preprocess_lap_times(df)
     
     # Sort by transponder and timestamp
     # df.sort_values(by=['transponder_id', 'timestamp'], inplace=True)
@@ -421,7 +421,27 @@ def main():
     df_filtered = df[df['loop'] == 'L01'] if 'loop' in df.columns else df
 
     # Step 3 & 4: Generate reports for all riders
-    for idx, row in summary_df.iterrows():
+    all_reports = False
+    if all_reports:
+        for idx, row in summary_df.iterrows():
+            rider_id = row['transponder_id']
+            rider_df = df_filtered[df_filtered['transponder_id'] == rider_id]
+            # Generate plot
+            plot_path_lap_times = generate_lap_time_plot(rider_id, rider_df, group_stats, output_folder='report/plots')
+            plot_path_fastest_lap = generate_fastest_lap_comparison_plot(rider_id, summary_df, output_folder='report/plots')
+            # For the Speed Over Time plot, pass the ENTIRE df_filtered,
+            # so we can show the current rider vs. the rest in gray.
+            plot_path_speed_time = generate_speed_over_time_plot(
+                rider_id, df_filtered, track_length=250, output_folder='report/plots'
+            )
+            # Create PDF
+            create_rider_pdf_report(rider_id, row, group_stats, plot_path_lap_times,
+                                    plot_path_fastest_lap, plot_path_speed_time, output_dir='report',
+                                    event_name='IDLab Test Event')
+    else:
+        # Structure: ['transponder_id','total_laps','total_distance_m','fastest_lap_s','avg_lap_time_s']
+        # row[0] gives you the first row, i.e. the first cyclist and his stats
+        row = summary_df.iloc[0]
         rider_id = row['transponder_id']
         rider_df = df_filtered[df_filtered['transponder_id'] == rider_id]
         # Generate plot
@@ -436,6 +456,7 @@ def main():
         create_rider_pdf_report(rider_id, row, group_stats, plot_path_lap_times,
                                 plot_path_fastest_lap, plot_path_speed_time, output_dir='report',
                                 event_name='IDLab Test Event')
+
     
     print("Report generation complete.")
 
