@@ -8,7 +8,7 @@ from datetime import datetime
 from scipy.ndimage import gaussian_filter1d
 import urllib
 
-from utils.analysis import remove_initial_lap, preprocess_lap_times
+# from utils.analysis import remove_initial_lap, preprocess_lap_times
 
 # ------------------------------------------------------------
 # 1. Load & Preprocess Data
@@ -26,8 +26,8 @@ def load_and_preprocess_data(csv_file_path):
     # Drop rows with missing critical values (e.g., transponder_id or loop)
     df.dropna(subset=['transponder_id', 'loop', 'utcTimestamp'], inplace=True)
 
-    df = remove_initial_lap(df)
-    df = preprocess_lap_times(df)
+    # df = remove_initial_lap(df)
+    # df = preprocess_lap_times(df)
     
     # Sort by transponder and timestamp
     # df.sort_values(by=['transponder_id', 'timestamp'], inplace=True)
@@ -137,6 +137,7 @@ def generate_lap_time_plot(rider_id, rider_df, group_stats, output_folder='plots
     
     return plot_filename
 
+# I like this PLOT --> do not need to change in my opinion
 def generate_fastest_lap_comparison_plot(rider_id, summary_df, output_folder='plots'):
     """
     Creates a bar chart showing each rider's fastest lap time, 
@@ -270,7 +271,7 @@ class PDFReport(FPDF):
         # Calculate positions for logos
         logos = [
             'media/logo-sport-vlaanderen.png',
-            'media/logo-cycling-vlaanderen-horizontal.png',
+            'media/logo-cycling-vlaanderen-horizontal.jpg',
             'media/logo-belgian-cycling.png'
         ]
         # Compute logo width for height 10
@@ -313,7 +314,7 @@ def create_rider_pdf_report(
     # -- Add Group/Event Logo --
     logo_width = 60
     pdf.set_x((pdf.w - logo_width) / 2)
-    pdf.image('media/logo-idlab.png', w=logo_width)
+    pdf.image('media/logo-idlab.jpg', w=logo_width)
     pdf.ln(5)  
 
     pdf.set_font('Arial', 'B', 14)
@@ -393,6 +394,7 @@ def create_rider_pdf_report(
 # 5. Main Execution
 # ------------------------------------------------------------
 def main():
+    # Read in the correct data file 
     csv_file_path = 'RecordingContext_20250214.csv'
 
     logoURL = "https://idlab.ugent.be/img/logo.png"
@@ -413,6 +415,7 @@ def main():
     df = load_and_preprocess_data(csv_file_path)
     
     # Step 2: Compute metrics
+    # TO DO: add our own metrics --> Diesel Engine, Electrical Engine etc. 
     summary_df, group_stats = compute_metrics(df, track_length=250, loop_filter='L01')
     
     df_filtered = df[df['loop'] == 'L01'] if 'loop' in df.columns else df
