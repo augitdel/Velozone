@@ -7,8 +7,7 @@ from fpdf import FPDF
 from datetime import datetime
 from scipy.ndimage import gaussian_filter1d
 import urllib
-
-from data_analysis import remove_initial_lap, preprocess_lap_times
+from data_analysis import remove_initial_lap, preprocess_lap_times, diesel_engine_df
 
 # ------------------------------------------------------------
 # 1. Load & Preprocess Data
@@ -35,7 +34,7 @@ def load_and_preprocess_data(csv_file_path):
     return df
 
 # ------------------------------------------------------------
-# 2. Compute Key Metrics
+# 2. Compute Key Metrics for each rider
 # ------------------------------------------------------------
 def compute_metrics(df, track_length=250, loop_filter='L01'):
     """
@@ -44,6 +43,7 @@ def compute_metrics(df, track_length=250, loop_filter='L01'):
       - total distance (meters)
       - fastest lap time (s)
       - avg lap time (s)
+
     Also computes group-level averages.
     
     If the dataset includes lapTimes for multiple loops 
@@ -56,7 +56,7 @@ def compute_metrics(df, track_length=250, loop_filter='L01'):
         df_filtered = df.copy()
     
     summary_list = []
-    
+    # Group by transponder_id and run over all of the riders
     for rider_id, rider_df in df_filtered.groupby('transponder_id'):
         total_laps = len(rider_df)
         total_distance = total_laps * track_length
@@ -85,7 +85,26 @@ def compute_metrics(df, track_length=250, loop_filter='L01'):
     return summary_df, group_stats
 
 # ------------------------------------------------------------
-# 3. Generate Time-Series Plot
+# 3. Statistics from students
+# ------------------------------------------------------------
+def general_stats(df, track_length=250, loop_filter='L01'):
+    # If needed, filter only the loop that signifies a completed lap.
+    if loop_filter and 'loop' in df.columns:
+        df_filtered = df[df['loop'] == loop_filter].copy()
+    else:
+        df_filtered = df.copy()
+
+    # Badman
+    badman = df_filtered.loc[df_filtered['lapTime'].idxmax(),['transponder_id','lapTime']].to_frame().T
+    badman.columns = ['transponder_id', 'worst_lap_time']
+
+    # Diesel Engine
+    diesel_engine = diesel_engine_df(df_filtered)
+
+    return badman, diesel_engine
+
+# ------------------------------------------------------------
+# 4. Generate Time-Series Plot
 # ------------------------------------------------------------
 def generate_lap_time_plot(rider_id, rider_df, group_stats, output_folder='plots'):
     """
@@ -262,7 +281,7 @@ def generate_speed_over_time_plot(rider_id, df, track_length=250, output_folder=
     return plot_filename
 
 # ------------------------------------------------------------
-# 4. Generate PDF Report
+# 5. Generate PDF Report
 # ------------------------------------------------------------
 class PDFReport(FPDF):
     def header(self):
@@ -291,6 +310,32 @@ class PDFReport(FPDF):
         self.set_y(-15)
         self.set_font('Arial', 'I', 8)
         self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
+
+    def add_table(self, data, col_widths, headers):
+        """Adds a table to the PDF, handling multi-page tables."""
+        self.set_font("Arial", "B", 12)
+
+        # Table headers
+        for i, header in enumerate(headers):
+            self.cell(col_widths[i], 10, header, border=1, align="C")
+        self.ln()
+
+        # Table rows
+        self.set_font("Arial", "", 12)
+        for row in data:
+            # Check if there's enough space for a row, otherwise add a new page
+            if self.get_y() > 260:  # Adjust based on page margin
+                self.add_page()
+                # Re-add table headers on new page
+                self.set_font("Arial", "B", 12)
+                for i, header in enumerate(headers):
+                    self.cell(col_widths[i], 10, header, border=1, align="C")
+                self.ln()
+                self.set_font("Arial", "", 12)
+
+            for i, cell in enumerate(row):
+                self.cell(col_widths[i], 10, str(cell), border=1, align="C")
+            self.ln()
 
 def create_rider_pdf_report(
     rider_id, summary_row, group_stats, 
@@ -390,8 +435,87 @@ def create_rider_pdf_report(
     output_path = os.path.join(output_dir, f"rider_report_{rider_id}.pdf")
     pdf.output(output_path)
 
+def create_general_report(group_name,summary_df, group_stats,badman, diesel_engine, 
+    output_dir='output_reports', event_name=None, event_date=datetime.now().strftime('%Y-%m-%d')):
+    """
+    Creates a general report for the whole session of the group
+
+    Parameters:
+    -----------
+    group_name (str): Name of the group
+    summary_df (DataFrame): Summary statistics for all riders
+    group_stats (dict): Group-level statistics
+    badman (DataFrame): Dataframe containing the worst rider in the group
+    diesel_engine (DataFrame): Dataframe containing the diesel engine data for the group
+    output_dir (str): Directory where the report should be saved
+    event_name (str): Name of the event
+    event_date (str): Date of the event
+
+    Returns:
+    --------
+    Creates the report in the correct directory
+    """
+    # Generate a general report based on all rider data
+    image_width = 160
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
+    pdf = PDFReport()
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
+
+    # -- Report Title --
+    pdf.set_font('Arial', 'B', 20)
+    pdf.cell(0, 16, 'Sport.Vlaanderen - Wielercentrum Eddy Merckx', 0, 1, 'C')
+    pdf.ln(5)
+
+    # -- Add Group/Event Logo --
+    logo_width = 60
+    pdf.set_x((pdf.w - logo_width) / 2)
+    pdf.image('media/logo-idlab.jpg', w=logo_width)
+    pdf.ln(5)  
+
+    pdf.set_font('Arial', 'B', 14)
+    pdf.cell(0, 10, f'{event_name} - {event_date}', ln=True, align='C')
+    pdf.ln(5)
+    pdf.cell(0, 10, f'Summary for {group_name}', ln=True, align='C')
+    pdf.ln(5)
+
+    # -- Badman --
+    badman_id = badman.values.tolist()[0][0]
+    badman_time = badman.values.tolist()[0][1]
+    pdf.cell(0,10,f'Worst rider in the team: {badman_id} - {badman_time:.2f}s', ln=True, align='C')
+    pdf.ln(5)
+
+    # -- Diesel Engine --
+    diesel_engine_id = diesel_engine.values.tolist()[0][0]
+    diesel_engine_time = diesel_engine.values.tolist()[0][2]
+    pdf.cell(0,10,f'Most consistent rider in the team: {diesel_engine_id} - {diesel_engine_time:.2f}s', ln=True, align='C')
+    pdf.ln(5)
+
+    # -- Best average lap time
+    sorted_df = summary_df.sort_values(by ='avg_lap_time_s')
+    best_rider = sorted_df.head(1)
+    best_rider_id = best_rider.values.tolist()[0][0]
+    best_rider_time = best_rider.values.tolist()[0][4]
+    pdf.cell(0,10,f'Best rider in the team: {best_rider_id} - {best_rider_time:.2f}s', ln=True, align='C')
+    pdf.ln(5)
+    
+    # Create a table on new page
+    # Sorted_df: [transponder_id, total_laps,total_distance_m,fastest_lap_s,avg_lap_time_s]
+    sorted_df = sorted_df.reset_index(drop=True)
+    pdf.add_page()
+    pdf.add_table(sorted_df.values.tolist(),[40, 30, 40, 40, 40],['transponder_id', 'total_laps','total_distance_m','fastest_lap_s','avg_lap_time_s'])
+
+    # Save final PDF
+    output_path = os.path.join(output_dir, f"rider_report_{group_name}.pdf")
+    pdf.output(output_path)
+
+
+
 # ------------------------------------------------------------
-# 5. Main Execution
+# 6. Main Execution
 # ------------------------------------------------------------
 def main():
     # Read in the correct data file 
@@ -415,9 +539,9 @@ def main():
     df = load_and_preprocess_data(csv_file_path)
     
     # Step 2: Compute metrics
-    # TO DO: add our own metrics --> Diesel Engine, Electrical Engine etc. 
     summary_df, group_stats = compute_metrics(df, track_length=250, loop_filter='L01')
-    
+    badman, diesel_engine = general_stats(df)
+
     df_filtered = df[df['loop'] == 'L01'] if 'loop' in df.columns else df
 
     # Step 3 & 4: Generate reports for all riders
@@ -457,7 +581,8 @@ def main():
                                 plot_path_fastest_lap, plot_path_speed_time, output_dir='report',
                                 event_name='IDLab Test Event')
 
-    
+        create_general_report('UGent',summary_df,group_stats,badman,diesel_engine,output_dir='report',
+                              event_name='IDLab Test Event')
     print("Report generation complete.")
 
 if __name__ == '__main__':

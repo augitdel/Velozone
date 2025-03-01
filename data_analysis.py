@@ -12,7 +12,6 @@ def load_file(file):
         df = pd.read_csv(file, delimiter=',', on_bad_lines='skip')
     except:
         df = pd.read_csv(file, delimiter=';', on_bad_lines='skip')
-    
     return df
 
 
@@ -103,7 +102,6 @@ def badman(file):
     badman = df_sorted.loc[df_sorted['lapTime'].idxmax(), ['transponder_id', 'lapTime']].to_frame().T
     badman.columns = ['transponder_id', 'worst_lap_time']
     
-    
     return slowest_lap_time, badman
 
 def diesel_engine(file, minimum_incalculated=10, window=20):
@@ -158,10 +156,49 @@ def diesel_engine(file, minimum_incalculated=10, window=20):
     
     return diesel_engine
 
-# print(f'diesel_engine=\n {diesel_engine("RecordingContext_20250214.csv")}')
-# print(average_lap_time("RecordingContext_20250214.csv").values.tolist())
 
+def diesel_engine_df(df, minimum_incalculated=10, window=20):
+    """
+    Identify the transponder with the most consistent lap times ("Diesel Engine") among those with the lowest rolling variability.
+    
+    Parameters:
+        df (DataFrame): The file path of the CSV recording lap time data.
+    
+    Returns:
+        DataFrame: A DataFrame containing the transponder ID and consistency metrics.
 
+    Disclaimer:
+        function made with the help of AI
+    """    
+    # Convert 'lapTime' to numeric values for calculation
+    df['lapTime'] = pd.to_numeric(df['lapTime'])
+    
+    # Exclude transponders with fewer than minimum_incalculated laps
+    df_filtered = df.groupby('transponder_id').filter(lambda x: len(x) > minimum_incalculated)
+    
+    # Calculate the standard deviation (σ) and mean (μ) of lap times for each transponder
+    stats = df_filtered.groupby('transponder_id')['lapTime'].agg(['std', 'mean']).reset_index()
+    
+    # Compute Coefficient of Variation (CV = std / mean), handling potential division by zero
+    stats['CV'] = stats['std'] / stats['mean']
+    
+    # Calculate rolling standard deviation to measure pacing consistency over time
+    df_filtered['rolling_std'] = df_filtered.groupby('transponder_id')['lapTime'].transform(lambda x: x.rolling(window=window, min_periods=1).std())
+    
+    # Compute the average rolling standard deviation for each transponder
+    rolling_consistency = df_filtered.groupby('transponder_id')['rolling_std'].mean().reset_index()
+    rolling_consistency.columns = ['transponder_id', 'rolling_variability']
+    
+    # Merge consistency metrics
+    result = stats.merge(rolling_consistency, on='transponder_id')
+    
+    # First, select the riders with the lowest rolling variability (most stable pacing)
+    most_consistent_riders = result.nsmallest(5, 'rolling_variability')  # Selects top 5 with lowest rolling variability
+    
+    # Then, from this subset, select the rider with the lowest coefficient of variation (CV)
+    diesel_engine = most_consistent_riders.nsmallest(1, 'CV')
+    
+    return diesel_engine
 
 def preprocess_lap_times(df):
     """Operations:
