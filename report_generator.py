@@ -302,39 +302,34 @@ class PDFReport(FPDF):
             self.image(logo, x=x_position, y=10, h=10)
 
         self.set_y(10 + logo_width)
+        self.ln()
 
-        # self.ln()
-    
     def footer(self):
-        # Page number at bottom
+        """Adds a footer with page number and a professional touch."""
         self.set_y(-15)
         self.set_font('Arial', 'I', 8)
         self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
 
     def add_table(self, data, col_widths, headers):
-        """Adds a table to the PDF, handling multi-page tables."""
+        """Adds a stylized table with alternating row colors and blue theme."""
         self.set_font("Arial", "B", 12)
-
-        # Table headers
+        self.set_fill_color(0, 102, 204)  # Blue header
+        self.set_text_color(255)
+        
         for i, header in enumerate(headers):
-            self.cell(col_widths[i], 10, header, border=1, align="C")
+            self.cell(col_widths[i], 10, header, border=1, align="C", fill=True)
         self.ln()
 
-        # Table rows
-        self.set_font("Arial", "", 12)
-        for row in data:
-            # Check if there's enough space for a row, otherwise add a new page
-            if self.get_y() > 260:  # Adjust based on page margin
-                self.add_page()
-                # Re-add table headers on new page
-                self.set_font("Arial", "B", 12)
-                for i, header in enumerate(headers):
-                    self.cell(col_widths[i], 10, header, border=1, align="C")
-                self.ln()
-                self.set_font("Arial", "", 12)
-
-            for i, cell in enumerate(row):
-                self.cell(col_widths[i], 10, str(cell), border=1, align="C")
+        self.set_font("Arial", "", 10)
+        self.set_text_color(0)
+        
+        for i, row in enumerate(data):
+            fill = i % 2 == 0  # Alternate row colors
+            if fill:
+                self.set_fill_color(173, 216, 230)  # Light blue background
+            for j, cell in enumerate(row):
+                formatted_cell = f'{cell:.2f}' if isinstance(cell, float) else str(cell)
+                self.cell(col_widths[j], 8, formatted_cell, border=1, align="C", fill=fill)
             self.ln()
 
 def create_rider_pdf_report(
@@ -455,7 +450,6 @@ def create_general_report(group_name,summary_df, group_stats,badman, diesel_engi
     --------
     Creates the report in the correct directory
     """
-    # Generate a general report based on all rider data
     image_width = 160
 
     if not os.path.exists(output_dir):
@@ -464,51 +458,71 @@ def create_general_report(group_name,summary_df, group_stats,badman, diesel_engi
     pdf = PDFReport()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
-
-    # -- Report Title --
+    
     pdf.set_font('Arial', 'B', 20)
     pdf.cell(0, 16, 'Sport.Vlaanderen - Wielercentrum Eddy Merckx', 0, 1, 'C')
     pdf.ln(5)
-
-    # -- Add Group/Event Logo --
-    logo_width = 60
-    pdf.set_x((pdf.w - logo_width) / 2)
-    pdf.image('media/logo-idlab.jpg', w=logo_width)
-    pdf.ln(5)  
-
+    
+    pdf.image('media/logo-idlab.jpg', x=(pdf.w - 60) / 2, w=60)
+    pdf.ln(5)
+    
     pdf.set_font('Arial', 'B', 14)
     pdf.cell(0, 10, f'{event_name} - {event_date}', ln=True, align='C')
     pdf.ln(5)
     pdf.cell(0, 10, f'Summary for {group_name}', ln=True, align='C')
-    pdf.ln(5)
+    pdf.ln(10)
 
-    # -- Badman --
-    badman_id = badman.values.tolist()[0][0]
-    badman_time = badman.values.tolist()[0][1]
-    pdf.cell(0,10,f'Worst rider in the team: {badman_id} - {badman_time:.2f}s', ln=True, align='C')
-    pdf.ln(5)
-
-    # -- Diesel Engine --
-    diesel_engine_id = diesel_engine.values.tolist()[0][0]
-    diesel_engine_time = diesel_engine.values.tolist()[0][2]
-    pdf.cell(0,10,f'Most consistent rider in the team: {diesel_engine_id} - {diesel_engine_time:.2f}s', ln=True, align='C')
-    pdf.ln(5)
-
-    # -- Best average lap time
-    sorted_df = summary_df.sort_values(by ='avg_lap_time_s')
-    best_rider = sorted_df.head(1)
-    best_rider_id = best_rider.values.tolist()[0][0]
-    best_rider_time = best_rider.values.tolist()[0][4]
-    pdf.cell(0,10,f'Best rider in the team: {best_rider_id} - {best_rider_time:.2f}s', ln=True, align='C')
-    pdf.ln(5)
+    pdf.set_font('Arial', '', 12)
+    pdf.set_fill_color(200, 220, 255)  # Light blue for key statistics
+    pdf.cell(0, 8, f'Worst lap: {badman.iloc[0,0]} - {badman.iloc[0,1]:.2f}s', ln=True, align='C', fill=True)
+    pdf.ln(4)
+    pdf.cell(0, 8, f'Most Consistent Rider: {diesel_engine.iloc[0,0]} - {diesel_engine.iloc[0,2]:.2f}s', ln=True, align='C', fill=True)
+    pdf.ln(4)
+    best_rider = summary_df.nsmallest(1, 'avg_lap_time_s')
+    pdf.cell(0, 8, f'Best Rider: {best_rider.iloc[0,0]} - {best_rider.iloc[0,4]:.2f}s - {best_rider.iloc[0,1]} laps', ln=True, align='C', fill=True)
+    pdf.ln(10)
     
-    # Create a table on new page
-    # Sorted_df: [transponder_id, total_laps,total_distance_m,fastest_lap_s,avg_lap_time_s]
-    sorted_df = sorted_df.reset_index(drop=True)
-    pdf.add_page()
-    pdf.add_table(sorted_df.values.tolist(),[40, 30, 40, 40, 40],['transponder_id', 'total_laps','total_distance_m','fastest_lap_s','avg_lap_time_s'])
+    image_x = (pdf.w - image_width) / 2 # To center the plot
+    image_y = pdf.get_y()
 
-    # Save final PDF
+    # Top 3  Riders
+    top_riders = summary_df.nlargest(3,'total_laps').reset_index(drop = True)
+    pdf.set_font("Arial", "B", 14)
+    pdf.set_fill_color(0, 102, 204)  # Blue for title
+    pdf.set_text_color(0)
+    pdf.cell(0, 10, "Podium - Most Laps", ln=True, align='C', fill=True)
+    pdf.ln(10)
+    # Image of the podium
+    pdf.image('media\podium.png', x=image_x, w=image_width)
+    pdf.ln(5)
+
+    # Define text positions relative to the podium image
+    first_x = image_x + image_width / 2 - 23
+    first_y = image_y + 20   # Raise text above the first-place podium
+
+    second_x = image_x + image_width * 0.04
+    second_y = image_y + 45  # Adjust to align with second place
+
+    third_x = image_x + image_width * 0.70
+    third_y = image_y + 65  # Adjust to align with third place
+
+    # Draw rider names above the correct podium positions
+    pdf.text(first_x, first_y, f"{top_riders.iloc[0, 0]} ({top_riders.iloc[0, 1]} laps)")
+    pdf.text(second_x, second_y, f"{top_riders.iloc[1, 0]} ({top_riders.iloc[1, 1]} laps)")
+    pdf.text(third_x, third_y, f"{top_riders.iloc[2, 0]} ({top_riders.iloc[2, 1]} laps)")
+
+    # Create the table
+    sorted_by_nr_laps = summary_df.sort_values(by='total_laps', ascending=False).reset_index(drop=True)
+    sorted_by_nr_laps.insert(0, '#', range(1, len(sorted_by_nr_laps) + 1))
+    
+    pdf.add_page()
+    pdf.add_table(
+        sorted_by_nr_laps.values.tolist(),
+        [10, 35, 25, 35, 35, 35],
+        ['#', 'Transponder ID', 'Total Laps', 'Distance [m]', 'Fastest Lap [s]', 'Avg Lap Time [s]']
+    )
+    
+    # Save the file
     output_path = os.path.join(output_dir, f"rider_report_{group_name}.pdf")
     pdf.output(output_path)
 
