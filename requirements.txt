@@ -4,5 +4,5 @@ flask_socketio
 werkzeug
 flask-sqlalchemy
 Pandas
-gevent gevent-websocket
+gevent
 numpy
