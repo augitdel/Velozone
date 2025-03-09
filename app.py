@@ -5,26 +5,9 @@ from data_analysis_classes import DataAnalysis
 import json
 import time
 
-
-
 app = Flask(__name__, template_folder='frontend')
 socketio = SocketIO(app)
 fast_lap_json = json.dumps([])  # Placeholder JSON data
-
-# We don't need this code anymore
-# def get_lap_times(file):
-#     """
-#     Function that calculates the fastest lap and average lap time for each transponder
-#     """
-#     DA = DataAnalysis(file, debug=True)
-#     fastest_lap_times = data_analysis.fastest_lap(file)
-#     average_lap_times = data_analysis.average_lap_time(file)
-
-#     # Merge data for display
-#     lap_times = pd.merge(fastest_lap_times, average_lap_times, on='transponder_id')
-#     lap_times.columns = ['transponder_id', 'fastest_lap_time', 'average_lap_time']
-    
-#     return lap_times, fastest_lap_times, average_lap_times
 
 def limit_numeric_to_2_decimals(data):
     # Function to limit numeric values to 2 decimal places
@@ -48,6 +31,7 @@ def index():
     # Convert DataFrames to lists for rendering
     avg_lap = limit_numeric_to_2_decimals(data_obj.average_lap.values.tolist())
     fast_lap = limit_numeric_to_2_decimals(data_obj.fastest_lap.head(5).values.tolist()) 
+    fast_lap = sorted(fast_lap)
     slow_lap = limit_numeric_to_2_decimals(data_obj.slowest_lap.values.tolist())
     badman = limit_numeric_to_2_decimals(data_obj.badman.values.tolist())
     diesel = limit_numeric_to_2_decimals(data_obj.diesel.values.tolist())

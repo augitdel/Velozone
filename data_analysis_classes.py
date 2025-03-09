@@ -1,8 +1,12 @@
 # Import necessary libraries
 import pandas as pd
 from flask import Flask
+from data_analysis import remove_initial_lap, preprocess_lap_times
 
 app = Flask(__name__)
+
+MIN_LAP_TIME = 13
+MAX_LAP_TIME = 50
 
 def load_file(file):
     try:
@@ -43,7 +47,19 @@ class DataAnalysis:
         self.electric_motor()
 
     def cleanup(self):
+        # Convert timestamps to datetime
+        self.file['utcTimestamp'] = pd.to_numeric(self.file['utcTimestamp'], errors='coerce')
+        self.file.drop_duplicates(inplace = True)
+        self.file.dropna(subset=['transponder_id', 'loop', 'utcTimestamp'], inplace=True)
+        self.file = remove_initial_lap(self.file)
+        self.file = preprocess_lap_times(self.file)
         self.file = self.file.sort_values(by=['transponder_id','utcTime'])
+
+        self.newlines['utcTimestamp'] = pd.to_numeric(self.newlines['utcTimestamp'], errors='coerce')
+        self.newlines.drop_duplicates(inplace = True)
+        self.newlines.dropna(subset=['transponder_id', 'loop', 'utcTimestamp'], inplace=True)
+        self.newlines = remove_initial_lap(self.newlines)
+        self.newlines = preprocess_lap_times(self.newlines)
         self.newlines = self.newlines.sort_values(by=['transponder_id','utcTime'])
 
     def update(self, changed_file):
