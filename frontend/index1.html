@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Race Stats</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(to bottom, #a7c1e4, #3b5b7e);
+            font-family: 'Arial', sans-serif;
+            color: white;
+            text-align: center;
+        }
+    
+        .title {
+            margin-top: 20px;
+            font-size: 4em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background-color: whitesmoke;
+            color: blue;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+    
+        .container {
+            display: flex;
+            width: 95%;
+            height: 85vh;
+            gap: 5%;
+            overflow: hidden;
+            justify-content: center;
+        }
+    
+        .container_left {
+            flex: 2; /* Takes up 2/3 of space */
+            width: 100%;
+        }
+    
+        .container_right {
+            flex: 0.75; /* Takes up 1/3 of space */
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.2); /* Slightly different color */
+            padding: 15px; /* Reduced padding */
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border: 2px solid #fff;
+            width: 90%; /* Reduced width */
+            height: 90%;
+        }
+
+        .performances h2 {
+            font-size: 1.5em; /* Smaller font size */
+            margin-bottom: 10px;
+        }
+
+        .performances p, .performances li {
+            font-size: 1.2em; /* Smaller font size */
+            padding: 8px; /* Smaller padding */
+            font-weight: bold;
+        }
+    
+        .average-times {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 10px;
+            border-radius: 15px;
+            box-shadow: 0 6px 12px rgba(255, 255, 255, 0.3);
+            border: 4px solid white;
+            width: 100%;
+            padding-bottom: 2%;
+            display: flex;
+            flex-direction: column;
+            height: 90%;
+            min-height: 100px;
+        }
+    
+        .average-times h2 {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #fff;
+        }
+        .column {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+        .columns {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+    
+        .subcolumn {
+            flex: 1;
+            width: 45%;
+        }
+    
+        .subcolumn ol {
+            padding: 0;
+            list-style-position: inside;
+        }
+    
+        .subcolumn li {
+            font-size: 2em;
+            padding: 10px;
+            font-weight: bold;
+        }
+    
+        .box {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2);
+            border: 3px solid white;
+        }
+    
+        .performances h2 {
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+    
+        .performances p, .performances li {
+            font-size: 1.2em;
+            padding: 12px;
+            font-weight: bold;
+        }
+    
+        .logo-container {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+        }
+    
+        .logo-container img {
+            max-height: 80px;
+            opacity: 0.9;
+        }
+    
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+    
+            .columns {
+                flex-direction: column;
+            }
+        }
+    </style>   
+</head>
+<body>
+    <h1 class="title">Race Leaderboard - Velozone</h1>
+    <div class="container">
+        <div class="container_left">
+            <div class="average-times">
+                <h2>Average Lap Time</h2>
+                <div class="column">
+                    <div class="subcolumn">
+                        <ol>
+                            {% for item in averages[:5] %}
+                            <li>{{ item[0] }} -- {{ item[1] }}s</li>
+                            {% endfor %}
+                        </ol>
+                    </div>
+                    <div class="subcolumn">
+                        <ol start="6">
+                            {% for item in averages[5:10] %}
+                            <li>{{ item[0] }} -- {{ item[1] }}s</li>
+                            {% endfor %}
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container_right">
+            <div class="performances">
+                <div class="top-laps">
+                    <h2>Top 5 Fastest Laps</h2>
+                    <ol>
+                        {% for lap in top_laps %}
+                        <li>{{ lap[0] }} -- {{ lap[1] }}s</li>
+                        {% endfor %}
+                    </ol>
+                </div>
+
+                <div class="worst-lap">
+                    <h2>Bad-man &#x1F987;</h2>
+                    <center>
+                        <p>{{ badman_lap[0][0] }} -- {{ badman_lap[0][1] }}s</p>
+                    </center>
+                </div>
+
+                <div class="diesel-engine">
+                    <h2>Diesel Engine</h2>
+                    <center>
+                        <p>{{ diesel[0][0] }} -- {{ diesel[0][2] }}s</p>
+                    </center>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- University Logo (Bottom Left) -->
+    <div class="logo-container">
+        <img src="static/img/university_logo.png" alt="University Logo" style="width: 200%; height: 200%; padding-bottom: 0%;padding-left: 0%;">
+    </div>
+    <!-- <script>
+        setTimeout(function() {
+            window.location.href = '/index2';
+        }, 10000);
+    </script> -->
+</body>
+</html>

@@ -21,8 +21,38 @@ def limit_numeric_to_2_decimals(data):
         return data
 
 @app.route('/')
-@app.route('/')
-def index():
+def index1():
+    fileName = 'RecordingContext_20250214.csv'
+    
+    # Use the DataAnalysis class instance
+    data_obj = DataAnalysis(fileName, debug=True)
+
+    # Convert DataFrames to lists for rendering
+    avg_lap = limit_numeric_to_2_decimals(data_obj.average_lap.values.tolist())
+    fast_lap = limit_numeric_to_2_decimals(data_obj.fastest_lap.head(5).values.tolist()) 
+    fast_lap = sorted(fast_lap)
+    print(fast_lap)
+    slow_lap = limit_numeric_to_2_decimals(data_obj.slowest_lap.values.tolist())
+    badman = limit_numeric_to_2_decimals(data_obj.badman.values.tolist())
+    diesel = limit_numeric_to_2_decimals(data_obj.diesel.values.tolist())
+    electric = limit_numeric_to_2_decimals(data_obj.electric.values.tolist())
+
+    # Convert fastest lap times to JSON
+    global fast_lap_json
+    fast_lap_json = json.dumps(fast_lap, indent=4)
+
+    print(fast_lap_json)  # Debugging output
+
+    return render_template('index1.html', 
+                           averages=avg_lap, 
+                           top_laps=fast_lap, 
+                           slow_lap=slow_lap, 
+                           badman_lap=badman,
+                           diesel=diesel,
+                           electric=electric)
+@app.route('/index2')
+def index2():
+    print('Rendering index2')
     fileName = 'RecordingContext_20250214.csv'
     
     # Use the DataAnalysis class instance
@@ -43,7 +73,7 @@ def index():
 
     print(fast_lap_json)  # Debugging output
 
-    return render_template('index.html', 
+    return render_template('index2.html', 
                            averages=avg_lap, 
                            top_laps=fast_lap, 
                            slow_lap=slow_lap, 
