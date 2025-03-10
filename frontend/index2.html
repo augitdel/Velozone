@@ -3,104 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/styles.css') }}">
     <title>Race Stats</title>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            background: linear-gradient(to bottom, #a7c1e4, #3b5b7e);
-            font-family: 'Arial', sans-serif;
-            color: white;
-            text-align: center;
-        }
-    
-        .title {
-            margin-top: 20px;
-            font-size: 4em; /* Increased font size */
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            background-color: whitesmoke;
-            color: blue;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        }
-    
-        .container {
-            display: flex;
-            width: 95%;
-            height: 85vh;
-            gap: 2%;
-            overflow: hidden;
-        }
-    
-        .container_left, .container_right {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            gap: 10px;
-        }
-    
-        /* Emphasized Average Times Section */
-        .average-times {
-            background: rgba(255, 255, 255, 0.3);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 6px 12px rgba(255, 255, 255, 0.3);
-            border: 4px solid white;
-            width: 150%;
-            max-width: 800px;
-            margin: auto;
-        }
-    
-        .average-times h2 {
-            font-size: 2.5em;
-            font-weight: bold;
-            color: #fff;
-        }
-    
-        .subcolumn li {
-            font-size: 2em; /* Increased list item font size */
-            padding: 12px;
-            font-weight: bold;
-        }
-    
-        .performances h2 {
-            font-size: 2em;
-            margin-bottom: 15px;
-        }
-    
-        .performances p, .performances li {
-            font-size: 1.8em;
-            padding: 12px;
-            font-weight: bold;
-        }
-    
-        /* University Logo Styling */
-        .logo-container {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-        }
-    
-        .logo-container img {
-            max-height: 80px;
-            opacity: 0.9;
-        }
-    
-        /* Responsive Adjustments */
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-        }
-    </style>
     
 </head>
 <body>
@@ -111,7 +15,7 @@
                 <h2>Average Lap Time</h2>
                 <div class="column">
                     <div class="subcolumn">
-                        <ol start="11">
+                        <ol start = 11>
                             {% for item in averages[10:15] %}
                             <li>{{ item[0] }} -- {{ item[1] }}s</li>
                             {% endfor %}
@@ -127,7 +31,6 @@
                 </div>
             </div>
         </div>
-        
         <div class="container_right">
             <div class="performances">
                 <div class="top-laps">
@@ -157,13 +60,18 @@
     </div>
 
     <!-- University Logo (Bottom Left) -->
-    <div class="logo-container">
-        <img src="static/img/university_logo.png" alt="University Logo" style="width: 200%; height: 200%; padding-bottom: 0%;padding-left: 0%;">
+    <div class = "logo-wrapper">
+        <div class="logo-container">
+            <img src="static/img/university_logo.png" alt="University Logo">
+        </div>
+        <div class="logo-container">
+            <img src="static/img/logo_faculty.png" alt="University Logo">
+        </div>    
     </div>
-    <!-- <script>
+    <script>
         setTimeout(function() {
             window.location.href = '/';
-        }, 10000);
-    </script> -->
+        }, 2000);
+    </script>
 </body>
 </html>
