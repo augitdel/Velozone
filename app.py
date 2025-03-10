@@ -29,9 +29,8 @@ def index1():
 
     # Convert DataFrames to lists for rendering
     avg_lap = limit_numeric_to_2_decimals(data_obj.average_lap.values.tolist())
-    fast_lap = limit_numeric_to_2_decimals(data_obj.fastest_lap.head(5).values.tolist()) 
-    fast_lap = sorted(fast_lap)
-    print(fast_lap)
+    print(data_obj.fastest_lap)
+    fast_lap = limit_numeric_to_2_decimals(data_obj.fastest_lap.sort_values(by='fastest_lap_time').head(5).values.tolist()) 
     slow_lap = limit_numeric_to_2_decimals(data_obj.slowest_lap.values.tolist())
     badman = limit_numeric_to_2_decimals(data_obj.badman.values.tolist())
     diesel = limit_numeric_to_2_decimals(data_obj.diesel.values.tolist())
@@ -60,8 +59,7 @@ def index2():
 
     # Convert DataFrames to lists for rendering
     avg_lap = limit_numeric_to_2_decimals(data_obj.average_lap.values.tolist())
-    fast_lap = limit_numeric_to_2_decimals(data_obj.fastest_lap.head(5).values.tolist()) 
-    fast_lap = sorted(fast_lap)
+    fast_lap = limit_numeric_to_2_decimals(data_obj.fastest_lap.sort_values(by='fastest_lap_time').head(5).values.tolist()) 
     slow_lap = limit_numeric_to_2_decimals(data_obj.slowest_lap.values.tolist())
     badman = limit_numeric_to_2_decimals(data_obj.badman.values.tolist())
     diesel = limit_numeric_to_2_decimals(data_obj.diesel.values.tolist())

@@ -6,3 +6,4 @@ flask-sqlalchemy
 Pandas
 gevent
 numpy
+supabase
