@@ -27,7 +27,7 @@ body {
 .container {
     display: flex;
     width: 95%;
-    height: 85vh;
+    height: 75%;
     gap: 5%;
     overflow: hidden;
     justify-content: center;

@@ -22,7 +22,7 @@
                         </ol>
                     </div>
                     <div class="subcolumn">
-                        <ol start="6">
+                        <ol start=6>
                             {% for item in averages[5:10] %}
                             <li>{{ item[0] }} -- {{ item[1] }}s</li>
                             {% endfor %}
@@ -60,20 +60,12 @@
     </div>
 
     <!-- University Logo (Bottom Left) -->
-    <div class = "logo-wrapper">
-        <div class="logo-container">
-            <img src="static/img/university_logo.png" alt="University Logo" >
-        </div>
-        <div class="logo-container">
-            <img src="static/img/logo_faculty.png" alt="University Logo" >
-        </div>    
+    <!-- Updated logo paths -->
+    <div class="logo-container">
+        <img src="{{ url_for('static', filename='img/university_logo.png') }}" alt="University Logo">
     </div>
-
-    
-    <script>
-        setTimeout(function() {
-            window.location.href = '/index2';
-        }, 2000);
-    </script>
+    <div class="logo-container">
+        <img src="{{ url_for('static', filename='img/logo_faculty.png') }}" alt="Faculty Logo">
+    </div>
 </body>
 </html>

@@ -23,13 +23,14 @@ def remove_outliers(df: pd.DataFrame):
     return df
 
 class DataAnalysis:
-    def __init__(self, new_file, debug=False):
+    def __init__(self, new_file, debug=True):
         self.file = load_file(new_file)     # Working fine
         self.newlines = load_file(new_file)      
-        self.cleanup()
-        if debug:
-            print(self.file.head())
+        
+        # if debug:
+        #     print(self.file.head())
         self.debug = debug
+        self.cleanup()
 
         # Dataframes that are used to store the important parameters for the screen
         self.average_lap = pd.DataFrame()
@@ -51,16 +52,16 @@ class DataAnalysis:
         self.file['utcTimestamp'] = pd.to_numeric(self.file['utcTimestamp'], errors='coerce')
         self.file.drop_duplicates(inplace = True)
         self.file.dropna(subset=['transponder_id', 'loop', 'utcTimestamp'], inplace=True)
-        self.file = remove_initial_lap(self.file)
         self.file = preprocess_lap_times(self.file)
         self.file = self.file.sort_values(by=['transponder_id','utcTime'])
 
         self.newlines['utcTimestamp'] = pd.to_numeric(self.newlines['utcTimestamp'], errors='coerce')
         self.newlines.drop_duplicates(inplace = True)
         self.newlines.dropna(subset=['transponder_id', 'loop', 'utcTimestamp'], inplace=True)
-        self.newlines = remove_initial_lap(self.newlines)
         self.newlines = preprocess_lap_times(self.newlines)
         self.newlines = self.newlines.sort_values(by=['transponder_id','utcTime'])
+        if self.debug:
+            print('cleanup done')
 
     def update(self, changed_file):
         # Contains the new datarows
@@ -76,6 +77,8 @@ class DataAnalysis:
         self.find_badman()
         self.diesel_engine()
         self.electric_motor()
+        if self.debug:
+            print('update done')
     
     def average_lap_time(self):
         """
@@ -96,7 +99,8 @@ class DataAnalysis:
         self.average_lap = average_lap_time.sort_values(by = 'lapTime')
         self.average_lap.columns = ['transponder_id', 'average_lap_time']
         if self.debug:
-            print(average_lap_time.head())
+            # print(average_lap_time.head())
+            print("average_lap_time done.")
     
     def fastest_lap_time(self):
         """
@@ -118,6 +122,8 @@ class DataAnalysis:
         # Calculate the fastest lap time for each transponder ID
         self.fastest_lap = df_sorted.groupby('transponder_id')['lapTime'].min().reset_index()
         self.fastest_lap.columns = ['transponder_id', 'fastest_lap_time']
+        if self.debug:
+            print("fastest_lap_time done.")
 
     def find_badman(self):
         """
@@ -140,6 +146,9 @@ class DataAnalysis:
         # Construct the BADMAN dataframe
         self.badman = df_sorted.loc[df_sorted['lapTime'].idxmax(), ['transponder_id', 'lapTime']].to_frame().T
         self.badman.columns = ['transponder_id', 'worst_lap_time']
+
+        if self.debug:
+            print("find_badman done.")
 
     
     def diesel_engine(self,minimum_incalculated = 10,window = 20):
@@ -176,6 +185,9 @@ class DataAnalysis:
         
         # Then, from this subset, select the rider with the lowest coefficient of variation (CV)
         self.diesel = most_consistent_riders.nsmallest(1, 'CV')
+
+        if self.debug:
+            print("diesel_engine done.")
     
     def electric_motor(self, window=5, lap_distance=250):
         # Filter only laps recorded at loop 'L01' for complete lap measurements
@@ -216,6 +228,9 @@ class DataAnalysis:
         
         # Identify the transponder with the absolute highest acceleration
         self.electric = peak_acceleration.nlargest(1, 'peak_acceleration')
+
+        if self.debug:
+            print("electric_motor done.")
 
 
 # TODO: 
