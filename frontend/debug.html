@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/styles.css') }}">
     <title>Velozone - Race Stats</title>
-
 </head>
 <body>
     <h1 class="title">Race Leaderboard - Velozone</h1>
@@ -60,12 +59,13 @@
     </div>
 
     <!-- University Logo (Bottom Left) -->
-    <!-- Updated logo paths -->
-    <div class="logo-container">
-        <img src="{{ url_for('static', filename='img/university_logo.png') }}" alt="University Logo">
-    </div>
-    <div class="logo-container">
-        <img src="{{ url_for('static', filename='img/logo_faculty.png') }}" alt="Faculty Logo">
+    <div class="logo-wrapper">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='img/university_logo.png') }}" alt="University Logo">
+        </div>
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='img/logo_faculty.png') }}" alt="Faculty Logo">
+        </div>
     </div>
 </body>
 </html>

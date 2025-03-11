@@ -3,7 +3,8 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
+    min-height:100vh;
+    max-height: 100vh;
     margin: 0;
     background: linear-gradient(to bottom, #a7c1e4, #3b5b7e);
     font-family: 'Arial', sans-serif;
@@ -12,7 +13,7 @@ body {
 }
 
 .title {
-    margin-top: 20px;
+    margin-top: -50px;
     font-size: 4em;
     font-weight: bold;
     text-transform: uppercase;
@@ -73,7 +74,7 @@ body {
     padding-bottom: 2%;
     display: flex;
     flex-direction: column;
-    height: 72%;
+    height: 85%;
     min-height: 100px;
 }
 
@@ -128,9 +129,8 @@ body {
     font-weight: bold;
 }
 
-/* Alter this to move the image */
 .logo-container {
-    bottom: 5px;
+    bottom: 50px;
     left: 5px;
 }
 
@@ -143,11 +143,11 @@ body {
     position: absolute;
     bottom: 20px;
     left: 20px;
-    display:flex;  /* Enables horizontal alignment */
+    display: flex;  /* Enables horizontal alignment */
     gap: 50px;  /* Adds space between logos */
     align-items: center; /* Ensures logos are aligned properly */
-    justify-content: space-between;
 }
+
 @media (max-width: 768px) {
     .container {
         flex-direction: column;
