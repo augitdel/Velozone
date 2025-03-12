@@ -4,6 +4,7 @@ import pandas as pd
 from data_analysis_classes import DataAnalysis
 import json
 import time
+import threading
 
 PER_PAGE = 10  # Number of riders per page
 
@@ -24,9 +25,7 @@ def limit_numeric_to_2_decimals(data):
 
 @app.route('/')
 def debug():
-    fileName = 'RecordingContext_20250214.csv'
-    
-    data_obj = DataAnalysis(fileName, debug=True)
+    global data_obj
 
     avg_lap = limit_numeric_to_2_decimals(data_obj.average_lap.values.tolist())
     fast_lap = limit_numeric_to_2_decimals(data_obj.fastest_lap.sort_values(by='fastest_lap_time').head(5).values.tolist())
@@ -46,16 +45,43 @@ def debug():
                            diesel=diesel,
                            electric=electric)
 
-
 @socketio.on('connect')
 def handle_connect():
     print("Client connected")
     socketio.emit('fast_lap_data', fast_lap_json)
 
-def send_fast_lap_times():
-    while True:
-        socketio.emit('fast_lap_data', fast_lap_json)
-        time.sleep(1)  # Simulate real-time updates
+def read_csv_in_chunks():
+    global data_obj
+    fileName = 'RecordingContext_20250214.csv'
+    chunk_size = 1000  # Number of lines to read per chunk
+
+    try:
+        while True:
+            for chunk in pd.read_csv(fileName, chunksize=chunk_size):
+                data_obj.update(chunk)  # Assuming DataAnalysis has an update method
+
+                # Prepare all the data to be sent
+                data_to_send = {
+                    'fastest_lap': limit_numeric_to_2_decimals(data_obj.fastest_lap.sort_values(by='fastest_lap_time').head(5).values.tolist()),
+                    'average_lap': limit_numeric_to_2_decimals(data_obj.average_lap.values.tolist()),
+                    'slow_lap': limit_numeric_to_2_decimals(data_obj.slowest_lap.values.tolist()),
+                    'badman': limit_numeric_to_2_decimals(data_obj.badman.values.tolist()),
+                    'diesel': limit_numeric_to_2_decimals(data_obj.diesel.values.tolist()),
+                    'electric': limit_numeric_to_2_decimals(data_obj.electric.values.tolist())
+                }
+
+                # Emit all the data
+                socketio.emit('update_data', json.dumps(data_to_send, indent=4))
+                time.sleep(10)  # Wait for 10 seconds before reading the next chunk
+    except KeyboardInterrupt:
+        print("CSV file reading stopped by user.")
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    initial_file = 'RecordingContext_20250214.csv'
+    data_obj = DataAnalysis(initial_file, debug=True)  # Initialize with a subset of the CSV file
+
+    try:
+        threading.Thread(target=read_csv_in_chunks).start()
+        socketio.run(app, debug=True)
+    except KeyboardInterrupt:
+        print("Application stopped by user.")

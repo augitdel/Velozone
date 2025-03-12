@@ -25,7 +25,7 @@ def load_and_preprocess_data(csv_file_path):
     # Drop rows with missing critical values (e.g., transponder_id or loop)
     df.dropna(subset=['transponder_id', 'loop', 'utcTimestamp'], inplace=True)
 
-    df = remove_initial_lap(df)
+    # df = remove_initial_lap(df)
     df = preprocess_lap_times(df)
     
     # Sort by transponder and timestamp

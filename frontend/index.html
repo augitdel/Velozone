@@ -61,11 +61,14 @@
 
     <!-- University Logo (Bottom Left) -->
     <!-- Updated logo paths -->
-    <div class="logo-container">
-        <img src="{{ url_for('static', filename='img/university_logo.png') }}" alt="University Logo">
-    </div>
-    <div class="logo-container">
-        <img src="{{ url_for('static', filename='img/logo_faculty.png') }}" alt="Faculty Logo">
+    <!-- University Logo (Bottom Left) -->
+    <div class="logo-wrapper">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='img/university_logo.png') }}" alt="University Logo">
+        </div>
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='img/logo_faculty.png') }}" alt="Faculty Logo">
+        </div>
     </div>
     <script>
         const SWITCH_INTERVAL = 5000;  

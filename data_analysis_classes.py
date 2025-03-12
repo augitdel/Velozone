@@ -24,8 +24,8 @@ def remove_outliers(df: pd.DataFrame):
 
 class DataAnalysis:
     def __init__(self, new_file, debug=True):
-        self.file = load_file(new_file)     # Working fine
-        self.newlines = load_file(new_file)      
+        self.file = pd.read_csv(new_file,nrows = 1000)     # Working fine
+        self.newlines = self.file.copy()    
         
         # if debug:
         #     print(self.file.head())
@@ -55,22 +55,24 @@ class DataAnalysis:
         self.file = preprocess_lap_times(self.file)
         self.file = self.file.sort_values(by=['transponder_id','utcTime'])
 
-        self.newlines['utcTimestamp'] = pd.to_numeric(self.newlines['utcTimestamp'], errors='coerce')
-        self.newlines.drop_duplicates(inplace = True)
-        self.newlines.dropna(subset=['transponder_id', 'loop', 'utcTimestamp'], inplace=True)
-        self.newlines = preprocess_lap_times(self.newlines)
-        self.newlines = self.newlines.sort_values(by=['transponder_id','utcTime'])
+        # self.newlines['utcTimestamp'] = pd.to_numeric(self.newlines['utcTimestamp'], errors='coerce')
+        # self.newlines.drop_duplicates(inplace = True)
+        # self.newlines.dropna(subset=['transponder_id', 'loop', 'utcTimestamp'], inplace=True)
+        # self.newlines = preprocess_lap_times(self.newlines)
+        # self.newlines = self.newlines.sort_values(by=['transponder_id','utcTime'])
         if self.debug:
             print('cleanup done')
 
     def update(self, changed_file):
         # Contains the new datarows
-        changed_file_pd = load_file(changed_file)
+        # changed_file_pd = load_file(changed_file)
+        changed_file_pd = changed_file
+
         # Concatenate the new datarows with the existing data, and drop duplicates based on transponder_id and utcTimestamp
         self.file = pd.concat([self.file, changed_file_pd]).drop_duplicates(subset=['transponder_id', 'utcTimestamp'], keep='last')
-
         self.newlines = pd.merge(changed_file_pd, self.file, how='outer', indicator=True, on=['transponder_id', 'utcTimestamp']).loc[lambda x : x['_merge']=='left_only']
-        self.cleanup()  # TODO: does the whole file needs to be cleaned up/sorted after an update, or is cleanup from the newlines enough?
+        self.cleanup()  
+        # TODO: does the whole file needs to be cleaned up/sorted after an update, or is cleanup from the newlines enough?
         # call all functions that need to be updated
         self.average_lap_time()
         self.fastest_lap_time()
@@ -101,6 +103,7 @@ class DataAnalysis:
         if self.debug:
             # print(average_lap_time.head())
             print("average_lap_time done.")
+            print(self.average_lap.head())
     
     def fastest_lap_time(self):
         """
@@ -124,6 +127,7 @@ class DataAnalysis:
         self.fastest_lap.columns = ['transponder_id', 'fastest_lap_time']
         if self.debug:
             print("fastest_lap_time done.")
+            print(self.fastest_lap.head())
 
     def find_badman(self):
         """
