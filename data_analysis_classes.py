@@ -81,6 +81,7 @@ class DataAnalysis:
         self.electric_motor()
         if self.debug:
             print('update done')
+            print('------------')
     
     def average_lap_time(self):
         """
@@ -103,7 +104,6 @@ class DataAnalysis:
         if self.debug:
             # print(average_lap_time.head())
             print("average_lap_time done.")
-            print(self.average_lap.head())
     
     def fastest_lap_time(self):
         """
@@ -127,7 +127,6 @@ class DataAnalysis:
         self.fastest_lap.columns = ['transponder_id', 'fastest_lap_time']
         if self.debug:
             print("fastest_lap_time done.")
-            print(self.fastest_lap.head())
 
     def find_badman(self):
         """
@@ -160,10 +159,10 @@ class DataAnalysis:
         df_filtered = self.file.loc[self.file['loop'] == 'L01']
         
         # Drop any rows where 'lapTime' is missing
-        df_filtered.dropna(subset=['lapTime'], inplace=True)
+        df_filtered = df_filtered.dropna(subset=['lapTime'])
         
         # Convert 'lapTime' to numeric values for calculation
-        df_filtered['lapTime'] = pd.to_numeric(df_filtered['lapTime'])
+        df_filtered.loc[:,'lapTime'] = pd.to_numeric(df_filtered['lapTime'])
         
         # Exclude transponders with fewer than minimum_incalculated laps
         df_filtered = df_filtered.groupby('transponder_id').filter(lambda x: len(x) > minimum_incalculated)
@@ -198,13 +197,13 @@ class DataAnalysis:
         df_filtered = self.file.loc[self.file['loop'] == 'L01']
         
         # Drop any rows where 'lapTime' is missing
-        df_filtered.dropna(subset=['lapTime'], inplace=True)
+        df_filtered = df_filtered.dropna(subset=['lapTime'])
         
         # Convert 'lapTime' to numeric values for calculation
-        df_filtered['lapTime'] = pd.to_numeric(df_filtered['lapTime'])
+        df_filtered.loc[:,'lapTime'] = pd.to_numeric(df_filtered['lapTime'])
         
         # Calculate lap speed (assuming lap distance is provided or normalized)
-        df_filtered['lapSpeed'] = lap_distance / df_filtered['lapTime']
+        df_filtered.loc[:,'lapSpeed'] = lap_distance / df_filtered['lapTime']
         
         # Select relevant columns and drop NaN values
         df_filtered = df_filtered[['transponder_id', 'utcTimestamp', 'lapSpeed']].dropna()

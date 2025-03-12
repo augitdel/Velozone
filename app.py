@@ -64,7 +64,7 @@ def handle_connect():
     print("Client connected")
     socketio.emit('fast_lap_data', fast_lap_json)
 
-    
+
 def read_csv_in_chunks():
     global data_obj
     fileName = 'RecordingContext_20250214.csv'
@@ -87,7 +87,7 @@ def read_csv_in_chunks():
 
                 # Emit all the data
                 socketio.emit('update_data', json.dumps(data_to_send, indent=4))
-                time.sleep(10)  # Wait for 10 seconds before reading the next chunk
+                time.sleep(1)  # Wait for 10 seconds before reading the next chunk
     except KeyboardInterrupt:
         print("CSV file reading stopped by user.")
 
@@ -97,6 +97,6 @@ if __name__ == '__main__':
 
     try:
         threading.Thread(target=read_csv_in_chunks).start()
-        socketio.run(app, debug=True)
+        socketio.run(app, debug=True,use_reloader=False)
     except KeyboardInterrupt:
         print("Application stopped by user.")
