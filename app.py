@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template
 from flask_socketio import SocketIO
 import pandas as pd
 from data_analysis_classes import DataAnalysis
