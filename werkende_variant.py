@@ -134,13 +134,14 @@ def main_loop():
         # Wachten tot de volgende fetch
         time.sleep(30)
 
-# Start de main loop in een thread
-thread = threading.Thread(target=main_loop)
-thread.start()
+if __name__ == "__main__":
+    # Start de main loop in een thread
+    thread = threading.Thread(target=main_loop)
+    thread.start()
 
-# Run de hoofdloop voor 5 minuten
-time.sleep(300)
-stop_event.set()
-thread.join()
+    # Run de hoofdloop voor 5 minuten
+    time.sleep(300)
+    stop_event.set()
+    thread.join()
 
-print("Hoofdloop beëindigd.")
+    print("Hoofdloop beëindigd.")

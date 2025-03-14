@@ -16,14 +16,14 @@
                     <div class="subcolumn">
                         <ol>
                             {% for item in averages[:5] %}
-                            <li>{{ item[0] }} -- {{ item[1] }}s</li>
+                            <li>{{ item[1] }} -- {{ item[2] }}s</li>
                             {% endfor %}
                         </ol>
                     </div>
                     <div class="subcolumn">
                         <ol start=6>
                             {% for item in averages[5:10] %}
-                            <li>{{ item[0] }} -- {{ item[1] }}s</li>
+                            <li>{{ item[1] }} -- {{ item[2] }}s</li>
                             {% endfor %}
                         </ol>
                     </div>

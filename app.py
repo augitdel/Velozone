@@ -87,7 +87,7 @@ def read_csv_in_chunks():
 
                 # Emit all the data
                 socketio.emit('update_data', json.dumps(data_to_send, indent=4))
-                time.sleep(1)  # Wait for 10 seconds before reading the next chunk
+                time.sleep(3)  # Wait for 10 seconds before reading the next chunk
     except KeyboardInterrupt:
         print("CSV file reading stopped by user.")
 

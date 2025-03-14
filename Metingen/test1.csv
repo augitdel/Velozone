@@ -1,0 +1,13 @@
+transponder_id,loop,utcTimestamp,utcTime,lapTime,lapSpeed,maxSpeed,cameraPreset,cameraPan,cameraTilt,cameraZoom,eventName,recSegmentId,trackedRider
+KS34599,L06,1741769826.692,2025-03-12 08:57:06.692000,21.11,,,,,,,Vlaamse wielerschool,,
+HG19966,L02,1741791948.386,2025-03-12 15:05:48.386000,26.614,,,,,,,Vlaamse wielerschool,,
+KF34985,L07,1741812959.835,2025-03-12 20:55:59.835000,25.166,,,,,,,Vlaamse wielerschool,,
+PP73332,L03,1741810480.611,2025-03-12 20:14:40.611000,43.87,,,,,,,Vlaamse wielerschool,,
+RW64613,L03,1741805338.279,2025-03-12 18:48:58.279000,38.419,,,,,,,Vlaamse wielerschool,,
+RR18114,L06,1741811488.684,2025-03-12 20:31:28.684000,27.622,,,,,,,Vlaamse wielerschool,,
+RZ10761,L07,1741812575.854,2025-03-12 20:49:35.854000,28.679,,,,,,,Vlaamse wielerschool,,
+FN45797,L02,1741769900.171,2025-03-12 08:58:20.171000,27.858,,,,,,,Vlaamse wielerschool,,
+NS41086,L03,1741769879.977,2025-03-12 08:57:59.977000,28.921,,,,,,,Vlaamse wielerschool,,
+TP10652,L06,1741803818.373,2025-03-12 18:23:38.373000,22.214,,,,,,,Vlaamse wielerschool,,
+SC98900,L06,1741812909.332,2025-03-12 20:55:09.332000,25.934,,,,,,,Vlaamse wielerschool,,
+CX49214,L07,1741769826.854,2025-03-12 08:57:06.854000,21.09,,,,,,,Vlaamse wielerschool,,
