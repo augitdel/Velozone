@@ -22,8 +22,8 @@ batch_size = 1000
 stop_event = threading.Event()
 tz_utc = timezone.utc
 csv_counter = 1  # Start nummering voor csv-bestanden
-utc_time_start = datetime(2025, 3, 12, 0, 0, 0, tzinfo=timezone.utc)
-utc_time_end = datetime(2025, 3, 13, 0, 0, 0, tzinfo=timezone.utc)
+utc_time_start = datetime(2025, 3, 13, 0, 0, 0, tzinfo=timezone.utc)
+utc_time_end = datetime(2025, 3, 14, 0, 0, 0, tzinfo=timezone.utc)
 rtc_time_start = int(utc_time_start.timestamp() * 1000)
 rtc_time_end = int(utc_time_end.timestamp() * 1000)
 
