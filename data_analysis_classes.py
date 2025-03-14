@@ -31,20 +31,29 @@ def generate_random_name():
     fake = Faker()
     return fake.first_name()
 
+def generate_random_name():
+    """Generate a random name."""
+    fake = Faker()
+    return fake.first_name()
+
 def load_transponder_names(transponder_ids):
     """Ensure each transponder has a name and save it to an Excel file."""
     if os.path.exists(TRANS_NAME_FILE):
-        name_df = pd.read_excel(TRANS_NAME_FILE)
+        name_df = pd.read_excel(TRANS_NAME_FILE, dtype={'transponder_id': str})
     else:
         name_df = pd.DataFrame(columns=['transponder_id', 'name'])
-
+    
+    # Convert to set for fast lookup
+    existing_ids = set(name_df['transponder_id'].astype(str))
+    print(existing_ids)
     # Ensure all transponder_ids have a name
-    existing_ids = set(name_df['transponder_id'])
-    new_entries = [{'transponder_id': tid, 'name': generate_random_name()} 
-                   for tid in transponder_ids if tid not in existing_ids]
+    new_entries = [{'transponder_id': str(tid), 'name': generate_random_name()} 
+                   for tid in transponder_ids if str(tid) not in existing_ids]
 
     if new_entries:
-        name_df = pd.concat([name_df, pd.DataFrame(new_entries)], ignore_index=True)
+        new_df = pd.DataFrame(new_entries)
+        name_df = pd.concat([name_df, new_df], ignore_index=True).drop_duplicates(subset=['transponder_id'])
+        # Save the updated file
         name_df.to_excel(TRANS_NAME_FILE, index=False)
 
     return name_df
@@ -95,11 +104,11 @@ class DataAnalysis:
 
     def update(self, changed_file):
         # Contains the new datarows
-        # changed_file_pd = load_file(changed_file)
-        changed_file_pd = changed_file
 
+        changed_file_pd = changed_file
         # Identify new transponders that were not in the original dataset
-        new_transponders = set(changed_file_pd['transponder_id']) - set(self.file['transponder_id'])
+        existing_transponders = set(self.transponder_names['transponder_id'].astype(str))  
+        new_transponders = set(changed_file_pd['transponder_id']).difference(set(existing_transponders))
         
         if new_transponders:
             print(f"New transponders detected: {new_transponders}")
@@ -170,7 +179,9 @@ class DataAnalysis:
         
         # Calculate the fastest lap time for each transponder ID
         self.fastest_lap = df_sorted.groupby('transponder_id')['lapTime'].min().reset_index()
-        self.fastest_lap.columns = ['transponder_id', 'fastest_lap_time']
+        # Merge with names
+        self.fastest_lap = self.fastest_lap.merge(self.transponder_names, on='transponder_id', how = 'inner')
+        self.fastest_lap.columns = ['transponder_id', 'fastest_lap_time', 'name']
         if self.debug:
             print("fastest_lap_time done.")
 
@@ -192,10 +203,15 @@ class DataAnalysis:
         self.slowest_lap_time = df_sorted.groupby('transponder_id')['lapTime'].max().reset_index()
         self.slowest_lap_time.columns = ['transponder_id', 'slowest_lap_time']
 
+        # Merge with names
+        self.slowest_lap_time = self.slowest_lap_time.merge(self.transponder_names, on='transponder_id', how = 'inner')
+        self.slowest_lap_time.columns = ['transponder_id', 'slowest_lap_time', 'name']
+
         # Construct the BADMAN dataframe
         self.badman = df_sorted.loc[df_sorted['lapTime'].idxmax(), ['transponder_id', 'lapTime']].to_frame().T
-        self.badman.columns = ['transponder_id', 'worst_lap_time']
-
+        # Merge the worst performer with names
+        self.badman = self.badman.merge(self.transponder_names, on='transponder_id', how = 'inner')
+        self.badman.columns = ['transponder_id', 'name', 'badman_lap_time']
         if self.debug:
             print("find_badman done.")
 
@@ -234,6 +250,9 @@ class DataAnalysis:
         
         # Then, from this subset, select the rider with the lowest coefficient of variation (CV)
         self.diesel = most_consistent_riders.nsmallest(1, 'CV')
+
+        # Merge with names
+        self.diesel = self.diesel.merge(self.transponder_names, on='transponder_id', how = 'inner')
 
         if self.debug:
             print("diesel_engine done.")
