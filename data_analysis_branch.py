@@ -56,31 +56,60 @@ def preprocess_lap_times(df):
 
 class DataAnalysis:
     def __init__(self, new_file, debug=False):
-        self.file = pd.DataFrame()
-        self.newlines = load_file(new_file)
-        self.cleanup()
+        columns_incomming_csv = ['transponder_id','loop','utcTimestamp','utcTime','lapTime','lapSpeed','maxSpeed','cameraPreset','cameraPan','cameraTilt','cameraZoom','eventName','recSegmentId','trackedRider']
+        self.file = pd.DataFrame(columns=columns_incomming_csv)
+        self.newlines = pd.DataFrame(columns=columns_incomming_csv)
 
-        self.fileL01 = self.file.loc[self.file['loop'] == 'L01']
-        self.newlinesL01 = self.newlines.loc[self.newlines['loop'] == 'L01']
+        # self.fileL01 = self.file.loc[self.file['loop'] == 'L01']
+        # self.newlinesL01 = self.newlines.loc[self.newlines['loop'] == 'L01']
 
-        self.info_per_transponder = pd.DataFrame(columns=['transponder_id', 'fastest_lap_time', 'average_lap_time', 'slowest_lap_time'])
+        self.info_per_transponder = pd.DataFrame(columns=['transponder_id', 'transponder_name', 'fastest_lap_time', 'average_lap_time', 'slowest_lap_time'])
         self.newlines_without_outliers = pd.DataFrame()
 
         self.outliers = pd.DataFrame()
 
         self.debug = debug
 
+        self.update(new_file)
+
     def cleanup(self):
         self.file.drop_duplicates(inplace = True)
-        self.newlines = self.newlines.dropna().sort_values(by=['transponder_id','utcTime'])
+        self.newlines = self.newlines.dropna(subset=['transponder_id', 'loop', 'utcTimestamp'], inplace=True).sort_values(by=['transponder_id','utcTime'])
 
-    def update(self, changed_file):
-        changed_file_pd = load_file(changed_file)
-        self.newlines = pd.merge(changed_file_pd, self.file, how='outer', indicator=True, on=['transponder_id', 'utcTimestamp']).loc[lambda x : x['_merge']=='left_only']
-        self.cleanup()  # TODO: does the whole file needs to be cleaned up/sorted after an update, or is cleanup from the newlines enough?
-        self.file = pd.concat([self.file, changed_file_pd]).drop_duplicates(subset=['transponder_id', 'utcTimestamp'], keep='last')
+    def update(self, changed_file:str):
+        """
+        Loads the changed lines from the CSV file and appends them to the existing DataFrame.
+        Then it updates the following:
+        - The transponder names
+        - The average lap time for each transponder
+        - The fastest lap time for each transponder
+        - The badman (the transponder with the highest average lap time)
+        - The diesel engine (the transponder with the lowest average lap time)
+        - The electric motor (the transponder with the highest average lap time among the electric transponders)
+
+        Parameters:
+            changed_file (str): The path to the CSV file with the changed data
+        """
+        # load the changed lines and append them to the file
+        self.newlines = preprocess_lap_times(load_file(changed_file))
+        self.file = pd.concat([self.file, self.newlines]).drop_duplicates(subset=['transponder_id', 'utcTimestamp'], keep='last')
         
+        self.cleanup()  # TODO: does the whole file needs to be cleaned up/sorted after an update, or is cleanup from the newlines enough?
+        
+        # update the transponder names if necessary
+        existing_transponders = set(self.info_per_transponder['transponder_id'].astype(str))
+        new_transponders = set(self.newlines['transponder_id']).difference(set(existing_transponders))
+
+
         # call all functions that need to be updated
+        self.average_lap_time()
+        self.fastest_lap()
+        self.badman()
+        self.diesel_engine()
+        self.electric_motor()
+
+        if self.debug:
+            print('update done\n'+'='*40)
 
 
     def average_lap_time(self):
