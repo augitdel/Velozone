@@ -9,8 +9,11 @@ import threading
 from watchdog.observers import Observer 
 from watchdog.events import FileSystemEventHandler
 from Read_supabase_data import *
+from extra_functions import remove_all_files_in_metingen
 
 PER_PAGE = 10  # Number of riders per page
+
+remove_all_files_in_metingen()
 
 app = Flask(__name__, template_folder='frontend')
 socketio = SocketIO(app)
