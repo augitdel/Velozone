@@ -55,7 +55,6 @@ def load_transponder_names(transponder_ids):
         name_df = pd.concat([name_df, new_df], ignore_index=True).drop_duplicates(subset=['transponder_id'])
         # Save the updated file
         name_df.to_excel(TRANS_NAME_FILE, index=False)
-
     return name_df
 
 class DataAnalysis:
