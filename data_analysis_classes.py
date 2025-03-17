@@ -2,11 +2,15 @@
 import pandas as pd
 from flask import Flask
 from data_analysis import remove_initial_lap, preprocess_lap_times
+from faker import Faker
+import os
+
 
 app = Flask(__name__)
 
 MIN_LAP_TIME = 13
 MAX_LAP_TIME = 50
+TRANS_NAME_FILE = "transponder_names.xlsx"
 
 def load_file(file):
     try:
@@ -22,6 +26,37 @@ def remove_outliers(df: pd.DataFrame):
     df = df[(df['lapTime'] >= (Q1 - 1.5 * IQR)) & (df['lapTime'] <= (Q3 + 1.5 * IQR))]
     return df
 
+def generate_random_name():
+    """Generate a random name."""
+    fake = Faker()
+    return fake.first_name()
+
+def generate_random_name():
+    """Generate a random name."""
+    fake = Faker()
+    return fake.first_name()
+
+def load_transponder_names(transponder_ids):
+    """Ensure each transponder has a name and save it to an Excel file."""
+    if os.path.exists(TRANS_NAME_FILE):
+        name_df = pd.read_excel(TRANS_NAME_FILE, dtype={'transponder_id': str})
+    else:
+        name_df = pd.DataFrame(columns=['transponder_id', 'name'])
+    
+    # Convert to set for fast lookup
+    existing_ids = set(name_df['transponder_id'].astype(str))
+    print(existing_ids)
+    # Ensure all transponder_ids have a name
+    new_entries = [{'transponder_id': str(tid), 'name': generate_random_name()} 
+                   for tid in transponder_ids if str(tid) not in existing_ids]
+
+    if new_entries:
+        new_df = pd.DataFrame(new_entries)
+        name_df = pd.concat([name_df, new_df], ignore_index=True).drop_duplicates(subset=['transponder_id'])
+        # Save the updated file
+        name_df.to_excel(TRANS_NAME_FILE, index=False)
+    return name_df
+
 class DataAnalysis:
     def __init__(self, new_file, debug=True):
         self.file = pd.read_csv(new_file,nrows = 1000)     # Working fine
@@ -32,6 +67,9 @@ class DataAnalysis:
         self.debug = debug
         self.cleanup()
 
+        # Load or create transponder name mappings
+        transponder_ids = self.file['transponder_id'].unique()
+        self.transponder_names = load_transponder_names(transponder_ids)
         # Dataframes that are used to store the important parameters for the screen
         self.average_lap = pd.DataFrame()
         self.fastest_lap = pd.DataFrame()
@@ -65,8 +103,22 @@ class DataAnalysis:
 
     def update(self, changed_file):
         # Contains the new datarows
-        # changed_file_pd = load_file(changed_file)
+
         changed_file_pd = changed_file
+        # Identify new transponders that were not in the original dataset
+        existing_transponders = set(self.transponder_names['transponder_id'].astype(str))  
+        new_transponders = set(changed_file_pd['transponder_id']).difference(set(existing_transponders))
+        
+        if new_transponders:
+            print(f"New transponders detected: {new_transponders}")
+            new_entries = [{'transponder_id': tid, 'name': generate_random_name()} for tid in new_transponders]
+
+            # Append new transponders to the transponder name mapping
+            new_names_df = pd.DataFrame(new_entries)
+            self.transponder_names = pd.concat([self.transponder_names, new_names_df], ignore_index=True)
+
+            # Save the updated transponder name list
+            self.transponder_names.to_excel(TRANS_NAME_FILE, index=False)
 
         # Concatenate the new datarows with the existing data, and drop duplicates based on transponder_id and utcTimestamp
         self.file = pd.concat([self.file, changed_file_pd]).drop_duplicates(subset=['transponder_id', 'utcTimestamp'], keep='last')
@@ -83,6 +135,7 @@ class DataAnalysis:
             print('update done')
             print('------------')
     
+            
     def average_lap_time(self):
         """
         Function that calculates the average laptime of all the transponders
@@ -94,15 +147,16 @@ class DataAnalysis:
         DataFrame: A DataFrame containing the transponder IDs and their respective average lap times
 
         """
-        # Sort the data by TransponderID for better visualization and analysis
-        df_sorted = self.file.loc[self.file['loop'] == 'L01']
         
-        # Calculate the average lap time for each transponder ID
-        average_lap_time = df_sorted.groupby('transponder_id')['lapTime'].mean().reset_index()
-        self.average_lap = average_lap_time.sort_values(by = 'lapTime')
-        self.average_lap.columns = ['transponder_id', 'average_lap_time']
+        df_sorted = self.file.loc[self.file['loop'] == 'L01']
+        avg_lap = df_sorted.groupby('transponder_id')['lapTime'].mean().reset_index()
+        
+        # Merge with names
+        self.average_lap = avg_lap.merge(self.transponder_names, on='transponder_id')
+        self.average_lap = self.average_lap[['transponder_id', 'name', 'lapTime']].sort_values(by='lapTime')
+        self.average_lap.columns = ['transponder_id', 'name', 'average_lap_time']
+
         if self.debug:
-            # print(average_lap_time.head())
             print("average_lap_time done.")
     
     def fastest_lap_time(self):
@@ -124,7 +178,9 @@ class DataAnalysis:
         
         # Calculate the fastest lap time for each transponder ID
         self.fastest_lap = df_sorted.groupby('transponder_id')['lapTime'].min().reset_index()
-        self.fastest_lap.columns = ['transponder_id', 'fastest_lap_time']
+        # Merge with names
+        self.fastest_lap = self.fastest_lap.merge(self.transponder_names, on='transponder_id', how = 'inner')
+        self.fastest_lap.columns = ['transponder_id', 'fastest_lap_time', 'name']
         if self.debug:
             print("fastest_lap_time done.")
 
@@ -146,10 +202,15 @@ class DataAnalysis:
         self.slowest_lap_time = df_sorted.groupby('transponder_id')['lapTime'].max().reset_index()
         self.slowest_lap_time.columns = ['transponder_id', 'slowest_lap_time']
 
+        # Merge with names
+        self.slowest_lap_time = self.slowest_lap_time.merge(self.transponder_names, on='transponder_id', how = 'inner')
+        self.slowest_lap_time.columns = ['transponder_id', 'slowest_lap_time', 'name']
+
         # Construct the BADMAN dataframe
         self.badman = df_sorted.loc[df_sorted['lapTime'].idxmax(), ['transponder_id', 'lapTime']].to_frame().T
-        self.badman.columns = ['transponder_id', 'worst_lap_time']
-
+        # Merge the worst performer with names
+        self.badman = self.badman.merge(self.transponder_names, on='transponder_id', how = 'inner')
+        self.badman.columns = ['transponder_id', 'name', 'badman_lap_time']
         if self.debug:
             print("find_badman done.")
 
@@ -188,6 +249,9 @@ class DataAnalysis:
         
         # Then, from this subset, select the rider with the lowest coefficient of variation (CV)
         self.diesel = most_consistent_riders.nsmallest(1, 'CV')
+
+        # Merge with names
+        self.diesel = self.diesel.merge(self.transponder_names, on='transponder_id', how = 'inner')
 
         if self.debug:
             print("diesel_engine done.")

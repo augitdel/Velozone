@@ -8,3 +8,4 @@ gevent
 numpy
 supabase
 watchdog
+faker
