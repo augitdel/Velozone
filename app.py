@@ -80,7 +80,7 @@ def read_csv_in_chunks(filename):
     if filename not in data_objects:
         data_objects[filename] = DataAnalysis(filename, debug=True) 
     data_obj = data_objects[filename]  
-    chunk_size = 100 
+    chunk_size = 500
 
     try:
         for chunk in pd.read_csv(filename, chunksize=chunk_size):
@@ -135,11 +135,6 @@ def start_initial_file_processing(init_csv_file):
     threading.Thread(target=read_csv_in_chunks, args=(init_csv_file,), daemon=True).start()
 
 if __name__ == '__main__':
-    INIT_CSV_FILE = "Metingen/test1.csv"
-
-    if os.path.exists(INIT_CSV_FILE):
-        data_objects[INIT_CSV_FILE] = DataAnalysis(INIT_CSV_FILE, debug=True)
-        start_initial_file_processing(INIT_CSV_FILE)
     try:
         threading.Thread(target=start_fetching, args=(10, 600), daemon=True).start()
         threading.Thread(target=start_csv_watcher, args=(metingen_dir,), daemon=True).start()

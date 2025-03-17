@@ -21,7 +21,7 @@ BATCH_SIZE = 1000
 stop_event = threading.Event()
 tz_utc = timezone.utc
 csv_counter = 1
-rtc_time_start = int(datetime(2025, 3, 10, 0, 0, 0, tzinfo=timezone.utc).timestamp() * 1000)
+rtc_time_start = int(datetime(2025, 2, 1, 0, 0, 0, tzinfo=timezone.utc).timestamp() * 1000)
 rtc_time_end = int(datetime(2025, 3, 16, 0, 0, 0, tzinfo=timezone.utc).timestamp() * 1000)
 
 # Gezien data om duplicaten te voorkomen
@@ -44,7 +44,7 @@ def get_next_csv_filename():
     global csv_counter
     directory = 'Metingen'
     os.makedirs(directory, exist_ok=True)
-    filename = os.path.join(directory, f'data_file1{csv_counter}.csv')
+    filename = os.path.join(directory, f'data_file{csv_counter}.csv')
     csv_counter += 1
     return filename
 
