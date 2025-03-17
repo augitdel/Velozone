@@ -9,3 +9,4 @@ numpy
 supabase
 watchdog
 faker
+openpyxl
