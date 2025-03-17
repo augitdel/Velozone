@@ -30,7 +30,6 @@ def limit_numeric_to_2_decimals(data):
         return data
 
 
-            
 @app.route('/', defaults={'page': 1}) 
 @app.route('/index/<int:page>')
 def index(page):
@@ -75,6 +74,7 @@ def handle_connect():
     socketio.emit('fast_lap_data', fast_lap_json)
 
 
+# Change by linking to supabase
 def read_csv_in_chunks(filename):
     global data_objects
     if filename not in data_objects:

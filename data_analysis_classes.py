@@ -31,11 +31,6 @@ def generate_random_name():
     fake = Faker()
     return fake.first_name()
 
-def generate_random_name():
-    """Generate a random name."""
-    fake = Faker()
-    return fake.first_name()
-
 def load_transponder_names(transponder_ids):
     """Ensure each transponder has a name and save it to an Excel file."""
     if os.path.exists(TRANS_NAME_FILE):
@@ -124,7 +119,7 @@ class DataAnalysis:
         self.file = pd.concat([self.file, changed_file_pd]).drop_duplicates(subset=['transponder_id', 'utcTimestamp'], keep='last')
         self.newlines = pd.merge(changed_file_pd, self.file, how='outer', indicator=True, on=['transponder_id', 'utcTimestamp']).loc[lambda x : x['_merge']=='left_only']
         self.cleanup()  
-        # TODO: does the whole file needs to be cleaned up/sorted after an update, or is cleanup from the newlines enough?
+        
         # call all functions that need to be updated
         self.average_lap_time()
         self.fastest_lap_time()

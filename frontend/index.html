@@ -17,7 +17,7 @@
                         <ol start="{{ (page - 1) * 10 + 1 }}">
                             {% if averages %}
                                 {% for item in averages[:5] %}
-                                    <li>{{ item[0] }} -- {{ item[1] }}s</li>
+                                    <li>{{ item[1] }} -- {{ item[2] }}s</li>
                                 {% endfor %}
                             {% else %}
                                 <li>No data available</li>
@@ -28,7 +28,7 @@
                         <ol start="{{ (page - 1) * 10 + 6 }}">
                             {% if averages %}
                                 {% for item in averages[5:10] %}
-                                    <li>{{ item[0] }} -- {{ item[1] }}s</li>
+                                    <li>{{ item[1] }} -- {{ item[2] }}s</li>
                                 {% endfor %}
                             {% else %}
                                 <li>No data available</li>

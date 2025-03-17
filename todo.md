@@ -1,23 +1,26 @@
 # ToDo
 
-## Te implementeren
-- Klok/real time tijd kunnen zien
-- Animatie van de renners na de sessie op basis van self.file in data_analysis.py
+## Hoofdpagina
+![alt text](image-1.png)
+bestaat uit verschillende knoppen die elk hun eigen acties oproppen als ze ingedrukt zijn v
 
-### Jonas
-- backend maken met python + Flask + SQLite/PostgreSQL voor login registratiesysteem - done
-- website opkuisen en structureren
+### Start
+Aanmaken van lege dataframes voor het opslaan van de data. Transponders koppelen aan namen (optioneel)
 
-## Frontend
-### Ideeën:
-- Visualisatie maken voor op het leaderboard om te broadcasten tijdens het rijden
-- Personal Account space met eigen data 
+### Leaderboard
+Streamen van het live-leaderboard op het scherm. 
+
+### Stop Sessie
+Stoppen van alle dataverzameling en het sluiten van het leaderboard
+
+### Genereer rapporten
+Maak rapporten op basis van de data die er verzameld is tijdens de sessie
 
 ## Backend
 ### Realtime verwerkende code:
 - Enkel gegevens gebaseerd op de laatst binnengekomen transponders moeten aangepast worden, dus in <u>iedere functie</u> kan er geoptimaliseerd worden.
 
-### Uitleg
-De gewenste gegevens worden dan in json-format doorgespeeld naar de Frontend.
-Dit gebeurt door vanuit python een websocket te activeren die json-berichten kan hosten.
-(Video die dit principe uilegt: https://youtu.be/nDgdldBPoE0?si=3LzH3Do6G7C9CuSm)
+
+### Vercel Functionality
+Gebruik de Vercel-test repository om tests uit te voeren
+We gaan vanuit JS om de vijf seconden een refresh callen om de data te updaten.
