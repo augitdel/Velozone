@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/styles.css') }}">
     <title>Velozone - Race Stats</title>
-
 </head>
 <body>
     <h1 class="title">Race Leaderboard - Velozone</h1>
@@ -15,17 +14,25 @@
                 <h2>Average Lap Time</h2>
                 <div class="column">
                     <div class="subcolumn">
-                        <ol start = "{{ (page - 1) * 10 + 1 }}">
-                            {% for item in averages[:5] %}
-                            <li>{{ item[0] }} -- {{ item[1] }}s</li>
-                            {% endfor %}
+                        <ol start="{{ (page - 1) * 10 + 1 }}">
+                            {% if averages %}
+                                {% for item in averages[:5] %}
+                                    <li>{{ item[0] }} -- {{ item[1] }}s</li>
+                                {% endfor %}
+                            {% else %}
+                                <li>No data available</li>
+                            {% endif %}
                         </ol>
                     </div>
                     <div class="subcolumn">
                         <ol start="{{ (page - 1) * 10 + 6 }}">
-                            {% for item in averages[5:10] %}
-                            <li>{{ item[0] }} -- {{ item[1] }}s</li>
-                            {% endfor %}
+                            {% if averages %}
+                                {% for item in averages[5:10] %}
+                                    <li>{{ item[0] }} -- {{ item[1] }}s</li>
+                                {% endfor %}
+                            {% else %}
+                                <li>No data available</li>
+                            {% endif %}
                         </ol>
                     </div>
                 </div>
@@ -36,31 +43,41 @@
                 <div class="top-laps">
                     <h2>Top 5 Fastest Laps</h2>
                     <ol>
-                        {% for lap in top_laps %}
-                        <li>{{ lap[0] }} -- {{ lap[1] }}s</li>
-                        {% endfor %}
+                        {% if top_laps %}
+                            {% for lap in top_laps %}
+                                <li>{{ lap[0] }} -- {{ lap[1] }}s</li>
+                            {% endfor %}
+                        {% else %}
+                            <li>No data available</li>
+                        {% endif %}
                     </ol>
                 </div>
 
                 <div class="worst-lap">
                     <h2>Bad-man &#x1F987;</h2>
                     <center>
-                        <p>{{ badman_lap[0][0] }} -- {{ badman_lap[0][1] }}s</p>
+                        {% if badman_lap %}
+                            <p>{{ badman_lap[0][0] }} -- {{ badman_lap[0][1] }}s</p>
+                        {% else %}
+                            <p>No data available</p>
+                        {% endif %}
                     </center>
                 </div>
 
                 <div class="diesel-engine">
                     <h2>Diesel Engine</h2>
                     <center>
-                        <p>{{ diesel[0][0] }} -- {{ diesel[0][2] }}s</p>
+                        {% if diesel %}
+                            <p>{{ diesel[0][0] }} -- {{ diesel[0][2] }}s</p>
+                        {% else %}
+                            <p>No data available</p>
+                        {% endif %}
                     </center>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- University Logo (Bottom Left) -->
-    <!-- Updated logo paths -->
     <!-- University Logo (Bottom Left) -->
     <div class="logo-wrapper">
         <div class="logo-container">
@@ -70,6 +87,7 @@
             <img src="{{ url_for('static', filename='img/logo_faculty.png') }}" alt="Faculty Logo">
         </div>
     </div>
+
     <script>
         const SWITCH_INTERVAL = 5000;  
     
@@ -87,3 +105,4 @@
     </script>
 </body>
 </html>
+
