@@ -10,13 +10,14 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from Read_supabase_data import *
 from extra_functions import remove_all_files_in_metingen
+import eventlet
 
 PER_PAGE = 10  # Number of riders per page
 
 remove_all_files_in_metingen()
 
 app = Flask(__name__, template_folder='frontend')
-socketio = SocketIO(app)
+socketio = SocketIO(app, async_mode='eventlet')
 fast_lap_json = json.dumps([])  # Placeholder JSON data
 metingen_dir = "Metingen"
 data_objects = {}
@@ -141,6 +142,7 @@ if __name__ == '__main__':
     try:
         threading.Thread(target=start_fetching, args=(10, 600), daemon=True).start()
         threading.Thread(target=start_csv_watcher, args=(metingen_dir,), daemon=True).start()
-        socketio.run(app, debug=True,use_reloader=False)
+        eventlet.monkey_patch()  # Ensure compatibility
+        socketio.run(app, debug=False, host='0.0.0.0', port=5000)
     except KeyboardInterrupt:
         print("Application stopped by user.")
