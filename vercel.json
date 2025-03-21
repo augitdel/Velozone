@@ -1,24 +1,13 @@
- {
-     "builds": [
-         {
-             "src": "api/app.py",
-             "use": "@vercel/python"
-         }
-     ],
-     "routes": [
-         {
-             "src": "/(.*)",
-             "dest": "api/app.py"
-         }
-     ],
-     "excludeFiles": [
-         "todo.md",
-         "logo.png",
-         "README.md",
-         "image-1.png",
-         "image copy.png",
-         "app copy.py",
-         "RecordingContext_20250214.csv"
-     ]
- }
+{
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "cleanUrls": true,
+    "framework": null,
+    "functions": {
+        "api/app.py": {
+            "excludeFiles": "todo.md,logo.png,README.md,image-1.png,image copy.png,app copy.py,RecordingContext_20250214.csv"
+        }
+    },
+    "public": false,
+    "trailingSlash": true
 
+}

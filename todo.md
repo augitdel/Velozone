@@ -24,3 +24,4 @@ Maak rapporten op basis van de data die er verzameld is tijdens de sessie
 ### Vercel Functionality
 Gebruik de Vercel-test repository om tests uit te voeren
 We gaan vanuit JS om de vijf seconden een refresh callen om de data te updaten.
+- images command in [vercel.json](vercel.json) zodat afbeeldingen laden geoptimaliseerd kan worden, zie [hier](https://vercel.com/docs/project-configuration)
