@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 # import seaborn as sns  # Optionally use seaborn
 from fpdf import FPDF
 from datetime import datetime
-from scipy.ndimage import gaussian_filter1d
 # import urllib3
 from data_analysis import remove_initial_lap, preprocess_lap_times, diesel_engine_df
 
