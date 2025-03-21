@@ -4,7 +4,6 @@ from app.data_analysis_classes import DataAnalysis
 from app.Read_supabase_data import *
 import pandas as pd
 import json
-import time
 import os
 
 
