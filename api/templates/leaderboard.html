@@ -95,9 +95,9 @@
             let nextPage = "{{ next_page }}";  // Get next page from Flask
     
             if (nextPage) {
-                window.location.href = "/index/" + nextPage;  
+                window.location.href = "/leaderboard/" + nextPage;  
             } else {
-                window.location.href = "/index/1";  // Cycle back to page 1
+                window.location.href = "/leaderboard/1";  // Cycle back to page 1
             }
         }
     
