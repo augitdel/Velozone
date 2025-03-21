@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from fpdf import FPDF
 from datetime import datetime
 from scipy.ndimage import gaussian_filter1d
-import urllib
+import urllib3
 from data_analysis import remove_initial_lap, preprocess_lap_times, diesel_engine_df
 
 # ------------------------------------------------------------
@@ -536,7 +536,7 @@ def main():
     csv_file_path = 'RecordingContext_20250214.csv'
 
     logoURL = "https://idlab.ugent.be/img/logo.png"
-    urllib.request.urlretrieve(logoURL, "logo.png")
+    urllib3.request.urlretrieve(logoURL, "logo.png")
     
     # Example loop positions (unused in this specific code, but available if you need them)
     loop_positions = {
