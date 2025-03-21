@@ -1,6 +1,5 @@
 # from supabase import create_client, Client
 # from datetime import datetime, timezone
-# import csv
 # import os
 
 # # Supabase setup
