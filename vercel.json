@@ -10,5 +10,15 @@
              "src": "/(.*)",
              "dest": "api/app.py"
          }
+     ],
+     "excludeFiles": [
+         "todo.md",
+         "logo.png",
+         "README.md",
+         "image-1.png",
+         "image copy.png",
+         "app copy.py",
+         "RecordingContext_20250214.csv"
      ]
  }
+
