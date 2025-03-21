@@ -4,15 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VELOZONE</title>
-    <link rel="stylesheet" href="static/styles.css">
+
+    <!-- Voeg Bootstrap CSS toe -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/index.css') }}">
+
 </head>
 <body>
-    <h1 class="title">VELOZONE</h1>
-    <div class="button-container">
-        <a href="{{ url_for('start_session') }}"><button id="start-session">Start Session</button></a>
-        <a href="{{ url_for('stop_session') }}"><button id="stop-session">Stop Session</button></a>
-        <a href="{{ url_for('generate_report') }}"><button id="generate-report">Generate Report</button></a>
-        <a href="{{ url_for('leaderboard') }}"><button id="leaderboard">Leaderboard</button></a>
+    <div class="container text-center mt-5">
+        <h1 class="title mb-4">VELOZONE</h1>
+        
+        <!-- Knoppen in 2 kolommen voor Start en Stop Session -->
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <a href="{{ url_for('start_session') }}" class="btn btn-primary btn-lg btn-thick w-100">Start Session</a>
+            </div>
+            <div class="col-md-6 mb-3">
+                <a href="{{ url_for('stop_session') }}" class="btn btn-danger btn-lg btn-thick w-100">Stop Session</a>
+            </div>
+        </div>
+
+        <!-- Knoppen in 3 kolommen voor Name Configuration, Generate Report, en Leaderboard -->
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <a href="{{ url_for('names') }}" class="btn btn-warning btn-lg btn-thick w-100">Name Configuration</a>
+            </div>
+            <div class="col-md-4 mb-3">
+                <a href="{{ url_for('generate_report') }}" class="btn btn-success btn-lg btn-thick w-100">Generate Report</a>
+            </div>
+            <div class="col-md-4 mb-3">
+                <a href="{{ url_for('leaderboard') }}" class="btn btn-info btn-lg btn-thick w-100">Leaderboard</a>
+            </div>
+        </div>
+
+        <!-- Afbeeldingen netjes naast elkaar (met wat margin) -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <img src="{{ url_for('static', filename='img/logo-sport-vlaanderen.png') }}" alt="Sport Vlaanderen Logo" class="img-fluid mx-auto d-block">
+            </div>
+            <div class="col-md-4">
+                <img src="{{ url_for('static', filename='img/university_logo.png') }}" alt="UGent University Logo" class="img-fluid mx-auto d-block">
+            </div>
+            <div class="col-md-4">
+                <img src="{{ url_for('static', filename='img/logo-cycling-vlaanderen-horizontal.jpg') }}" alt="Cycling Vlaanderen Logo" class="img-fluid mx-auto d-block">
+            </div>
+        </div>
     </div>
+
+    <!-- Voeg Bootstrap JS en jQuery toe (optioneel voor interactieve functies) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

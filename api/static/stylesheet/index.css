@@ -1,0 +1,22 @@
+.title {
+    font-size: 3rem;
+    color: #333;
+}
+
+.button-container {
+    margin-top: 20px;
+}
+
+
+.images img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+}
+
+.btn-thick {
+    padding: 50px 50px; 
+    font-size: 1.25rem; 
+    text-align: center; 
+}
+
