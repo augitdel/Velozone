@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transponder Name Editor</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <link href="{{ url_for('static', filename='stylesheet/namen.css') }}" rel="stylesheet">
+</head>
+<body>
+
+    <div class="container">
+        <!-- Section Title -->
+        <div class="section-title">Transponder Name Editor</div>
+        <a href="{{ url_for('home') }}" class="btn btn-secondary">Back</a>
+
+        <!-- Logos Section -->
+        <div class="logos text-center mb-4">
+            <img src="{{ url_for('static', filename='img/logo-sport-vlaanderen.png') }}" alt="Sport Vlaanderen Logo">
+            <img src="{{ url_for('static', filename='img/university_logo.png') }}" alt="UGent University Logo">
+            <img src="{{ url_for('static', filename='img/logo-cycling-vlaanderen-horizontal.jpg') }}" alt="Cycling Vlaanderen Logo">
+        </div>
+
+        <!-- Search Section -->
+        <div class="section-card">
+            <div class="row">
+                <div class="col-md-6 mx-auto">
+                    <div class="form-group mb-3">
+                        <label for="transponderSearch" class="form-label custom-label">Enter Transponder ID</label>
+                        <input type="text" id="transponderSearch" onkeyup="searchTransponder()" placeholder="Zoek Transponder ID of Naam" class="form-control custom-input">
+                    </div>                    
+                    <button class="btn btn-primary" onclick="searchTransponder()">Search</button>
+                    <div id="error" class="alert alert-danger mt-3 hidden" role="alert">Transponder ID not found!</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Transponder Section -->
+        <div class="section-card mt-4">
+            <h3 class="section-title">Add New Transponder</h3>
+            <div class="form-group mb-3">
+                <label for="newTransponderID" class="form-label">Transponder ID</label>
+                <input type="text" id="newTransponderID" class="form-control" placeholder="Enter a unique transponder ID">
+            </div>
+            <div class="form-group mb-3">
+                <label for="newTransponderName" class="form-label">Name</label>
+                <input type="text" id="newTransponderName" class="form-control" placeholder="Enter a name">
+            </div>
+            <button class="btn btn-success" onclick="addTransponder()">Add</button>
+
+        <!-- Transponder Details Section -->
+        <div id="transponderDetails" class="mt-5 hidden section-card">
+            <h3 class="section-title">Transponder Details</h3>
+            <div class="form-group mb-3">
+                <p><strong>Transponder ID:</strong> <span id="transponderID"></span></p>
+                <label for="transponderName" class="form-label">Name</label>
+                <input type="text" class="form-control" id="transponderName">
+            </div>
+            <button class="btn btn-custom" onclick="saveName()">Save</button>
+        </div>
+
+        <!-- All Transponder Data Table Section -->
+        <h2 class="section-title mt-5">All Transponder Data:</h2>
+        <div class="section-card">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Transponder ID</th>
+                        <th>Name</th>
+                    </tr>
+                </thead>
+                <tbody id="transponderTableBody">
+                    <!-- Transponder data will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/namen.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

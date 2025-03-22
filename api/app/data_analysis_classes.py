@@ -1,7 +1,7 @@
 # Import necessary libraries
 import pandas as pd
 from flask import Flask
-from data_analysis import remove_initial_lap, preprocess_lap_times
+from .data_analysis import remove_initial_lap, preprocess_lap_times
 from faker import Faker
 import os
 
