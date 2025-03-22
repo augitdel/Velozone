@@ -14,6 +14,7 @@
     <div class="container">
         <!-- Section Title -->
         <div class="section-title">Transponder Name Editor</div>
+        <a href="{{ url_for('home') }}" class="btn btn-secondary">Back</a>
 
         <!-- Logos Section -->
         <div class="logos text-center mb-4">
@@ -35,6 +36,19 @@
                 </div>
             </div>
         </div>
+
+        <!-- Add Transponder Section -->
+        <div class="section-card mt-4">
+            <h3 class="section-title">Add New Transponder</h3>
+            <div class="form-group mb-3">
+                <label for="newTransponderID" class="form-label">Transponder ID</label>
+                <input type="text" id="newTransponderID" class="form-control" placeholder="Enter a unique transponder ID">
+            </div>
+            <div class="form-group mb-3">
+                <label for="newTransponderName" class="form-label">Name</label>
+                <input type="text" id="newTransponderName" class="form-control" placeholder="Enter a name">
+            </div>
+            <button class="btn btn-success" onclick="addTransponder()">Add</button>
 
         <!-- Transponder Details Section -->
         <div id="transponderDetails" class="mt-5 hidden section-card">

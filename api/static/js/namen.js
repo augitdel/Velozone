@@ -209,6 +209,34 @@ function populateTable(data) {
     });
 }
 
+function addTransponder() {
+    const newID = document.getElementById("newTransponderID").value.trim();
+    const newName = document.getElementById("newTransponderName").value.trim();
+
+    if (newID === "" || newName === "") {
+        alert("Vul zowel een Transponder ID als een Naam in!");
+        return;
+    }
+
+    const transaction = db.transaction("transponders", "readwrite");
+    const store = transaction.objectStore("transponders");
+
+    const newTransponder = { id: newID, name: newName };
+    const request = store.put(newTransponder);
+
+    request.onsuccess = function () {
+        console.log("Nieuwe transponder toegevoegd:", newTransponder);
+        loadTransponderData();
+    };
+
+    request.onerror = function (event) {
+        console.error("Fout bij toevoegen transponder:", event.target.error.message);
+    };
+
+    // Velden leegmaken na toevoegen
+    document.getElementById("newTransponderID").value = "";
+    document.getElementById("newTransponderName").value = "";
+}
 
 window.onload = async function () {
     try {
