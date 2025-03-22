@@ -75,9 +75,18 @@ def start_session():
 
     return render_template('start_session.html')
 
-@app.route('/stop_session')
+@app.route('/stop_session', methods=['GET', 'POST'])
 def stop_session():
-    return "Session stopped!"
+    if request.method == 'POST':
+        generate_pdf = request.form.get('generatePDF') == 'on'  # Check of checkbox aangevinkt is
+        session['generate_pdf'] = generate_pdf  # Opslaan in sessie
+
+        print(f"Session stopped. Generate PDF: {generate_pdf}")  # Debugging
+
+        # Optioneel: Redirect naar een andere pagina (bijv. home)
+        return redirect(url_for('home'))
+
+    return render_template('stop_session.html')
 
 @app.route('/generate_report')
 def generate_report():
