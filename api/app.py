@@ -17,7 +17,7 @@ def index():
     return render_template('index.html')
 
 @app.route('/leaderboard/')
-def leaderboard(page=1):
+def leaderboard(page = 1):
     start_idx = (page - 1) * PER_PAGE
     end_idx = start_idx + PER_PAGE
 
@@ -78,10 +78,10 @@ def start_session():
 @app.route('/stop_session', methods=['GET', 'POST'])
 def stop_session():
     if request.method == 'POST':
-        generate_pdf = request.form.get('generatePDF') == 'on'  # Check of checkbox aangevinkt is
-        session['generate_pdf'] = generate_pdf  # Opslaan in sessie
+        decision_bool = request.form.get('decision') == 'true'
+        session['generate_pdf'] = decision_bool # Opslaan in sessie
 
-        print(f"Session stopped. Generate PDF: {generate_pdf}")  # Debugging
+        print(f"Session stopped. Generate PDF: {session['generate_pdf']}")  # Debugging
 
         # Optioneel: Redirect naar een andere pagina (bijv. home)
         return redirect(url_for('home'))

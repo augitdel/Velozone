@@ -6,6 +6,7 @@ __pycache__/
 *.so
 *.log
 *.cache
+!__init.cpyhton-311.pyc
 
 # Virtuele omgeving en afhankelijkheden
 venv/
@@ -27,7 +28,5 @@ dist/
 *.zip
 *.whl
 
-# Test-, documentatie- en datasetbestanden
-tests/
-docs/
-datasets/
+# PDF reports
+reports/
