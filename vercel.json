@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/**": {
-      "runtime": "@vercel/python@3.9",
+      "runtime": "@vercel/python",
       "excludeFiles": "{.next,*.cache,node_modules,public,app,todo.md,readme.md,image copy,image-1.png,datasets,tests,docs}/**"
     }
   },
