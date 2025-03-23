@@ -1,0 +1,32 @@
+# Python build-artifacts uitsluiten
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.log
+*.cache
+!__init.cpython-311.pyc
+
+# Virtuele omgeving en afhankelijkheden
+venv/
+env/
+Pipfile
+Pipfile.lock
+poetry.lock
+
+# Node.js bestanden (voor het geval je een frontend gebruikt)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build en deployment bestanden
+.next/
+build/
+dist/
+*.tar.gz
+*.zip
+*.whl
+
+# PDF reports
+reports/
