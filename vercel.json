@@ -1,7 +1,8 @@
 {
   "functions": {
     "api/**": {
-      "excludeFiles": "{.next,*.cache,node_modules,public,app,todo.md,readme.md,image copy,image-1.png}/**"
+      "runtime": "@vercel/python",
+      "excludeFiles": "{.next,*.cache,node_modules,public,app,todo.md,readme.md,image copy,image-1.png,datasets,tests,docs}/**"
     }
   },
   "builds": [
@@ -15,5 +16,10 @@
       "src": "/(.*)",
       "dest": "api/app.py"
     }
-  ]
+  ],
+  "settings": {
+    "python": {
+      "runtime": "3.9"
+    }
+  }
 }
