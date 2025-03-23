@@ -6,7 +6,7 @@ __pycache__/
 *.so
 *.log
 *.cache
-!__init.cpyhton-311.pyc
+!__init.cpython-311.pyc
 
 # Virtuele omgeving en afhankelijkheden
 venv/
