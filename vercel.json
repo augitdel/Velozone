@@ -16,10 +16,5 @@
       "src": "/(.*)",
       "dest": "api/app.py"
     }
-  ],
-  "settings": {
-    "python": {
-      "runtime": "3.9"
-    }
-  }
+  ]
 }
