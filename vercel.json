@@ -1,13 +1,10 @@
 {
-  "version": 2,
-  "functions": {
-      "core/wsgi.py": {
-          "runtime": "vercel/python@4.3.0"
-      },
-      "build_files.sh": {
-          "runtime": "@vercel/static-build"
-      }
-  },
+  "builds": [
+    {
+      "src": "api/app.py",
+      "use": "@vercel/python"
+    }
+  ],
   "routes": [
     {
       "src": "/(.*)",
