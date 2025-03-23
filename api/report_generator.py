@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from fpdf import FPDF
 from datetime import datetime
 # import urllib3
-from data_analysis import remove_initial_lap, preprocess_lap_times, diesel_engine_df
+from api.data_analysis import remove_initial_lap, preprocess_lap_times, diesel_engine_df
 
 # ------------------------------------------------------------
 # 1. Load & Preprocess Data
