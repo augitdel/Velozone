@@ -1,9 +1,12 @@
 {
+  "version": 2,
   "functions": {
-    "api/**": {
-      "runtime": "@vercel/python3.9.0",
-      "excludeFiles": "{.next,*.cache,node_modules,public,app,todo.md,readme.md,image copy,image-1.png,datasets,tests,docs}/**"
-    }
+      "core/wsgi.py": {
+          "runtime": "vercel/python@4.3.0"
+      },
+      "build_files.sh": {
+          "runtime": "@vercel/static-build"
+      }
   },
   "routes": [
     {
