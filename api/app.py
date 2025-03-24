@@ -90,7 +90,7 @@ def stop_session():
 
 @app.route('/generate_report')
 def generate_report():
-    return "Report generated!" 
+    return render_template('generate_report.html') 
 
 @app.route('/names')
 def names():
