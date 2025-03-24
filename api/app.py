@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, url_for, redirect, session
 from api.extra_functions import limit_numeric_to_2_decimals
 from api.data_analysis_classes import DataAnalysis
 from api.data_analysis import remove_initial_lap, preprocess_lap_times
-#from api.Read_supabase_data import *
+from api.Read_supabase_data import *
 import pandas as pd
 import os
 
@@ -24,7 +24,7 @@ def leaderboard(page = 1):
     avg_lap = []  
     fast_lap = []  
     slow_lap = []  
-    badman = []  
+    badman = [] 
     diesel = []  
     electric = [] 
 
