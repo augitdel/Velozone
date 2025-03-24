@@ -65,10 +65,20 @@
                 </div>
 
                 <div class="diesel-engine">
-                    <h2>Diesel Engine</h2>
+                    <h2>"DEN DIESEL"</h2>
                     <center>
                         {% if diesel %}
                             <p>{{ diesel[0][0] }} -- {{ diesel[0][2] }}s</p>
+                        {% else %}
+                            <p>No data available</p>
+                        {% endif %}
+                    </center>
+                </div>
+                <div class = "electrical engine">
+                    <h2>Electrical Engine</h2>
+                    <center>
+                        {% if electrical %}
+                            <p>{{ electric[0][0] }} -- {{ electric[0][2] }}s</p>
                         {% else %}
                             <p>No data available</p>
                         {% endif %}
@@ -88,7 +98,7 @@
         </div>
     </div>
 
-    <script>
+    <!-- <script>
         const SWITCH_INTERVAL = 5000;  
     
         function switchPage() {
@@ -102,6 +112,6 @@
         }
     
         setTimeout(switchPage, SWITCH_INTERVAL);
-    </script>
+    </script> -->
 </body>
 </html>
