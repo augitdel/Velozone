@@ -1,11 +1,11 @@
-from flask import Flask, render_template, request, url_for, redirect, session, jsonify,send_file
-from api.extra_functions import limit_numeric_to_2_decimals
-from api.data_analysis_classes import DataAnalysis
-from api.data_analysis import remove_initial_lap, preprocess_lap_times
-from api.Read_supabase_data import *
+from flask import Flask, render_template, request, url_for, redirect, session, send_file
+# from api.extra_functions import limit_numeric_to_2_decimals
+# from api.data_analysis_classes import DataAnalysis
+# from api.data_analysis import remove_initial_lap, preprocess_lap_times
+# from api.Read_supabase_data import *
 import pandas as pd
 import os
-from fpdf import FPDF
+
 
 app = Flask(__name__, template_folder='templates')
 data_objects = {}
@@ -92,34 +92,14 @@ def stop_session():
 
     return render_template('stop_session.html')
 
-@app.route('/generate_report', methods=['GET'])
-def show_generate_report():
-    return render_template('generate_report.html')
+@app.route('/generate_report')
+def generate_report():
+    return render_template('generate_report.html') 
 
-# 📄 API to generate the PDF report
-@app.route('/generate_report', methods=['POST'])
-def generate_pdf_report():
-    filename = f"track_report.pdf"
-    pdf_path = os.path.join(REPORTS_DIR, filename)
 
-    # Generate PDF using FPDF
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt="Track Cycling Report", ln=True, align='C')
-    pdf.ln(10)
-    pdf.output(pdf_path)
-
-    # Store the latest generated report path in a session variable
-    return jsonify({"pdf_path": filename})
-
-# 📥 API to download the latest generated PDF
 @app.route('/download_report')
 def download_report():
-    latest_file = sorted(os.listdir(REPORTS_DIR))[-1]
-    pdf_path = os.path.join(REPORTS_DIR, latest_file)
-    return send_file(pdf_path, as_attachment=True)
-
+    return send_file('reports/report.pdf', as_attachment=True)
 @app.route('/names')
 def names():
     return render_template('names.html')
