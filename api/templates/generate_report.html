@@ -11,9 +11,57 @@
     <div class="container">
         <h1 class="title">Generate Your Track Cycling Report</h1>
         <p>Click the button below to generate a detailed report of your track cycling session.</p>
-        <a href="{{ url_for('generate_report') }}" class="btn btn-custom">Generate Report</a>
+
+        <button id="generate-btn" class="btn btn-custom">Generate Report</button>
+
+        <div id="loading-bar" class="progress mt-3" style="display: none;">
+            <div id="progress" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;"></div>
+        </div>
+
+        <a id="download-btn" href="#" class="btn btn-success mt-3" style="display: none;">Download Report</a>
     </div>
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+
+    <script>
+        document.getElementById("generate-btn").addEventListener("click", function() {
+            let progressBar = document.getElementById("progress");
+            let loadingBar = document.getElementById("loading-bar");
+            let downloadBtn = document.getElementById("download-btn");
+            let generateBtn = document.getElementById("generate-btn");
+
+            // Hide download button and show loading bar
+            downloadBtn.style.display = "none";
+            loadingBar.style.display = "block";
+            progressBar.style.width = "0%";
+            generateBtn.disabled = true;
+
+            // Simulate progress
+            let progress = 0;
+            let interval = setInterval(() => {
+                progress += 20;
+                progressBar.style.width = progress + "%";
+                if (progress >= 100) {
+                    clearInterval(interval);
+                }
+            }, 1000);
+
+            // Start generating the report
+            fetch("{{ url_for('generate_report') }}", { method: "POST" })
+                .then(response => response.json())
+                .then(data => {
+                    clearInterval(interval);
+                    progressBar.style.width = "100%";
+
+                    setTimeout(() => {
+                        loadingBar.style.display = "none";
+                        downloadBtn.href = "{{ url_for('download_report') }}";
+                        downloadBtn.style.display = "block";
+                        generateBtn.disabled = false;
+                    }, 500);
+                });
+        });
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>

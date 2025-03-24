@@ -5,12 +5,16 @@ from api.data_analysis import remove_initial_lap, preprocess_lap_times
 from api.Read_supabase_data import *
 import pandas as pd
 import os
-
+from fpdf import FPDF
 
 app = Flask(__name__, template_folder='templates')
 data_objects = {}
 PER_PAGE = 10
 app.secret_key = os.urandom(24)
+
+# Macro for report generation
+REPORTS_DIR = "reports"  # Folder to store PDFs
+os.makedirs(REPORTS_DIR, exist_ok=True)
 
 @app.route('/') 
 def index():
@@ -88,8 +92,21 @@ def stop_session():
 
     return render_template('stop_session.html')
 
-@app.route('/generate_report')
+@app.route('/generate_report', methods=['POST'])
 def generate_report():
+    pdf_path = os.path.join(REPORTS_DIR, "track_cycling_report.pdf")
+    
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    pdf.cell(200, 10, txt="Track Cycling Report", ln=True, align='C')
+    pdf.ln(10)
+    pdf.cell(200, 10, txt="This is an automatically generated report.", ln=True, align='C')
+    
+    pdf.output(pdf_path)
+
     return render_template('generate_report.html') 
 
 @app.route('/names')

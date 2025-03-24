@@ -17,7 +17,7 @@ body {
     margin-bottom: 20px;
 }
 .btn-custom {
-    background-color: #ffc107; /* Yellow button */
+    background-color: #07ff07; /* Yellow button */
     color: white;
     padding: 15px 30px;
     font-size: 20px;
@@ -27,4 +27,8 @@ body {
 }
 .btn-custom:hover {
     background-color: #e0a800; /* Darker yellow on hover */
+}
+.progress {
+    width: 50%;
+    height: 20px;
 }
