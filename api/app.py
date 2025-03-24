@@ -96,10 +96,6 @@ def stop_session():
 def generate_report():
     return render_template('generate_report.html') 
 
-
-@app.route('/download_report')
-def download_report():
-    return send_file('reports/report.pdf', as_attachment=True)
 @app.route('/names')
 def names():
     return render_template('names.html')
