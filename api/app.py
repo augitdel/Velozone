@@ -12,9 +12,6 @@ data_objects = {}
 PER_PAGE = 10
 app.secret_key = os.urandom(24)
 
-# Macro for report generation
-REPORTS_DIR = "reports"  # Folder to store PDFs
-os.makedirs(REPORTS_DIR, exist_ok=True)
 
 @app.route('/') 
 def index():
