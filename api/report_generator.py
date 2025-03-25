@@ -8,6 +8,7 @@ from datetime import datetime
 # import urllib3
 from api.data_analysis import remove_initial_lap, preprocess_lap_times, diesel_engine_df
 
+OUTPUT_DIR = 'reports'
 # ------------------------------------------------------------
 # 1. Load & Preprocess Data
 # ------------------------------------------------------------
@@ -587,14 +588,14 @@ def main():
         # For the Speed Over Time plot, pass the ENTIRE df_filtered,
         # so we can show the current rider vs. the rest in gray.
         plot_path_speed_time = generate_speed_over_time_plot(
-            rider_id, df_filtered, track_length=250, output_folder='report/plots'
+            rider_id, df_filtered, track_length=250, output_folder='reports/plots'
         )
         # Create PDF
         create_rider_pdf_report(rider_id, row, group_stats, plot_path_lap_times,
-                                plot_path_fastest_lap, plot_path_speed_time, output_dir='report',
+                                plot_path_fastest_lap, plot_path_speed_time, output_dir=OUTPUT_DIR,
                                 event_name='IDLab Test Event')
 
-        create_general_report('UGent',summary_df,group_stats,badman,diesel_engine,output_dir='report',
+        create_general_report('UGent',summary_df,group_stats,badman,diesel_engine,output_dir=OUTPUT_DIR,
                               event_name='IDLab Test Event')
     print("Report generation complete.")
 

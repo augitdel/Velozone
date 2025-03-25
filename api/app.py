@@ -1,8 +1,8 @@
-from flask import Flask, render_template, request, url_for, redirect, session
-from api.extra_functions import limit_numeric_to_2_decimals
-from api.data_analysis_classes import DataAnalysis
-from api.data_analysis import remove_initial_lap, preprocess_lap_times
-#from api.Read_supabase_data import *
+from flask import Flask, render_template, request, url_for, redirect, session, send_file
+# from api.extra_functions import limit_numeric_to_2_decimals
+# from api.data_analysis_classes import DataAnalysis
+# from api.data_analysis import remove_initial_lap, preprocess_lap_times
+# from api.Read_supabase_data import *
 import pandas as pd
 import os
 
@@ -11,6 +11,7 @@ app = Flask(__name__, template_folder='templates')
 data_objects = {}
 PER_PAGE = 10
 app.secret_key = os.urandom(24)
+
 
 @app.route('/') 
 def index():
@@ -24,7 +25,7 @@ def leaderboard(page = 1):
     avg_lap = []  
     fast_lap = []  
     slow_lap = []  
-    badman = []  
+    badman = [] 
     diesel = []  
     electric = [] 
 
@@ -90,7 +91,7 @@ def stop_session():
 
 @app.route('/generate_report')
 def generate_report():
-    return "Report generated!" 
+    return render_template('generate_report.html') 
 
 @app.route('/names')
 def names():
