@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, url_for, redirect, session, send_file
+from flask import Flask, render_template, request, url_for, redirect, session, send_file, send_from_directory,jsonify
 # from api.extra_functions import limit_numeric_to_2_decimals
 # from api.data_analysis_classes import DataAnalysis
 # from api.data_analysis import remove_initial_lap, preprocess_lap_times
 # from api.Read_supabase_data import *
 import pandas as pd
 import os
+import time
 
 
 app = Flask(__name__, template_folder='templates')
@@ -12,6 +13,8 @@ data_objects = {}
 PER_PAGE = 10
 app.secret_key = os.urandom(24)
 
+PDF_DIR = os.path.join(app.root_path, "static", "reports")
+PDF_PATH = os.path.join(PDF_DIR, "rider_report_UGent.pdf")
 
 @app.route('/') 
 def index():
@@ -97,11 +100,29 @@ def generate_report():
 def names():
     return render_template('names.html')
 
+@app.route('/download_report')
+def download_report():
+    return render_template('download_report.html')
+
 @app.route('/home')
 def home():
     competition_data = session.get('competition', None)
     return render_template('index.html', competition=competition_data)
 
+
+@app.route('/check_pdf_status')
+def check_pdf_status():
+    """Check if the PDF file is generated"""
+    time.sleep(5)
+    if os.path.exists(PDF_PATH):
+        return jsonify({"status": "ready", "pdf_url": "/static/reports/rider_report_UGent.pdf"})
+    else:
+        return jsonify({"status": "pending"})
+
+@app.route('/download_pdf')
+def download_pdf():
+    """Allow users to download the PDF"""
+    return send_from_directory(PDF_DIR, "rider_report_UGent.pdf", as_attachment=True)
 
 if __name__ == '__main__':
     app.run(debug=True)
