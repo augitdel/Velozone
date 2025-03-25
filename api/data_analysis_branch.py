@@ -1,5 +1,6 @@
 # Import necessary libraries
 import pandas as pd
+import numpy as np
 from flask import Flask, render_template
 from faker import Faker
 import os
@@ -36,7 +37,7 @@ def load_transponder_names(transponder_ids):
 
 
 class DataAnalysis:
-    def __init__(self, new_file, MIN_LAP_TIME=13, MAX_LAP_TIME=50, debug=False):        
+    def __init__(self, new_DF, MIN_LAP_TIME=13, MAX_LAP_TIME=50, debug=False):        
         columns_incomming_csv = ['transponder_id','loop','utcTimestamp','utcTime','lapTime','lapSpeed','maxSpeed','cameraPreset','cameraPan','cameraTilt','cameraZoom','eventName','recSegmentId','trackedRider']
         self.file = pd.DataFrame(columns=columns_incomming_csv)
         self.newlines = pd.DataFrame(columns=columns_incomming_csv)
@@ -47,14 +48,15 @@ class DataAnalysis:
         # self.fileL01 = self.file.loc[self.file['loop'] == 'L01']
         # self.newlinesL01 = self.newlines.loc[self.newlines['loop'] == 'L01']
 
-        self.info_per_transponder = pd.DataFrame(columns=['transponder_id', 'transponder_name', 'fastest_lap_time', 'average_lap_time', 'slowest_lap_time', 'L01_laps'])
+        self.info_per_transponder = pd.DataFrame(columns=['transponder_id', 'transponder_name', 'L01_laptime_list', 'fastest_lap_time', 'average_lap_time', 'slowest_lap_time', 'total_L01_laps'])
+        self.info_per_transponder.set_index('transponder_id', inplace=True)
         self.newlines_without_outliers = pd.DataFrame()
 
         self.outliers = pd.DataFrame()
 
         self.debug = debug
 
-        self.update(new_file)
+        self.update(new_DF)
 
     def cleanup(self):
         self.file.drop_duplicates(inplace = True)
@@ -85,9 +87,10 @@ class DataAnalysis:
         Parameters:
             changed_file (DF): dataframe containing the changed lines retreived from the supabase
         """
-        # load the changed lines and append them to the file
-        self.newlines = changed_file
-        self.file = pd.concat([self.file, self.newlines]).drop_duplicates(subset=['transponder_id', 'utcTimestamp'], keep='last')
+        # load the changed supabase file, check which are the new lines, preprocess them and append them to the file
+        # TODO: possible optimalisation: don't check with the whole self.file, but compare with timestamps saved to the self.info_per_transponder df
+        self.newlines = self.preprocess_lap_times(pd.merge(changed_file, self.file, how='outer', indicator=True, on=['transponder_id', 'utcTimestamp']).loc[lambda x: x['_merge'] == 'left_only'])
+        self.file = pd.concat([self.file, self.newlines])
         
         self.cleanup()  # TODO: does the whole file needs to be cleaned up/sorted after an update, or is cleanup from the newlines enough?
         
@@ -95,8 +98,12 @@ class DataAnalysis:
         existing_transponders = set(self.info_per_transponder['transponder_id'].astype(str))
         new_transponders = set(self.newlines['transponder_id']).difference(set(existing_transponders))
 
+        if self.debug:
+            print('start calling update functions...\n'+'='*40)
 
         # call all functions that need to be updated
+        self.update_L01_laptimes()
+        self.update_total_L01_laps()
         self.average_lap_time()
         self.fastest_lap()
         self.badman()
@@ -106,66 +113,45 @@ class DataAnalysis:
         if self.debug:
             print('update done\n'+'='*40)
 
-    def avg(n, avg_n, new_val):
-        return (avg_n + new_val/n)*n/(n+1)
+    def update_L01_laptimes(self):
+        """
+        Function that updates the lap times of the L01 loop for each transponder in self.info_per_transponder DataFrame
+        """
+        new_laptimes = self.newlines.loc[self.newlines['loop'] == 'L01'].groupby('transponder_id')['lapTime'].apply(list)
+        self.info_per_transponder['L01_laptime_list'] = self.info_per_transponder.apply(lambda row: row['L01_laptime_list'] + new_laptimes.get(row.name, []) if row.name in self.newlines['transponder_id'].values else row['L01_laptime_list'], axis=1)
+        
+        if self.debug:
+            print('L01_laptime_list updated\n'+'='*40)
+
+    def update_total_L01_laps(self):
+        """
+        Function that updates the total number of (L01) laps each transponder has completed and fills this information in the info_per_transponder DataFrame.
+        """
+        # TODO: check if this is equal to the length of the L01_laptime_list
+        self.info_per_transponder['total_L01_laps'] += self.info_per_transponder['transponder_id'].isin(self.newlines['transponder_id']).astype(int)
 
     def average_lap_time(self):
         """
-        Function that calculates the average laptime of all the transponders
-
-        Returns:
-            DataFrame: A DataFrame containing the transponder IDs and their respective average lap times
+        Function that updates the average laptime of all the updated transponders.
         """
-        # Sort the data by TransponderID for better visualization and analysis
-        # df_sorted = self.file.where(self.file['loop'] =='L01').dropna(subset='loop') # I think this isn't needed, as the csv file already contains a column lapTime
-        
-        # Calculate the average lap time for each transponder ID
-        new_average_lap_time = self.fileL01[self.file['transponder_id'].isin(self.newlines['transponder_id'])].groupby('transponder_id')['lapTime'].mean().reset_index()   # only calculate the averages for the updated transponders
-        self.info_per_transponder.update(new_average_lap_time.set_index('transponder_id')[['average_lap_time']])
-
-        if self.debug:
-            print(self.info_per_transponder.head())
-
-    def remove_outliers(self, outlier_threshold=100):      # TODO: only remove outliers if number of lines of self.file is greater than a certain amount? Which is this amount?
-        if len(self.file) < outlier_threshold:
-            self.newlines_without_outliers = self.newlines
-            return
-
-
-        Q1 = self.file['lapTime'].quantile(0.25)
-        Q3 = self.file['lapTime'].quantile(0.75)
-        IQR = Q3 - Q1
-
-        self.newlines_without_outliers = self.newlines[(self.newlines['lapTime'] >= (Q1 - 1.5 * IQR)) & (self.newlines['lapTime'] <= (Q3 + 1.5 * IQR))]
-        
+        self.info_per_transponder['average_lap_time'] = self.info_per_transponder.apply(lambda row: np.mean(row['L01_laptime_list']) if row.name in self.newlines['transponder_id'].values and len(row['L01_laptime_list']) > 0 else np.nan, axis=1)
     
-    def fastest_lap(self):      # self.remove_ouliers should be run before this function is called
+    def fastest_lap(self):
         """
-        Function that calculates the fastest lap time for each transponder.
-        
-        Returns:
-            DataFrame: A DataFrame containing the transponder IDs and their respective fastest lap times
+        Function that updates the fastest lap time for each transponder.
         """
-        # df_sorted = self.file.where(self.file['loop'] =='L01').dropna(subset='loop') # I think this isn't needed, as the csv file already contains a column lapTime
-        new_potential_fastest_lap_time = self.newlines_without_outliers.groupby('transponder_id')['lapTime'].min().reset_index()
-        
-        for index, row in new_potential_fastest_lap_time.iterrows():
-            if self.info_per_transponder.loc[self.info_per_transponder['transponder_id'] == row['transponder_id'], 'fastest_lap_time'].values[0] > row['lapTime']:
-                self.info_per_transponder.loc[self.info_per_transponder['transponder_id'] == row['transponder_id'], 'fastest_lap_time'] = row['lapTime']
-        # TODO: research if it is possible without a for loop (i don't think so as there has to happen a term by term comparison)
+        self.info_per_transponder['fastest_lap_time'] = self.info_per_transponder.apply(lambda row: np.min(row['L01_laptime_list']) if row.name in self.newlines['transponder_id'].values and len(row['L01_laptime_list']) > 0 else np.nan, axis=1)
 
-    def slowest_lap(self):      # self.remove_ouliers should be run before this function is called
+
+    def slowest_lap(self):
         """
-        Function that calculates the slowest lap time for each transponder.
+        Function that updates the slowest lap time for each transponder.
         
         Returns:
             DataFrame: A DataFrame containing the transponder IDs and their respective slowest lap times
         """
-        new_potential_slowest_lap_time = self.newlines_without_outliers.groupby('transponder_id')['lapTime'].max().reset_index()
+        self.info_per_transponder['slowest_lap_time'] = self.info_per_transponder.apply(lambda row: np.max(row['L01_laptime_list']) if row.name in self.newlines['transponder_id'].values and len(row['L01_laptime_list']) > 0 else np.nan, axis=1)
 
-        for index, row in new_potential_slowest_lap_time.iterrows():
-            if self.info_per_transponder.loc[self.info_per_transponder['transponder_id'] == row['transponder_id'], 'slowest_lap_time'].values[0] < row['lapTime']:
-                self.info_per_transponder.loc[self.info_per_transponder['transponder_id'] == row['transponder_id'], 'slowest_lap_time'] = row['lapTime']
 
     def badman(self):
         """
@@ -210,3 +196,6 @@ class DataAnalysis:
         
         # Then, from this subset, select the rider with the lowest coefficient of variation (CV)
         self.diesel = most_consistent_riders.nsmallest(1, 'CV')
+    
+    def electric_motor(self):
+        pass
