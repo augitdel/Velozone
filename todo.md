@@ -25,3 +25,7 @@ Maak rapporten op basis van de data die er verzameld is tijdens de sessie
 Gebruik de Vercel-test repository om tests uit te voeren
 We gaan vanuit JS om de vijf seconden een refresh callen om de data te updaten.
 - images command in [vercel.json](vercel.json) zodat afbeeldingen laden geoptimaliseerd kan worden, zie [hier](https://vercel.com/docs/project-configuration)
+
+### Data_Analysis
+- Hoe gaan we om memt transponder names? Momenteel gaat dit via excel files maar dit lijkt me niet efficient
+- average lap time berekenen adhv huidge avg laptime en aantal doorkomsten $n$

@@ -7,15 +7,6 @@ import os
 app = Flask(__name__)
 
 TRANS_NAME_FILE = "transponder_names.xlsx"
-MIN_LAP_TIME = 13
-MAX_LAP_TIME = 50
-
-def load_file(file: str) -> pd.DataFrame:
-    try:
-        df = pd.read_csv(file, delimiter=',', on_bad_lines='skip')
-    except:
-        df = pd.read_csv(file, delimiter=';', on_bad_lines='skip')
-    return df
 
 def generate_random_name():
     """Generate a random name."""
@@ -43,27 +34,20 @@ def load_transponder_names(transponder_ids):
         name_df.to_excel(TRANS_NAME_FILE, index=False)
     return name_df
 
-def preprocess_lap_times(df):
-    """Operations:
-    - Ensure lapTime is numeric
-    - Drop rows with NaN in the 'lapTime' column
-    - Filter out lap times that are too short or too long"""
-
-    df['lapTime'] = pd.to_numeric(df['lapTime'], errors='coerce')  # Ensure lapTime is numeric
-    valid_laps = df[(df['lapTime'] >= MIN_LAP_TIME) & (df['lapTime'] <= MAX_LAP_TIME)]
-    valid_laps = valid_laps.dropna(subset=['lapTime']) # Drop rows with NaN in the 'lapTime' column
-    return valid_laps
 
 class DataAnalysis:
-    def __init__(self, new_file, debug=False):
+    def __init__(self, new_file, MIN_LAP_TIME=13, MAX_LAP_TIME=50, debug=False):        
         columns_incomming_csv = ['transponder_id','loop','utcTimestamp','utcTime','lapTime','lapSpeed','maxSpeed','cameraPreset','cameraPan','cameraTilt','cameraZoom','eventName','recSegmentId','trackedRider']
         self.file = pd.DataFrame(columns=columns_incomming_csv)
         self.newlines = pd.DataFrame(columns=columns_incomming_csv)
 
+        self.MIN_LAP_TIME = MIN_LAP_TIME
+        self.MAX_LAP_TIME = MAX_LAP_TIME
+
         # self.fileL01 = self.file.loc[self.file['loop'] == 'L01']
         # self.newlinesL01 = self.newlines.loc[self.newlines['loop'] == 'L01']
 
-        self.info_per_transponder = pd.DataFrame(columns=['transponder_id', 'transponder_name', 'fastest_lap_time', 'average_lap_time', 'slowest_lap_time'])
+        self.info_per_transponder = pd.DataFrame(columns=['transponder_id', 'transponder_name', 'fastest_lap_time', 'average_lap_time', 'slowest_lap_time', 'L01_laps'])
         self.newlines_without_outliers = pd.DataFrame()
 
         self.outliers = pd.DataFrame()
@@ -74,9 +58,20 @@ class DataAnalysis:
 
     def cleanup(self):
         self.file.drop_duplicates(inplace = True)
-        self.newlines = self.newlines.dropna(subset=['transponder_id', 'loop', 'utcTimestamp'], inplace=True).sort_values(by=['transponder_id','utcTime'])
+        self.newlines.dropna(subset=['transponder_id', 'loop', 'utcTimestamp'], inplace=True).sort_values(by=['transponder_id','utcTime'], inplace=True)
 
-    def update(self, changed_file:str):
+    def preprocess_lap_times(self, df):
+        """Operations:
+            - Ensure lapTime is numeric
+            - Drop rows with NaN in the 'lapTime' column
+            - Filter out lap times that are too short or too long"""
+
+        df['lapTime'] = pd.to_numeric(df['lapTime'], errors='coerce')  # Ensure lapTime is numeric
+        valid_laps = df[(df['lapTime'] >= self.MIN_LAP_TIME) & (df['lapTime'] <= self.MAX_LAP_TIME)]
+        valid_laps.dropna(subset=['lapTime'], inplace=True) # Drop rows with NaN in the 'lapTime' column
+        return valid_laps
+
+    def update(self, changed_file):
         """
         Loads the changed lines from the CSV file and appends them to the existing DataFrame.
         Then it updates the following:
@@ -88,10 +83,10 @@ class DataAnalysis:
         - The electric motor (the transponder with the highest average lap time among the electric transponders)
 
         Parameters:
-            changed_file (str): The path to the CSV file with the changed data
+            changed_file (DF): dataframe containing the changed lines retreived from the supabase
         """
         # load the changed lines and append them to the file
-        self.newlines = preprocess_lap_times(load_file(changed_file))
+        self.newlines = changed_file
         self.file = pd.concat([self.file, self.newlines]).drop_duplicates(subset=['transponder_id', 'utcTimestamp'], keep='last')
         
         self.cleanup()  # TODO: does the whole file needs to be cleaned up/sorted after an update, or is cleanup from the newlines enough?
@@ -111,6 +106,8 @@ class DataAnalysis:
         if self.debug:
             print('update done\n'+'='*40)
 
+    def avg(n, avg_n, new_val):
+        return (avg_n + new_val/n)*n/(n+1)
 
     def average_lap_time(self):
         """
