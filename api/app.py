@@ -13,7 +13,7 @@ data_objects = {}
 PER_PAGE = 10
 app.secret_key = os.urandom(24)
 
-PDF_DIR = os.path.join(app.root_path, "static", "reports")
+PDF_DIR = os.path.join(app.root_path, "tmp")
 PDF_PATH = os.path.join(PDF_DIR, "rider_report_UGent.pdf")
 
 @app.route('/') 

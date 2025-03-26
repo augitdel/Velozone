@@ -63,7 +63,7 @@
                 .then(data => {
                     if (data.status === "ready") {
                         // Hide loader and text
-                        document.getElementById("loading-text").textContent = "Click the Button Now";
+                        document.getElementById("loading-text").style.display = "none";
                         document.getElementById("bike-loader").style.display = "none"; 
                         document.getElementById("title").textContent = "Report Generation DONE!"
                         // Show download button
