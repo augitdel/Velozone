@@ -530,7 +530,7 @@ def create_general_report(group_name,summary_df, group_stats,badman, diesel_engi
 # ------------------------------------------------------------
 # 6. Main Execution
 # ------------------------------------------------------------
-def main():
+def main(csv_file):
     # Read in the correct data file 
     csv_file_path = 'RecordingContext_20250214.csv'
 
