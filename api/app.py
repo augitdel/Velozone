@@ -114,6 +114,7 @@ def home():
 def check_pdf_status():
     """Check if the PDF file is generated"""
     time.sleep(5)
+    # Return the pdf if it is generated
     if os.path.exists(PDF_PATH):
         return jsonify({"status": "ready", "pdf_url": "/static/reports/rider_report_UGent.pdf"})
     else:
