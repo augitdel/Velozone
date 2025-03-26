@@ -9,6 +9,7 @@ DONE
 Aanmaken van lege dataframes voor het opslaan van de data. Transponders koppelen aan namen (optioneel)
 
 --> transponders worden gekoppeld aan namen, dataFrames moeten nog aangemaakt worden
+--> transponders moeten ook uit database verwijders kunnen worden
 ### Leaderboard
 Streamen van het live-leaderboard op het scherm. 
 --> testen op live data
