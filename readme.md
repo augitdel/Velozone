@@ -12,7 +12,7 @@ Click the `Start Session` button to begin a new session. This will present you w
 
 Once this configuration is submitted through the `Start Competition` button, the session will be started and one can choose to either go back to the home page through the `Go to Home` button or to view the leaderboard through the `Go to Leaderboard` button.
 
-Starting the session also starts a visual indicator which shows that the session is active. This indicator is a green square in the top right corner with a rotating animation.
+Starting the session also starts a visual indicator which shows that the session is active. This indicator is a green square in the top right corner with a rotating animation. If the session is not active, the indicator is a grey static square.
 
 ### Leaderbord
 Once a session is started, the leaderbord can be displayed either by clicking the `Go to Leaderboard` button after configuring the session or by clicking the `Leaderboard` button on the home page.
