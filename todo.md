@@ -19,6 +19,9 @@ Stoppen van alle dataverzameling en het sluiten van het leaderboard
 Maak rapporten op basis van de data die er verzameld is tijdens de sessie
 --> downloadlink maken
 
+### Reset knop
+knop die de hele site reset voor moest er ergens i
+
 ### Vercel Functionality
 Gebruik de Vercel-test repository om tests uit te voeren
 We gaan vanuit JS om de vijf seconden een refresh callen om de data te updaten.

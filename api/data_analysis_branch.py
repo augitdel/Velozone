@@ -50,10 +50,7 @@ class DataAnalysis:
 
         self.info_per_transponder = pd.DataFrame(columns=['transponder_id', 'transponder_name', 'L01_laptime_list', 'fastest_lap_time', 'average_lap_time', 'slowest_lap_time', 'total_L01_laps'])
         self.info_per_transponder.set_index('transponder_id', inplace=True)
-        self.newlines_without_outliers = pd.DataFrame()
-
-        self.outliers = pd.DataFrame()
-
+        
         self.debug = debug
 
         self.update(new_DF)
@@ -142,7 +139,6 @@ class DataAnalysis:
         """
         self.info_per_transponder['fastest_lap_time'] = self.info_per_transponder.apply(lambda row: np.min(row['L01_laptime_list']) if row.name in self.newlines['transponder_id'].values and len(row['L01_laptime_list']) > 0 else np.nan, axis=1)
 
-
     def slowest_lap(self):
         """
         Function that updates the slowest lap time for each transponder.
@@ -151,7 +147,6 @@ class DataAnalysis:
             DataFrame: A DataFrame containing the transponder IDs and their respective slowest lap times
         """
         self.info_per_transponder['slowest_lap_time'] = self.info_per_transponder.apply(lambda row: np.max(row['L01_laptime_list']) if row.name in self.newlines['transponder_id'].values and len(row['L01_laptime_list']) > 0 else np.nan, axis=1)
-
 
     def badman(self):
         """
@@ -168,9 +163,6 @@ class DataAnalysis:
         
         # Drop any rows where 'lapTime' is missing
         df_filtered.dropna(subset=['lapTime'], inplace=True)
-        
-        # Convert 'lapTime' to numeric values for calculation
-        df_filtered['lapTime'] = pd.to_numeric(df_filtered['lapTime'])
         
         # Exclude transponders with fewer than minimum_incalculated laps
         df_filtered = df_filtered.groupby('transponder_id').filter(lambda x: len(x) > minimum_incalculated)
