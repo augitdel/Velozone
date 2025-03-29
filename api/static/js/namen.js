@@ -45,7 +45,7 @@ function openDatabase() {
         request.onsuccess = function (event) {
             db = event.target.result;
             console.log("IndexedDB opened successfully");
-            loadTransponderData(); // Nu pas laden als DB open is
+            loadTransponderDataFromDB(); // Load from DB on success
             resolve(db);
         };
 
@@ -57,40 +57,22 @@ function openDatabase() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    loadTransponderData();
+    openDatabase(); // Open the database when the DOM is loaded
+    sendIndexedDBData()
 });
 
-function loadTransponderData() {
-    const tableBody = document.getElementById("transponderTableBody");
-    tableBody.innerHTML = ""; // Clear table before reloading
+async function initializeDatabase() {
+    try {
+        db = await openDatabase();
+        console.log("Database opened successfully", db);
 
-    transponderData.forEach((entry, index) => {
-        const row = document.createElement("tr");
-
-        row.innerHTML = `
-        <td>${entry[0]}</td>  <!-- Corrected: Access ID using entry[0] -->
-        <td class="transponder-name">
-            ${entry[1]}  <!-- Corrected: Access Name using entry[1] -->
-            <button class="btn btn-danger btn-sm remove-btn" onclick="removeRow(${index})">
-                <i class="bi bi-trash"></i>
-            </button>
-        </td>
-        `;
-
-        // Hide the remove button by default
-        const removeBtn = row.querySelector(".remove-btn");
-        removeBtn.style.display = "none";
-
-        row.addEventListener("mouseenter", () => {
-            removeBtn.style.display = "inline-block";
-        });
-
-        row.addEventListener("mouseleave", () => {
-            removeBtn.style.display = "none";
-        });
-
-        tableBody.appendChild(row);
-    });
+        // Only send data when the '/' page is opened
+        if (window.location.pathname === "/") {
+            await sendIndexedDBData();
+        }
+    } catch (error) {
+        console.error("Error opening database:", error);
+    }
 }
 
 function loadTransponderDataFromDB() {
@@ -154,13 +136,6 @@ function removeRow(transponderID) {
 
     request.onsuccess = function () {
         console.log(`Transponder ${transponderID} removed from IndexedDB.`);
-
-        // Remove transponder from transponderData array
-        const index = transponderData.findIndex(transponder => transponder[0] === transponderID);
-        if (index !== -1) {
-            transponderData.splice(index, 1);
-        }
-
         loadTransponderDataFromDB(); // Reload data from IndexedDB
     };
 
@@ -185,7 +160,7 @@ function saveTransponderData(data) {
 
     transaction.oncomplete = function () {
         console.log("Alle transponders zijn toegevoegd aan IndexedDB.");
-        loadTransponderData(); // Nu pas opnieuw laden na transactie
+        loadTransponderDataFromDB(); // Reload from DB after saving
     };
 
     transaction.onerror = function (event) {
@@ -222,7 +197,7 @@ async function updateTransponderName(item) {
     };
 }
 
-
+// Search function 
 async function searchTransponder() {
     if (!db) {
         console.error("Database niet beschikbaar. Wachten...");
@@ -261,7 +236,6 @@ async function searchTransponder() {
     };
 }
 
-
 function populateTable(data) {
     const tableBody = document.getElementById("transponderTableBody");
     tableBody.innerHTML = ""; // Clear de bestaande inhoud
@@ -294,6 +268,16 @@ function populateTable(data) {
                 cell2.blur();
             }
         });
+
+        // Add remove button for searched items as well
+        const removeCell = row.insertCell(2);
+        const removeButton = document.createElement("button");
+        removeButton.className = "btn btn-danger btn-sm remove-btn";
+        removeButton.innerHTML = '<i class="bi bi-trash"></i>';
+        removeButton.onclick = function() {
+            removeRow(item.id);
+        };
+        removeCell.appendChild(removeButton);
     });
 }
 
@@ -314,7 +298,7 @@ function addTransponder() {
 
     request.onsuccess = function () {
         console.log("Nieuwe transponder toegevoegd:", newTransponder);
-        loadTransponderData();
+        loadTransponderDataFromDB(); // Reload from DB after adding
     };
 
     request.onerror = function (event) {
@@ -329,8 +313,44 @@ function addTransponder() {
 window.onload = async function () {
     try {
         db = await openDatabase();
-        loadTransponderDataFromDB(); // Load from IndexedDB
     } catch (error) {
         console.error("Error opening database:", error);
     }
 };
+
+// Connection with the Python Backend
+async function sendIndexedDBData() {
+    const dbName = "TransponderDatabase";
+    const storeName = "transponders"; // Corrected store name
+
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(dbName);
+
+        request.onsuccess = function () {
+            const db = request.result;
+            const tx = db.transaction(storeName, "readonly");
+            const store = tx.objectStore(storeName);
+            const getAllRequest = store.getAll();
+            // If data is fetched successfully --> send to HTTP endpoint
+            getAllRequest.onsuccess = function () {
+                fetch("https://velozone-testtijl.vercel.app/", { // Change URL when deploying
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(getAllRequest.result)
+                })
+                .then(response => response.json())
+                .then(data => resolve(data))
+                .catch(error => reject(error));
+            };
+            //  Data fetch failed
+            getAllRequest.onerror = function () {
+                reject("Failed to read IndexedDB");
+            };
+        };
+
+        request.onerror = function () {
+            reject("Failed to open IndexedDB");
+        };
+    });
+}
+

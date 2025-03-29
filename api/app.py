@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, url_for, redirect, session, send_file, send_from_directory,jsonify
+from flask_cors import CORS 
 # from api.extra_functions import limit_numeric_to_2_decimals
 # from api.data_analysis_classes import DataAnalysis
 # from api.data_analysis import remove_initial_lap, preprocess_lap_times
@@ -7,16 +8,35 @@ import pandas as pd
 import os
 import time
 
-
 app = Flask(__name__, template_folder='templates')
 data_objects = {}
-PER_PAGE = 10
 app.secret_key = os.urandom(24)
 
+PER_PAGE = 10
 PDF_DIR = os.path.join(app.root_path, "tmp")
 PDF_PATH = os.path.join(PDF_DIR, "rider_report_UGent.pdf")
 
+# Store IndexedDB data in-memory (or use a database)
+indexeddb_data = []
+CORS(app) # Enable CORS for development
+
+# Home screen
 @app.route('/') 
+@app.route('/home')
+def home():
+    competition_data = session.get('competition', None)
+    return render_template('index.html', competition=competition_data)
+
+@app.route('/upload', methods=['POST'])
+def upload_transponder_data():
+    data = request.get_json()
+    print("Received transponder data:")
+    for item in data:
+        print(f"ID: {item['id']}, Name: {item['name']}")
+        # Here you can process the data, e.g., store it in a file or database
+    return jsonify({"message": "Data received successfully!"}), 200
+
+
 def index():
     return render_template('index.html')
 
@@ -104,12 +124,6 @@ def names():
 def download_report():
     return render_template('download_report.html')
 
-@app.route('/home')
-def home():
-    competition_data = session.get('competition', None)
-    return render_template('index.html', competition=competition_data)
-
-
 @app.route('/check_pdf_status')
 def check_pdf_status():
     """Check if the PDF file is generated"""
@@ -124,6 +138,7 @@ def check_pdf_status():
 def download_pdf():
     """Allow users to download the PDF"""
     return send_from_directory(PDF_DIR, "rider_report_UGent.pdf", as_attachment=True)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
