@@ -37,3 +37,4 @@ We gaan vanuit JS om de vijf seconden een refresh callen om de data te updaten.
 ### Data_Analysis
 - Hoe gaan we om memt transponder names? Momenteel gaat dit via excel files maar dit lijkt me niet efficient
 - update-functies en variabelen niet rechtstreeks aanroepen, maar via getters.
+- [data_analysis_branch.py](api/data_analysis_branch.py) incorporeren
