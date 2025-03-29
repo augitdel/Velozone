@@ -22,6 +22,7 @@ CORS(app) # Enable CORS for development
 
 # Variable to track if session is active
 session_active = False
+session_stopped = False
 
 # Home screen
 @app.route('/') 
@@ -105,17 +106,21 @@ def start_session():
 @app.route('/stop_session', methods=['GET', 'POST'])
 def stop_session():
     global session_active
+    global session_stopped
     if request.method == 'POST':
         session['generate_pdf'] = request.form.get('decision') == 'true'
         session['stop_message'] = "Session has been stopped successfully."  # Store in session
         session_active = False
+        session_stopped = True
         return redirect(url_for('home'))
 
-    return render_template('stop_session.html')
+    return render_template('stop_session.html', is_session_active = session_active)
 
 @app.route('/generate_report')
 def generate_report():
-    return render_template('generate_report.html') 
+    global session_active
+    global session_stopped
+    return render_template('generate_report.html', session_active = session_active, session_stopped = session_stopped) 
 
 @app.route('/names')
 def names():
@@ -145,6 +150,11 @@ def get_session_status():
     global is_session_active
     print(f"session_active: {session_active}")
     return jsonify({'isActive': session_active})
+
+@app.route('/api/sessions/stopped')
+def get_session_stopped():
+    global session_stopped
+    return jsonify({'isStopped': session_stopped})
 
 if __name__ == '__main__':
     app.run(debug=True)

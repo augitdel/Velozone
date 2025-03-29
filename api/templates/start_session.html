@@ -9,8 +9,14 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/namen.css') }}">
+    <link href="{{ url_for('static', filename='stylesheet/session_active.css') }}" rel = "stylesheet">
 </head>
 <body>
+    <!-- Check if session is active -->
+    <div id="session-indicator" class="session-indicator {% if is_session_active %}active{% else %}inactive{% endif %}"></div>
+    {% block content %}
+    {% endblock %}
+    
     <div class="container">
         <!-- Page Title -->
         <div class="section-title">Leaderboard Configuration</div>

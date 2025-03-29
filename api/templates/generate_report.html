@@ -6,6 +6,7 @@
     <title>Generate Report - VELOZONE</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/generate_report.css') }}">
+    <link href="{{ url_for('static', filename='stylesheet/session_active.css') }}" rel = "stylesheet">
 </head>
 <body>
     <!-- Check if session is active -->
@@ -16,8 +17,15 @@
     <div class="container">
         <h1 class="title">Generate Your Track Cycling Report</h1>
         <p>Click the button below to generate a detailed report of your track cycling session.</p>
-
-        <button id="generate-btn" class="btn btn-custom">Generate Report</button>
+        {%if session_active %}
+            <button id="generate-btn" class="btn btn-custom" disabled>Generate Report</button>
+            <p class="mt-2 text-muted">First end the session before generating a report</p>
+        {%elif session_stopped %}
+            <button id="generate-btn" class="btn btn-custom">Generate Report</button>
+        {%else%}
+            <button id="generate-btn" class="btn btn-custom" disabled>Generate Report</button>
+            <p class="mt-2 text-muted">First start a session and generate data before making the report</p>
+        {% endif %}
     </div>
 
     <script type = "text/javascript">
