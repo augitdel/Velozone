@@ -45,7 +45,7 @@ function openDatabase() {
         request.onsuccess = function (event) {
             db = event.target.result;
             console.log("IndexedDB opened successfully");
-            loadTransponderData(); // Nu pas laden als DB open is
+            loadTransponderDataFromDB(); // Load from DB on success
             resolve(db);
         };
 
@@ -56,28 +56,91 @@ function openDatabase() {
     });
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+    openDatabase(); // Open the database when the DOM is loaded
+    sendIndexedDBData()
+});
 
-function loadTransponderData() {
+async function initializeDatabase() {
+    try {
+        db = await openDatabase();
+        console.log("Database opened successfully", db);
+
+        // Only send data when the '/' page is opened
+        if (window.location.pathname === "/") {
+            await sendIndexedDBData();
+        }
+    } catch (error) {
+        console.error("Error opening database:", error);
+    }
+}
+
+function loadTransponderDataFromDB() {
+    const tableBody = document.getElementById("transponderTableBody");
+    tableBody.innerHTML = ""; // Clear table to remove old data
+
     if (!db) {
-        console.error("Database niet geïnitialiseerd. Wachten...");
+        console.error("IndexedDB is not initialized.");
         return;
     }
 
     const transaction = db.transaction("transponders", "readonly");
     const store = transaction.objectStore("transponders");
-    const request = store.getAll();
 
-    request.onsuccess = function (event) {
-        if (event.target.result.length > 0) {
-            populateTable(event.target.result);
+    store.openCursor().onsuccess = function (event) {
+        const cursor = event.target.result;
+        if (cursor) {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+            <td>${cursor.value.id}</td>
+            <td class="transponder-name">
+                ${cursor.value.name}
+                <button class="btn btn-danger btn-sm remove-btn" onclick="removeRow('${cursor.value.id}')">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>`;
+
+            // Hide remove button by default
+            const removeBtn = row.querySelector(".remove-btn");
+            removeBtn.style.display = "none";
+
+            row.addEventListener("mouseenter", () => {
+                removeBtn.style.display = "inline-block";
+            });
+
+            row.addEventListener("mouseleave", () => {
+                removeBtn.style.display = "none";
+            });
+
+            tableBody.appendChild(row);
+            cursor.continue();
         } else {
-            console.log("Geen transponderdata gevonden, standaarddata wordt ingevoerd.");
-            saveTransponderData(transponderData);
+            console.log("Finished loading transponders from IndexedDB.");
         }
+    };
+}
+
+function removeRow(transponderID) {
+    if (!confirm("Are you sure you want to remove this transponder?")) return;
+
+    if (!db) {
+        console.error("IndexedDB is not initialized.");
+        return;
+    }
+
+    console.log(`Attempting to remove transponder ID: ${transponderID}`);
+
+    const transaction = db.transaction("transponders", "readwrite");
+    const store = transaction.objectStore("transponders");
+    const request = store.delete(transponderID);
+
+    request.onsuccess = function () {
+        console.log(`Transponder ${transponderID} removed from IndexedDB.`);
+        loadTransponderDataFromDB(); // Reload data from IndexedDB
     };
 
     request.onerror = function (event) {
-        console.error("Error loading data from IndexedDB", event.target.error.message);
+        console.error("Error removing transponder:", event.target.error);
     };
 }
 
@@ -97,7 +160,7 @@ function saveTransponderData(data) {
 
     transaction.oncomplete = function () {
         console.log("Alle transponders zijn toegevoegd aan IndexedDB.");
-        loadTransponderData(); // Nu pas opnieuw laden na transactie
+        loadTransponderDataFromDB(); // Reload from DB after saving
     };
 
     transaction.onerror = function (event) {
@@ -134,7 +197,7 @@ async function updateTransponderName(item) {
     };
 }
 
-
+// Search function 
 async function searchTransponder() {
     if (!db) {
         console.error("Database niet beschikbaar. Wachten...");
@@ -173,7 +236,6 @@ async function searchTransponder() {
     };
 }
 
-
 function populateTable(data) {
     const tableBody = document.getElementById("transponderTableBody");
     tableBody.innerHTML = ""; // Clear de bestaande inhoud
@@ -206,6 +268,16 @@ function populateTable(data) {
                 cell2.blur();
             }
         });
+
+        // Add remove button for searched items as well
+        const removeCell = row.insertCell(2);
+        const removeButton = document.createElement("button");
+        removeButton.className = "btn btn-danger btn-sm remove-btn";
+        removeButton.innerHTML = '<i class="bi bi-trash"></i>';
+        removeButton.onclick = function() {
+            removeRow(item.id);
+        };
+        removeCell.appendChild(removeButton);
     });
 }
 
@@ -226,7 +298,7 @@ function addTransponder() {
 
     request.onsuccess = function () {
         console.log("Nieuwe transponder toegevoegd:", newTransponder);
-        loadTransponderData();
+        loadTransponderDataFromDB(); // Reload from DB after adding
     };
 
     request.onerror = function (event) {
@@ -244,4 +316,41 @@ window.onload = async function () {
     } catch (error) {
         console.error("Error opening database:", error);
     }
+};
+
+// Connection with the Python Backend
+async function sendIndexedDBData() {
+    const dbName = "TransponderDatabase";
+    const storeName = "transponders"; // Corrected store name
+
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(dbName);
+
+        request.onsuccess = function () {
+            const db = request.result;
+            const tx = db.transaction(storeName, "readonly");
+            const store = tx.objectStore(storeName);
+            const getAllRequest = store.getAll();
+            // If data is fetched successfully --> send to HTTP endpoint
+            getAllRequest.onsuccess = function () {
+                fetch("http://127.0.0.1:5000/upload", { // Change URL when deploying
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(getAllRequest.result)
+                })
+                .then(response => response.json())
+                .then(data => resolve(data))
+                .catch(error => reject(error));
+            };
+            //  Data fetch failed
+            getAllRequest.onerror = function () {
+                reject("Failed to read IndexedDB");
+            };
+        };
+
+        request.onerror = function () {
+            reject("Failed to open IndexedDB");
+        };
+    });
 }
+
