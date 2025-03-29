@@ -259,7 +259,6 @@ def generate_speed_over_time_plot(rider_id, df, track_length=250, output_folder=
         # Option A: rolling mean
         # speed_smoothed = speed_m_s.rolling(window=3, min_periods=1, center=True).mean()
         # Option B: Gaussian filter
-        speed_smoothed = gaussian_filter1d(speed_m_s, sigma=1)
         
         if tid == rider_id:
             # current rider in green
@@ -531,7 +530,7 @@ def create_general_report(group_name,summary_df, group_stats,badman, diesel_engi
 # ------------------------------------------------------------
 # 6. Main Execution
 # ------------------------------------------------------------
-def main():
+def main(csv_file):
     # Read in the correct data file 
     csv_file_path = 'RecordingContext_20250214.csv'
 

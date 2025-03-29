@@ -155,3 +155,22 @@ table tbody tr:hover {
 .hidden {
     display: none;
 }
+.remove-btn {
+    display: none;
+    margin-left: 20px; /* Add spacing from text */
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 3px 6px;
+    cursor: pointer;
+    font-size: 18px;
+    border-radius: 4px;
+}
+
+.transponder-name {
+    position: relative;
+}
+
+tr:hover .remove-btn {
+    display: inline-block;
+}

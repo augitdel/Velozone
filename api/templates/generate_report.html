@@ -6,23 +6,39 @@
     <title>Generate Report - VELOZONE</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/generate_report.css') }}">
+    <link href="{{ url_for('static', filename='stylesheet/session_active.css') }}" rel = "stylesheet">
 </head>
 <body>
+    <!-- Check if session is active -->
+    <div id="session-indicator" class="session-indicator {% if is_session_active %}active{% else %}inactive{% endif %}"></div>
+    {% block content %}
+    {% endblock %}
+
     <div class="container">
         <h1 class="title">Generate Your Track Cycling Report</h1>
+    
+        {%if session_active %}
+            <button id="generate-btn" class="btn btn-custom hidden" hidden>Generate Report</button>
+            <h2 class="mt-2 text-muted">First end the session before generating a report</h2>
+            <a href="{{ url_for('home') }}" class="btn btn-secondary">Back</a>
+        {%elif session_stopped %}
         <p>Click the button below to generate a detailed report of your track cycling session.</p>
-
-        <button id="generate-btn" class="btn btn-custom">Generate Report</button>
-
-        <div id="loading-bar" class="progress mt-3" style="display: none;">
-            <div id="progress" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;"></div>
-        </div>
-
-        <a id="download-btn" href="#" class="btn btn-success mt-3" style="display: none;">Download Report</a>
+            <button id="generate-btn" class="btn btn-custom">Generate Report</button>
+        {%else%}
+            <button id="generate-btn" class="btn btn-custom hidden" hidden>Generate Report</button>
+            <h2 class="mt-2 text-muted">First start a session and generate data before making the report</h2>
+            <a href="{{ url_for('home') }}" class="btn btn-secondary">Back</a>
+        {% endif %}
     </div>
 
+    <script type = "text/javascript">
+        document.getElementById('generate-btn').onclick = function() {
+            window.location.href = "{{ url_for('download_report') }}";
+        }
+    </script>
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="{{ url_for('static', filename='js/session_active.js') }}"></script>
 </body>
 </html>
