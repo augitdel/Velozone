@@ -1,5 +1,7 @@
 # Velozone
-## Website Usage
+## Velozone Usage
+Velozone is a costum developed webapp which allows the Wielercenter Eddy Merckx in Ghent to host trackcycling sessions with a realtime updating leaderboard and the ability to generate PDF reports containing the session data.
+
 ### Name Configuration
 Click the `Name Configuration` button to get to the 'Name Configuration' webpage. This webpage will present you with a form in which the users can connect their transponder IDs to their names. There is also a table present with the already configured names.
 
