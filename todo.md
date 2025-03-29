@@ -36,4 +36,4 @@ We gaan vanuit JS om de vijf seconden een refresh callen om de data te updaten.
 
 ### Data_Analysis
 - Hoe gaan we om memt transponder names? Momenteel gaat dit via excel files maar dit lijkt me niet efficient
-- average lap time berekenen adhv huidge avg laptime en aantal doorkomsten $n$
+- update-functies en variabelen niet rechtstreeks aanroepen, maar via getters.
