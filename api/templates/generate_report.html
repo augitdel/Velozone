@@ -16,15 +16,18 @@
 
     <div class="container">
         <h1 class="title">Generate Your Track Cycling Report</h1>
-        <p>Click the button below to generate a detailed report of your track cycling session.</p>
+    
         {%if session_active %}
-            <button id="generate-btn" class="btn btn-custom" disabled>Generate Report</button>
-            <p class="mt-2 text-muted">First end the session before generating a report</p>
+            <button id="generate-btn" class="btn btn-custom hidden" hidden>Generate Report</button>
+            <h2 class="mt-2 text-muted">First end the session before generating a report</h2>
+            <a href="{{ url_for('home') }}" class="btn btn-secondary">Back</a>
         {%elif session_stopped %}
+        <p>Click the button below to generate a detailed report of your track cycling session.</p>
             <button id="generate-btn" class="btn btn-custom">Generate Report</button>
         {%else%}
-            <button id="generate-btn" class="btn btn-custom" disabled>Generate Report</button>
-            <p class="mt-2 text-muted">First start a session and generate data before making the report</p>
+            <button id="generate-btn" class="btn btn-custom hidden" hidden>Generate Report</button>
+            <h2 class="mt-2 text-muted">First start a session and generate data before making the report</h2>
+            <a href="{{ url_for('home') }}" class="btn btn-secondary">Back</a>
         {% endif %}
     </div>
 
