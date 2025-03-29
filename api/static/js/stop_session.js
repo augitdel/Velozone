@@ -22,21 +22,26 @@ function setDecision(choice) {
 }
 
 // Function to stop the session
-function stopCompetition() { 
+function stopCompetition() {
     fetch("/stop_session", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
-        decision: decision_bool
+            decision: decision
         })
     })
     .then(response => {
         if (response.redirected) {
-            window.location.href = response.url; 
+            window.location.href = response.url; // Redirect to /home
         } else {
-            document.getElementById("stopMessage").classList.remove("hidden");
-            document.getElementById("homeButton").classList.remove("hidden");
+            console.error("Error stopping session:", response.status);
         }
     })
     .catch(error => console.error("Error stopping session:", error));
+}
+
+function showStopConfirmation() {
+    if (confirm("Are you sure you want to stop the session?")) {
+        stopCompetition();
+    }
 }

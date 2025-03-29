@@ -5,9 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/styles.css') }}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/session_active.css') }}">
+    
     <title>Velozone - Race Stats</title>
 </head>
 <body>
+    <!-- Check if session is active -->
+    <div id="session-indicator" class="session-indicator {% if is_session_active %}active{% else %}inactive{% endif %}"></div>
+    {% block content %}
+    {% endblock %}
+
     <h1 class="title">Race Leaderboard - Velozone</h1>
     <div class="container">
         <div class="container_left">
@@ -99,20 +106,6 @@
         </div>
     </div>
 
-    <!-- <script>
-        const SWITCH_INTERVAL = 5000;  
-    
-        function switchPage() {
-            let nextPage = "{{ next_page }}";  // Get next page from Flask
-    
-            if (nextPage) {
-                window.location.href = "/leaderboard/" + nextPage;  
-            } else {
-                window.location.href = "/leaderboard/1";  // Cycle back to page 1
-            }
-        }
-    
-        setTimeout(switchPage, SWITCH_INTERVAL);
-    </script> -->
+    <script src="{{ url_for('static', filename='js/session_active.js') }}"></script>
 </body>
 </html>

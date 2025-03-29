@@ -333,7 +333,7 @@ async function sendIndexedDBData() {
             const getAllRequest = store.getAll();
             // If data is fetched successfully --> send to HTTP endpoint
             getAllRequest.onsuccess = function () {
-                fetch("https://velozone-testtijl.vercel.app/", { // Change URL when deploying
+                fetch("http://127.0.0.1:5000/upload", { // Change URL when deploying
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(getAllRequest.result)

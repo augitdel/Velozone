@@ -1,0 +1,27 @@
+/* Style for the indicator of activity */
+.session-indicator {
+    width: 20px; /* Increase size for better visibility */
+    height: 20px;
+    /* border-radius: 50%; Remove this line to make it a square */
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    transition: background-color 0.3s ease-in-out; /* Optional: Smooth color transition */
+}
+
+.session-indicator.active {
+    background-color: green;
+    animation: rotate-indicator 2s linear infinite; /* Apply rotation animation */
+}
+
+.session-indicator.inactive {
+    background-color: grey;
+    animation: none; /* Remove animation when inactive */
+}
+
+/* Define the rotation animation */
+@keyframes rotate-indicator {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}

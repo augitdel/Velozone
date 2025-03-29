@@ -8,11 +8,17 @@
     <!-- Voeg Bootstrap CSS toe -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/index.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/session_active.css') }}">
 </head>
 <body>
     <div class="container text-center mt-5">
         <h1 class="title mb-4">VELOZONE</h1>
         
+        <!-- Check if session is active -->
+        <div id="session-indicator" class="session-indicator {% if is_session_active %}active{% else %}inactive{% endif %}"></div>
+        {% block content %}
+        {% endblock %}
+
         <!-- Knoppen in 2 kolommen voor Start en Stop Session -->
         <div class="row mb-4">
             <div class="col-md-6 mb-3">
@@ -49,11 +55,13 @@
             </div>
         </div>
     </div>
-
+    
     <!-- Voeg Bootstrap JS en jQuery toe (optioneel voor interactieve functies) -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="{{ url_for('static', filename='js/namen.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/session_active.js') }}"></script>
 </body>
 </html>

@@ -8,6 +8,11 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/generate_report.css') }}">
 </head>
 <body>
+    <!-- Check if session is active -->
+    <div id="session-indicator" class="session-indicator {% if is_session_active %}active{% else %}inactive{% endif %}"></div>
+    {% block content %}
+    {% endblock %}
+
     <div class="container">
         <h1 class="title">Generate Your Track Cycling Report</h1>
         <p>Click the button below to generate a detailed report of your track cycling session.</p>
@@ -23,5 +28,6 @@
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="{{ url_for('static', filename='js/session_active.js') }}"></script>
 </body>
 </html>
