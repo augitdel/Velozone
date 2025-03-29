@@ -6,6 +6,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/styles.css') }}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/session_active.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon/icon.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon/apple-icon.png') }}">
     
     <title>Velozone - Race Stats</title>
 </head>
@@ -83,7 +86,7 @@
                     </center>
                 </div>
                 <div class = "electrical engine">
-                    <h2>Electrical Engine</h2>
+                    <h2>Electric motor</h2>
                     <center>
                         {% if electrical %}
                             <p>{{ electric[0][0] }} -- {{ electric[0][2] }}s</p>
