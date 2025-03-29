@@ -74,6 +74,7 @@ def leaderboard(page = 1):
 @app.route('/start_session', methods=['POST', 'GET'])
 def start_session():
     global session_active
+    global session_stopped
     if request.method == 'POST':
         # Retrieve data from the form submitted in the frontend (JavaScript)
         start_date = request.form['startDate']
@@ -100,7 +101,7 @@ def start_session():
         # Redirect to another page, such as the leaderboard or home page
         return redirect(url_for('home'))
 
-    return render_template('start_session.html')
+    return render_template('start_session.html',session_active = session_active)
 
 # Stop a session
 @app.route('/stop_session', methods=['GET', 'POST'])

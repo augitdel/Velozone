@@ -16,7 +16,7 @@
     <div id="session-indicator" class="session-indicator {% if is_session_active %}active{% else %}inactive{% endif %}"></div>
     {% block content %}
     {% endblock %}
-    
+
     <div class="container">
         <!-- Page Title -->
         <div class="section-title">Leaderboard Configuration</div>
@@ -57,8 +57,13 @@
                             <label for="participants" class="form-label">Number of Participants</label>
                             <input type="number" id="participants" class="form-control custom-input" min="1" placeholder="Enter number of participants" required>
                         </div>
-
-                        <button type="button" class="btn btn-primary w-100" onclick="startCompetition()">Start Competition</button>
+                        {%if not (session_active)%}
+                            <button type="button" class="btn btn-primary w-100" onclick="startCompetition()">Start Competition</button>
+                        {%else%}
+                            <button type="button" class="btn btn-primary w-100" disabled=>Start Competition</button>
+                            <p class="mt-2 text-muted"><center>Active session Running!</center></p>
+                        {%endif%}
+                        
                         <div id="error" class="alert alert-danger mt-3 hidden" role="alert">Please fill in all fields correctly!</div>
                     </div>
                 </div>
