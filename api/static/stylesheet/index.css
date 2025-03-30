@@ -9,7 +9,7 @@
 
 
 .images img {
-    max-width: 100%;
+    max-width: 80%;
     height: auto;
     margin-bottom: 20px;
 }
@@ -20,7 +20,7 @@
     text-align: center; 
 }
 
-.fade-out {
-    opacity: 0;
-    transition: opacity 1s ease-in-out; /* Adjust duration as needed */
+.image-container {
+    margin-top: 50px; /* Adjust as needed */
+    
 }
