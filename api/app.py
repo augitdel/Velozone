@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, url_for, redirect, session, send_from_directory,jsonify
 from flask_cors import CORS 
-from data_analysis_branch import DataAnalysis
+#from data_analysis_branch import DataAnalysis
 # from extra_functions import limit_numeric_to_2_decimals
 # from data_analysis_classes import DataAnalysis
 # from data_analysis import remove_initial_lap, preprocess_lap_times
@@ -10,7 +10,6 @@ import os
 import time
 
 app = Flask(__name__, template_folder='templates')
-data_objects = {}
 app.secret_key = os.urandom(24)
 
 PER_PAGE = 10
@@ -25,9 +24,9 @@ CORS(app) # Enable CORS for development
 session_active = False
 session_stopped = False
 
-changed_lines
-session_data_analysis
-names_dict
+changed_lines = pd.DataFrame()
+session_data_analysis = []
+names_dict = {}
 
 # Home screen
 @app.route('/') 
@@ -116,11 +115,11 @@ def start_session():
         # Redirect to another page, such as the leaderboard or home page
         # Start fetchhing from the supabase
         # Insert 5s of sleep time before making the first data object   
-        time.sleep(5)
+        #time.sleep(5)
         # Aanmaken van data object
         changed_lines = pd.DataFrame()
-        session_data_analysis = DataAnalysis()
-        session_data_analysis.update(changed_lines)
+        #session_data_analysis = DataAnalysis()
+        #session_data_analysis.update(changed_lines)
 
         return redirect(url_for('home'))
     return render_template('start_session.html',session_active = session_active)
@@ -131,8 +130,8 @@ def stop_session():
     global session_active
     global session_stopped
     if request.method == 'POST':
-        session['generate_pdf'] = request.form.get('decision') == 'true'
-        session['stop_message'] = "Session has been stopped successfully."  # Store in session
+        print("ik zit erin")
+        session['stop_message'] = "Session has been stopped successfully." if request.form.get('decision') == 'true' else ""
         session_active = False
         session_stopped = True
         return redirect(url_for('home'))
@@ -171,7 +170,7 @@ def download_pdf():
 @app.route('/api/sessions/active')
 def get_session_status():
     global is_session_active
-    # print(f"session_active: {session_active}")
+    print(f"session_active: {session_active}")
     return jsonify({'isActive': session_active})
 
 @app.route('/api/sessions/stopped')

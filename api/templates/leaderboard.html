@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/leaderboard.css') }}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/session_active.css') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
@@ -19,10 +19,11 @@
     {% endblock %}
 
     <h1 class="title">Race Leaderboard - Velozone</h1>
+
     <div class="container">
         <div class="container_left">
             <div class="average-times">
-                <h2>Average Lap Time</h2>
+                <h2>AVERAGE LAP TIME</h2>
                 <div class="column">
                     <div class="subcolumn">
                         <ol start="{{ (page - 1) * 10 + 1 }}">
@@ -52,7 +53,7 @@
         <div class="container_right">
             <div class="performances">
                 <div class="top-laps">
-                    <h2>Top 5 Fastest Laps</h2>
+                    <h2>FASTEST LAPS</h2>
                     <ol>
                         {% if top_laps %}
                             {% for lap in top_laps %}
@@ -65,7 +66,7 @@
                 </div>
 
                 <div class="worst-lap">
-                    <h2>Bad-man &#x1F987;</h2>
+                    <h2>BAD-MAN</h2>
                     <center>
                         {% if badman_lap %}
                             <p>{{ badman_lap[0][0] }} -- {{ badman_lap[0][1] }}s</p>
@@ -76,7 +77,7 @@
                 </div>
 
                 <div class="diesel-engine">
-                    <h2>"DEN DIESEL"</h2>
+                    <h2>DIESEL</h2>
                     <center>
                         {% if diesel %}
                             <p>{{ diesel[0][0] }} -- {{ diesel[0][2] }}s</p>
@@ -85,8 +86,8 @@
                         {% endif %}
                     </center>
                 </div>
-                <div class = "electrical engine">
-                    <h2>Electric motor</h2>
+                <div class="electrical-engine">
+                    <h2>TESLA</h2>
                     <center>
                         {% if electrical %}
                             <p>{{ electric[0][0] }} -- {{ electric[0][2] }}s</p>
@@ -98,20 +99,28 @@
             </div>
         </div>
     </div>
-
+    <!-- Back Button -->
+    <a href="{{ url_for('home') }}" class="btn btn-secondary back-button">Back</a>
+        
     <!-- University Logo (Bottom Left) -->
     <div class="logo-wrapper">
+
         <div class="logo-container">
             <img src="{{ url_for('static', filename='img/university_logo.png') }}" alt="University Logo">
         </div>
         <div class="logo-container">
             <img src="{{ url_for('static', filename='img/logo_faculty.png') }}" alt="Faculty Logo">
         </div>
+
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='img/logo-cycling-vlaanderen-horizontal.jpg') }}" alt="Cycling vlaanderen Logo">
+        </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/session_active.js') }}"></script>
 
     <!-- Do an update every 5 seconds -->
-     <script src="{{ url_for('static', filename='js/Leaderboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/Leaderboard.js') }}"></script>
+
 </body>
 </html>

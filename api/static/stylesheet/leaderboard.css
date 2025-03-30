@@ -24,18 +24,18 @@ body {
     padding: 15px;;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    width: 93%;
+    width: 85%;
     text-align: center;
 }
 
 .container {
     display: flex;
-    width: 100%;
+    width: 120%;
     height: 100%;
     gap: 5%;
     overflow: hidden;
     justify-content: center;
-    margin-left: 30%;
+    margin-left: 0;
 }
 
 .container_left {
@@ -153,7 +153,7 @@ body {
 .logo-wrapper {
     position: absolute;
     bottom: 20px;
-    left: 20px;
+    right: 20px;
     display: flex;  /* Enables horizontal alignment */
     gap: 50px;  /* Adds space between logos */
     align-items: center; /* Ensures logos are aligned properly */
@@ -167,4 +167,13 @@ body {
     .columns {
         flex-direction: column;
     }
+}
+
+.back-button {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    font-size: 18px;
+    padding: 8px 15px;
+    border-radius: 5px;
 }
