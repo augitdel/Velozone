@@ -54,6 +54,7 @@ def upload_transponder_data():
 
 @app.route('/leaderboard/')
 def leaderboard(page = 1):
+    # Update every five seconds
     start_idx = (page - 1) * PER_PAGE
     end_idx = start_idx + PER_PAGE
 
@@ -177,6 +178,18 @@ def get_session_status():
 def get_session_stopped():
     global session_stopped
     return jsonify({'isStopped': session_stopped})
+
+@app.route('/api/sessions/renew_data')
+def fetch_supabase():
+    global data_obj
+    # Get the data from the supabase
+    
+    # Update the data_obj with new lines from supabase
+
+    # Read specific attributes via GETTER method
+
+    # send to frontend 
+    pass
 
 @app.route('/favicon.ico')
 def favicon():
