@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, url_for, redirect, session, send_from_directory,jsonify
 from flask_cors import CORS 
-# from api.extra_functions import limit_numeric_to_2_decimals
-# from api.data_analysis_classes import DataAnalysis
-# from api.data_analysis import remove_initial_lap, preprocess_lap_times
-# from api.Read_supabase_data import *
+from data_analysis_branch import DataAnalysis
+# from extra_functions import limit_numeric_to_2_decimals
+# from data_analysis_classes import DataAnalysis
+# from data_analysis import remove_initial_lap, preprocess_lap_times
+# from Read_supabase_data import *
 import pandas as pd
 import os
 import time
@@ -24,12 +25,23 @@ CORS(app) # Enable CORS for development
 session_active = False
 session_stopped = False
 
+changed_lines
+session_data_analysis
+names_dict
+
 # Home screen
 @app.route('/') 
-@app.route('/home')
+@app.route('/home', methods=['GET', 'POST'])
 def home():
+    global names_dict
     competition_data = session.get('competition', None)
+    if request.method == 'POST':
+        # Receive the data from the transponder_ids and names
+        # Create the 
+        names_dict = request.form.getlist('names[]')
+        pass
     return render_template('index.html', competition=competition_data)
+
 
 @app.route('/upload', methods=['POST'])
 def upload_transponder_data():
@@ -42,6 +54,7 @@ def upload_transponder_data():
 
 @app.route('/leaderboard/')
 def leaderboard(page = 1):
+    # Update every five seconds
     start_idx = (page - 1) * PER_PAGE
     end_idx = start_idx + PER_PAGE
 
@@ -75,6 +88,8 @@ def leaderboard(page = 1):
 def start_session():
     global session_active
     global session_stopped
+    global changed_lines
+    global session_data_analysis
     if request.method == 'POST':
         # Retrieve data from the form submitted in the frontend (JavaScript)
         start_date = request.form['startDate']
@@ -90,7 +105,7 @@ def start_session():
             'participants': participants
         }
         
-        # Print the data in the server console
+        # Print the data in the server console if needed
         print("Competition started with the following details:")
         print(f"Start Date: {start_date}")
         print(f"Start Time: {start_time}")
@@ -99,8 +114,15 @@ def start_session():
 
         session_active = True
         # Redirect to another page, such as the leaderboard or home page
-        return redirect(url_for('home'))
+        # Start fetchhing from the supabase
+        # Insert 5s of sleep time before making the first data object   
+        time.sleep(5)
+        # Aanmaken van data object
+        changed_lines = pd.DataFrame()
+        session_data_analysis = DataAnalysis()
+        session_data_analysis.update(changed_lines)
 
+        return redirect(url_for('home'))
     return render_template('start_session.html',session_active = session_active)
 
 # Stop a session
@@ -149,13 +171,25 @@ def download_pdf():
 @app.route('/api/sessions/active')
 def get_session_status():
     global is_session_active
-    print(f"session_active: {session_active}")
+    # print(f"session_active: {session_active}")
     return jsonify({'isActive': session_active})
 
 @app.route('/api/sessions/stopped')
 def get_session_stopped():
     global session_stopped
     return jsonify({'isStopped': session_stopped})
+
+@app.route('/api/sessions/renew_data')
+def fetch_supabase():
+    global data_obj
+    # Get the data from the supabase
+    
+    # Update the data_obj with new lines from supabase
+
+    # Read specific attributes via GETTER method
+
+    # send to frontend 
+    pass
 
 @app.route('/favicon.ico')
 def favicon():

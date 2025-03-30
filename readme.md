@@ -10,7 +10,7 @@ Click the `Start Session` button to begin a new session. This will present you w
 - Start Date
 - Start Time
 - Competition Duration
-- Number of Participants
+- Number of Participants (may be rounded to the next multiple of 10)
 
 Once this configuration is submitted through the `Start Competition` button, the session will be started and one can choose to either go back to the home page through the `Go to Home` button or to view the leaderboard through the `Go to Leaderboard` button.
 
