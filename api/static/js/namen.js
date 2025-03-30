@@ -58,7 +58,6 @@ function openDatabase() {
 
 document.addEventListener("DOMContentLoaded", function () {
     openDatabase(); // Open the database when the DOM is loaded
-    sendIndexedDBData()
 });
 
 async function initializeDatabase() {
@@ -318,10 +317,9 @@ window.onload = async function () {
     }
 };
 
-// Connection with the Python Backend
 async function sendIndexedDBData() {
     const dbName = "TransponderDatabase";
-    const storeName = "transponders"; // Corrected store name
+    const storeName = "transponders";
 
     return new Promise((resolve, reject) => {
         const request = indexedDB.open(dbName);
@@ -331,18 +329,23 @@ async function sendIndexedDBData() {
             const tx = db.transaction(storeName, "readonly");
             const store = tx.objectStore(storeName);
             const getAllRequest = store.getAll();
-            // If data is fetched successfully --> send to HTTP endpoint
+
             getAllRequest.onsuccess = function () {
-                fetch("http://127.0.0.1:5000/upload", { // Change URL when deploying
+                const transponders = getAllRequest.result.map(item => ({
+                    transponder_id: item.transponder_id,
+                    name: item.name
+                }));
+
+                fetch("http://127.0.0.1:5000/upload", { // Aanpassen bij deploy
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(getAllRequest.result)
+                    body: JSON.stringify(transponders)
                 })
                 .then(response => response.json())
                 .then(data => resolve(data))
                 .catch(error => reject(error));
             };
-            //  Data fetch failed
+
             getAllRequest.onerror = function () {
                 reject("Failed to read IndexedDB");
             };
