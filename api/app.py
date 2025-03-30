@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, url_for, redirect, session, send_from_directory,jsonify
-from flask_cors import CORS 
-#from data_analysis_branch import DataAnalysis
+from flask_cors import CORS
+from transponder_names import TransponderDataBase 
+# from data_analysis_branch import DataAnalysis
 # from extra_functions import limit_numeric_to_2_decimals
 # from data_analysis_classes import DataAnalysis
 # from data_analysis import remove_initial_lap, preprocess_lap_times
@@ -16,40 +17,36 @@ PER_PAGE = 10
 PDF_DIR = os.path.join(app.root_path, "tmp")
 PDF_PATH = os.path.join(PDF_DIR, "rider_report_UGent.pdf")
 
-# Store IndexedDB data in-memory (or use a database)
-indexeddb_data = []
-CORS(app) # Enable CORS for development
+CORS(app)
 
-# Variable to track if session is active
+
 session_active = False
 session_stopped = False
 
 changed_lines = pd.DataFrame()
 session_data_analysis = []
 names_dict = {}
+names_database = {}
 
 # Home screen
 @app.route('/') 
 @app.route('/home', methods=['GET', 'POST'])
 def home():
-    global names_dict
-    competition_data = session.get('competition', None)
     if request.method == 'POST':
-        # Receive the data from the transponder_ids and names
-        # Create the 
-        names_dict = request.form.getlist('names[]')
-        pass
+        data = request.json
+        if data:
+            names_dict = {item['transponder_id']: item['name'] for item in data}
+            names_database = TransponderDataBase()
+            names_database.update(names_dict)
+            session['transponders'] = names_database.get_database
+            print("Received data:", names_database.get_database)
+            return jsonify({"message": "Transponder data opgeslagen!", "data": names_database.get_database}), 200
+            
+        else:
+            return jsonify({"error": "Geen data ontvangen"}), 400
+    competition_data = session.get('competition', None)
     return render_template('index.html', competition=competition_data)
 
-
-@app.route('/upload', methods=['POST'])
-def upload_transponder_data():
-    data = request.get_json()
-    # print("Received transponder data:")
-    # for item in data:
-    #     print(f"ID: {item['id']}, Name: {item['name']}")
-    #     # Here you can process the data, e.g., store it in a file or database
-    return jsonify({"message": "Data received successfully!"}), 200
 
 @app.route('/leaderboard/')
 def leaderboard(page = 1):
@@ -130,7 +127,6 @@ def stop_session():
     global session_active
     global session_stopped
     if request.method == 'POST':
-        print("ik zit erin")
         session['stop_message'] = "Session has been stopped successfully." if request.form.get('decision') == 'true' else ""
         session_active = False
         session_stopped = True

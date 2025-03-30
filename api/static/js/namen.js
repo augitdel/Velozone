@@ -62,23 +62,33 @@ document.addEventListener("DOMContentLoaded", function () {
     openDatabase(); // Open the database when the DOM is loaded
 });
 
-async function initializeDatabase() {
-    try {
+async function checkAndInitializeData() {
+    if (!db) {
+        console.error("Database not initialized, waiting...");
         db = await openDatabase();
-        console.log("Database opened successfully", db);
-
-        // Only send data when the '/' page is opened
-        if (window.location.pathname === "/") {
-            await sendIndexedDBData();
-        }
-    } catch (error) {
-        console.error("Error opening database:", error);
     }
+
+    const transaction = db.transaction("transponders", "readonly");
+    const store = transaction.objectStore("transponders");
+    const countRequest = store.count();
+
+    countRequest.onsuccess = function () {
+        if (countRequest.result === 0) {
+            console.log("No data found in IndexedDB, using hardcoded data.");
+            saveTransponderData(transponderData);
+        } else {
+            console.log("Data already exists in IndexedDB.");
+            loadTransponderDataFromDB();
+        }
+    };
+
+    countRequest.onerror = function (event) {
+        console.error("Error checking IndexedDB count:", event.target.error);
+    };
 }
 
 function loadTransponderDataFromDB() {
     const tableBody = document.getElementById("transponderTableBody");
-    tableBody.innerHTML = ""; // Clear table to remove old data
 
     if (!db) {
         console.error("IndexedDB is not initialized.");
@@ -239,46 +249,41 @@ async function searchTransponder() {
 
 function populateTable(data) {
     const tableBody = document.getElementById("transponderTableBody");
-    tableBody.innerHTML = ""; // Clear de bestaande inhoud
+    tableBody.innerHTML = ""; // Leegmaken van de tabel
 
     data.forEach(item => {
         const row = tableBody.insertRow();
         const cell1 = row.insertCell(0);
         const cell2 = row.insertCell(1);
 
-        cell1.innerText = item.id;  // Transponder ID (niet bewerkbaar)
-        cell2.innerText = item.name;  // Transponder Naam (wel bewerkbaar)
+        cell1.innerText = item.id;
+        cell2.innerHTML = `
+            <span class="editable-name">${item.name}</span>
+            <button class="btn btn-danger btn-sm remove-btn" onclick="removeRow('${item.id}')">
+                <i class="bi bi-trash"></i>
+            </button>
+        `;
 
-        // Maak de naam cell bewerkbaar
-        cell2.contentEditable = true;
-        cell2.addEventListener("blur", function () {
-            const newName = cell2.innerText.trim();
+        const nameSpan = cell2.querySelector(".editable-name");
+        nameSpan.contentEditable = true;
+
+        nameSpan.addEventListener("blur", function () {
+            const newName = nameSpan.innerText.trim();
 
             if (newName === "") {
-                cell2.innerText = item.name; // Herstel de originele naam
+                nameSpan.innerText = item.name;
             } else if (newName !== item.name) {
                 item.name = newName;
                 updateTransponderName(item);
             }
         });
 
-        // Voorkom ENTER om bewerking af te ronden
-        cell2.addEventListener("keypress", function (event) {
+        nameSpan.addEventListener("keypress", function (event) {
             if (event.key === "Enter") {
                 event.preventDefault();
-                cell2.blur();
+                nameSpan.blur();
             }
         });
-
-        // Add remove button for searched items as well
-        const removeCell = row.insertCell(2);
-        const removeButton = document.createElement("button");
-        removeButton.className = "btn btn-danger btn-sm remove-btn";
-        removeButton.innerHTML = '<i class="bi bi-trash"></i>';
-        removeButton.onclick = function() {
-            removeRow(item.id);
-        };
-        removeCell.appendChild(removeButton);
     });
 }
 
@@ -297,65 +302,68 @@ function addTransponder() {
     const newTransponder = { id: newID, name: newName };
     const request = store.put(newTransponder);
 
-    request.onsuccess = function () {
+    request.onsuccess = async function () {
         console.log("Nieuwe transponder toegevoegd:", newTransponder);
-        loadTransponderDataFromDB(); // Reload from DB after adding
+        loadTransponderDataFromDB();
+        await sendIndexedDBData();   
     };
 
     request.onerror = function (event) {
         console.error("Fout bij toevoegen transponder:", event.target.error.message);
     };
 
-    // Velden leegmaken na toevoegen
     document.getElementById("newTransponderID").value = "";
     document.getElementById("newTransponderName").value = "";
 }
 
+
 window.onload = async function () {
     try {
         db = await openDatabase();
+        await sendIndexedDBData(); 
     } catch (error) {
-        console.error("Error opening database:", error);
+        console.error("Fout bij openen van database of verzenden van data:", error);
     }
 };
 
+
 async function sendIndexedDBData() {
-    const dbName = "TransponderDatabase";
-    const storeName = "transponders";
+    if (!db) {
+        console.error("Database niet beschikbaar. Wachten...");
+        db = await openDatabase();
+    }
 
     return new Promise((resolve, reject) => {
-        const request = indexedDB.open(dbName);
+        const transaction = db.transaction("transponders", "readonly");
+        const store = transaction.objectStore("transponders");
+        const getAllRequest = store.getAll();
 
-        request.onsuccess = function () {
-            const db = request.result;
-            const tx = db.transaction(storeName, "readonly");
-            const store = tx.objectStore(storeName);
-            const getAllRequest = store.getAll();
+        getAllRequest.onsuccess = function () {
+            const transponders = getAllRequest.result.map(item => ({
+                transponder_id: item.id,
+                name: item.name
+            }));
 
-            getAllRequest.onsuccess = function () {
-                const transponders = getAllRequest.result.map(item => ({
-                    transponder_id: item.transponder_id,
-                    name: item.name
-                }));
-
-                fetch("http://127.0.0.1:5000/upload", { // Aanpassen bij deploy
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(transponders)
-                })
-                .then(response => response.json())
-                .then(data => resolve(data))
-                .catch(error => reject(error));
-            };
-
-            getAllRequest.onerror = function () {
-                reject("Failed to read IndexedDB");
-            };
+            fetch("http://127.0.0.1:5000/home", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(transponders)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Data succesvol verzonden naar backend:", data);
+                resolve(data);
+            })
+            .catch(error => {
+                console.error("Fout bij verzenden van data:", error);
+                reject(error);
+            });
         };
 
-        request.onerror = function () {
-            reject("Failed to open IndexedDB");
+        getAllRequest.onerror = function () {
+            reject("Fout bij lezen van IndexedDB");
         };
     });
 }
+
 
