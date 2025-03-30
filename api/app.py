@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, url_for, redirect, session, send_from_directory,jsonify
 from flask_cors import CORS 
-# from api.extra_functions import limit_numeric_to_2_decimals
-# from api.data_analysis_classes import DataAnalysis
-# from api.data_analysis import remove_initial_lap, preprocess_lap_times
-# from api.Read_supabase_data import *
+from data_analysis_branch import DataAnalysis
+# from extra_functions import limit_numeric_to_2_decimals
+# from data_analysis_classes import DataAnalysis
+# from data_analysis import remove_initial_lap, preprocess_lap_times
+# from Read_supabase_data import *
 import pandas as pd
 import os
 import time
@@ -75,6 +76,7 @@ def leaderboard(page = 1):
 def start_session():
     global session_active
     global session_stopped
+    global changed_lines
     if request.method == 'POST':
         # Retrieve data from the form submitted in the frontend (JavaScript)
         start_date = request.form['startDate']
@@ -90,7 +92,7 @@ def start_session():
             'participants': participants
         }
         
-        # Print the data in the server console
+        # Print the data in the server console if needed
         print("Competition started with the following details:")
         print(f"Start Date: {start_date}")
         print(f"Start Time: {start_time}")
@@ -99,8 +101,11 @@ def start_session():
 
         session_active = True
         # Redirect to another page, such as the leaderboard or home page
+        # Start fetchhing from the supabase
+        
+        # Aanmaken van data object
+        changed_lines = pd.DataFrame() 
         return redirect(url_for('home'))
-
     return render_template('start_session.html',session_active = session_active)
 
 # Stop a session
@@ -149,7 +154,7 @@ def download_pdf():
 @app.route('/api/sessions/active')
 def get_session_status():
     global is_session_active
-    print(f"session_active: {session_active}")
+    # print(f"session_active: {session_active}")
     return jsonify({'isActive': session_active})
 
 @app.route('/api/sessions/stopped')
