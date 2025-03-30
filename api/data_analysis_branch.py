@@ -36,6 +36,7 @@ def load_transponder_names(transponder_ids):
     return name_df
 
 
+
 class DataAnalysis:
     # IMPORTANT: As per convention the class properties and methods prefixed with an underscore are considered private and should not be accessed directly from outside the class.
     # However, some of the properties can be read and set with getters and setters.

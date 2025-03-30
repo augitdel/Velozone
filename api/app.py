@@ -25,12 +25,23 @@ CORS(app) # Enable CORS for development
 session_active = False
 session_stopped = False
 
+changed_lines
+session_data_analysis
+names_dict
+
 # Home screen
 @app.route('/') 
-@app.route('/home')
+@app.route('/home', methods=['GET', 'POST'])
 def home():
+    global names_dict
     competition_data = session.get('competition', None)
+    if request.method == 'POST':
+        # Receive the data from the transponder_ids and names
+        # Create the 
+        names_dict = request.form.getlist('names[]')
+        pass
     return render_template('index.html', competition=competition_data)
+
 
 @app.route('/upload', methods=['POST'])
 def upload_transponder_data():
@@ -77,6 +88,7 @@ def start_session():
     global session_active
     global session_stopped
     global changed_lines
+    global session_data_analysis
     if request.method == 'POST':
         # Retrieve data from the form submitted in the frontend (JavaScript)
         start_date = request.form['startDate']
@@ -102,9 +114,13 @@ def start_session():
         session_active = True
         # Redirect to another page, such as the leaderboard or home page
         # Start fetchhing from the supabase
-        
+        # Insert 5s of sleep time before making the first data object   
+        time.sleep(5)
         # Aanmaken van data object
-        changed_lines = pd.DataFrame() 
+        changed_lines = pd.DataFrame()
+        session_data_analysis = DataAnalysis()
+        session_data_analysis.update(changed_lines)
+
         return redirect(url_for('home'))
     return render_template('start_session.html',session_active = session_active)
 

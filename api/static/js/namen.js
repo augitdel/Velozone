@@ -44,13 +44,15 @@ function openDatabase() {
 
         request.onsuccess = function (event) {
             db = event.target.result;
-            console.log("IndexedDB opened successfully");
-            loadTransponderDataFromDB(); // Load from DB on success
+            console.log("IndexedDB geopend");
+
+            // Check of de database leeg is en vul deze indien nodig
+            checkAndInitializeData();
             resolve(db);
         };
 
         request.onerror = function (event) {
-            console.error("IndexedDB error:", event.target.error.message);
+            console.error("IndexedDB fout:", event.target.error.message);
             reject(event.target.error);
         };
     });
