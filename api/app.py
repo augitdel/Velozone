@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, url_for, redirect, session, send_from_directory,jsonify
 from flask_cors import CORS
-from transponder_names import TransponderDataBase 
+from transponder_names import TransponderDataBase
 # from data_analysis_branch import DataAnalysis
 # from extra_functions import limit_numeric_to_2_decimals
 # from data_analysis_classes import DataAnalysis
@@ -13,7 +13,6 @@ import time
 app = Flask(__name__, template_folder='templates')
 app.secret_key = os.urandom(24)
 
-PER_PAGE = 10
 PDF_DIR = os.path.join(app.root_path, "tmp")
 PDF_PATH = os.path.join(PDF_DIR, "rider_report_UGent.pdf")
 
@@ -49,34 +48,22 @@ def home():
 
 
 @app.route('/leaderboard/')
-def leaderboard(page = 1):
+def leaderboard():
     # Update every five seconds
-    start_idx = (page - 1) * PER_PAGE
-    end_idx = start_idx + PER_PAGE
-
     avg_lap = []  
     fast_lap = []  
     slow_lap = []  
     badman = [] 
     diesel = []  
     electric = [] 
-
-    avg_lap_cut = avg_lap[start_idx:end_idx]
-    total_riders = len(avg_lap)
-    total_pages = (total_riders + PER_PAGE - 1) // PER_PAGE  
-    next_page = page + 1 if page < total_pages else 1  
-    prev_page = page - 1 if page > 1 else total_pages 
     
     return render_template('leaderboard.html', 
-                           averages=avg_lap_cut, 
+                           averages=avg_lap, 
                            top_laps=fast_lap, 
                            slow_lap=slow_lap, 
                            badman_lap=badman,
                            diesel=diesel,
                            electric=electric,
-                           next_page=next_page,
-                           prev_page=prev_page,
-                           page=page
     )
 
 # Start a new session
