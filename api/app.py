@@ -25,9 +25,9 @@ CORS(app) # Enable CORS for development
 session_active = False
 session_stopped = False
 
-changed_lines
-session_data_analysis
-names_dict
+changed_lines = []
+session_data_analysis = []
+names_dict = {}
 
 # Home screen
 @app.route('/') 
