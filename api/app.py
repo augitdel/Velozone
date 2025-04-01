@@ -31,9 +31,6 @@ PDF_PATH = os.path.join(PDF_DIR, "rider_report_UGent.pdf")
 
 CORS(app) # Enable CORS for development
 
-# BITS to track if session is active
-session['session_active'] = False
-session['session_stopped'] = False
 
 changed_lines = []
 session_data_analysis = []
@@ -46,6 +43,11 @@ names_dict = DataBase()
 def home():
     global names_dict
     competition_data = session.get('competition', None)
+    #Initialize the flags
+    if 'session_active' not in session:
+        session['session_active'] = False
+    if 'session_closed' not in session:
+        session['session_closed'] = False
     if request.method == 'POST':
         # Receive the data from the transponder_ids and names
         # Create the 
