@@ -5,7 +5,7 @@ from threading import Thread
 from supabase import acreate_client, AsyncClient
 
 # Load configuration once
-CONFIG_PATH = "static/config/config.json"
+CONFIG_PATH = "./api/static/config/config.json"
 with open(CONFIG_PATH, "r") as f:
     config = json.load(f)
 
@@ -74,14 +74,24 @@ def start_monitor_thread():
         return None
 
 
-if __name__ == "__main__":
-    monitor_thread = start_monitor_thread()
+async def enable_simulation():
+    """Zet enable_simulation op True voordat de monitoring start."""
+    supabase = await acreate_client(
+        config["outputs"]["supabase"]["url"],
+        config["outputs"]["supabase"]["key"]
+    )
 
-    # Keep the main thread running
+    print("Setting enable_simulation to True...")
+    await supabase.table("development").update({"enable_simulation": True}).eq("id", 1).execute()
+    print("Enable_simulation set to True!")
+
+
+if __name__ == "__main__":
+    asyncio.run(enable_simulation())
+
+    monitor_thread = start_monitor_thread()
     try:
         while True:
             time.sleep(1)
-            input("Press Enter to stop\n")
-            break
     except KeyboardInterrupt:
         print("Shutting down...")
