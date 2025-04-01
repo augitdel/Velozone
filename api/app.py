@@ -31,7 +31,7 @@ PDF_PATH = os.path.join(PDF_DIR, "rider_report_UGent.pdf")
 
 CORS(app) # Enable CORS for development
 
-
+# INITIALIZE THE DATAFRAMES
 changed_lines = []
 session_data_analysis = []
 # We create a Database variable
@@ -126,14 +126,16 @@ def start_session():
         session['session_active'] = True
         # Redirect to another page, such as the leaderboard or home page
         # Start fetchhing from the supabase
-        # Insert 5s of sleep time before making the first data object   
-        time.sleep(5)
+        # Insert 5s of sleep time before making the first data object
+        #    
+        # time.sleep(5)
+
         # Aanmaken van data object
         changed_lines = pd.DataFrame()
-        session_data_analysis = DataAnalysis()
-        session_data_analysis.update(changed_lines)
+        # session_data_analysis = DataAnalysis(changed_lines)
+        # session_data_analysis.update(changed_lines)
         return redirect(url_for('home'))
-    session_active = 'session_active' in session
+    session_active = session.get('session_active', False)
     return render_template('start_session.html',is_session_active = session_active)
 
 # Stop a session
@@ -146,13 +148,13 @@ def stop_session():
         session['session_active'] = False
         session['session_stopped'] = True
         return redirect(url_for('home'))
-    session_active = 'session_active' in session
+    session_active = session.get('session_active', False)
     return render_template('stop_session.html', is_session_active = session_active)
 
 @app.route('/generate_report')
 def generate_report():
-    session_active = 'session_active' in session
-    session_stopped = 'session_stopped' in session
+    session_active = session.get('session_active', False)
+    session_stopped = session.get('session_stopped', False)
     return render_template('generate_report.html', is_session_active = session_active, is_session_stopped = session_stopped) 
 
 @app.route('/names')
@@ -180,13 +182,14 @@ def download_pdf():
 
 @app.route('/api/sessions/active')
 def get_session_status():
-    session_active = 'session_active' in session
-    # print(f"session_active: {session_active}")
+    session_active = session.get('session_active', False)
+    print(f"session_active: {session_active}")
     return jsonify({'isActive': session_active})
 
 @app.route('/api/sessions/stopped')
 def get_session_stopped():
-    session_stopped = 'session_stopped' in session
+    session_stopped = session.get('session_stopped', False)
+    print(f'session stopped: {session_stopped}')
     return jsonify({'isStopped': session_stopped})
 
 @app.route('/api/sessions/renew_data')
