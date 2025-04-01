@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, url_for, redirect, session, send_from_directory,jsonify
 from flask_cors import CORS
-from transponder_names import TransponderDataBase
+from api.transponder_names import TransponderDataBase
 # from data_analysis_branch import DataAnalysis
 from flask_cors import CORS 
 from flask_session import Session
