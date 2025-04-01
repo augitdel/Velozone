@@ -5,24 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VELOZONE</title>
 
-    <!-- Voeg Bootstrap CSS toe -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/index.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/session_active.css') }}">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/index_style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/index.css') }}"> <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/session_active.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/namen.css') }}"> <link rel="shortcut icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon/icon.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon/apple-icon.png') }}">
 </head>
 <body>
     <div class="container text-center mt-5">
-        <h1 class="title mb-4">VELOZONE</h1>
-        
-        <!-- Check if session is active -->
+        <h1 class="title">VELOZONE</h1>
+
         <div id="session-indicator" class="session-indicator {% if is_session_active %}active{% else %}inactive{% endif %}"></div>
         {% block content %}
         {% endblock %}
 
-        <!-- Knoppen in 2 kolommen voor Start en Stop Session -->
         <div class="row mb-4">
             <div class="col-md-6 mb-3">
                 <a href="{{ url_for('start_session') }}" class="btn btn-primary btn-lg btn-thick w-100">Start Session</a>
@@ -32,7 +29,6 @@
             </div>
         </div>
 
-        <!-- Knoppen in 3 kolommen voor Name Configuration, Generate Report, en Leaderboard -->
         <div class="row mb-4">
             <div class="col-md-4 mb-3">
                 <a href="{{ url_for('leaderboard') }}" class="btn btn-info btn-lg btn-thick w-100">Leaderboard</a>
@@ -45,24 +41,20 @@
             </div>
         </div>
 
-        <!-- Afbeeldingen netjes naast elkaar (met wat margin) -->
-        <div class="row mb-4 image-container">
-            <div class="col-md-4 img">
-                <img src="{{ url_for('static', filename='img/logo-sport-vlaanderen.png') }}" alt="Sport Vlaanderen Logo" class="img-fluid mx-auto d-block">
+        <div class="row justify-content-center mb-5 image-container">
+            <div class="col-auto">
+                <img src="{{ url_for('static', filename='img/logo-sport-vlaanderen.png') }}" alt="Sport Vlaanderen Logo" class="img-fluid">
             </div>
-            <div class="col-md-4 img">
-                <img src="{{ url_for('static', filename='img/university_logo.png') }}" alt="UGent University Logo" class="img-fluid mx-auto d-block">
+            <div class="col-auto">
+                <img src="{{ url_for('static', filename='img/university_logo.png') }}" alt="UGent University Logo" class="img-fluid">
             </div>
-            <div class="col-md-4 img">
-                <img src="{{ url_for('static', filename='img/logo-cycling-vlaanderen-horizontal.jpg') }}" alt="Cycling Vlaanderen Logo" class="img-fluid mx-auto d-block">
+            <div class="col-auto">
+                <img src="{{ url_for('static', filename='img/logo-cycling-vlaanderen-horizontal.jpg') }}" alt="Cycling Vlaanderen Logo" class="img-fluid">
             </div>
         </div>
     </div>
-    
-    <!-- Voeg Bootstrap JS en jQuery toe (optioneel voor interactieve functies) -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/namen.js') }}"></script>
     <script src="{{ url_for('static', filename='js/index.js') }}"></script>
     <script src="{{ url_for('static', filename='js/session_active.js') }}"></script>
