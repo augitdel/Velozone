@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, url_for, redirect, session, send_from_directory,jsonify
 from flask_cors import CORS 
-from data_analysis_branch import DataAnalysis
+from .data_analysis_branch import DataAnalysis
+from .transponder_names import DataBase
 # from extra_functions import limit_numeric_to_2_decimals
 # from data_analysis_classes import DataAnalysis
 # from data_analysis import remove_initial_lap, preprocess_lap_times
@@ -27,7 +28,8 @@ session_stopped = False
 
 changed_lines = []
 session_data_analysis = []
-names_dict = {}
+# We create a Database variable
+names_dict = DataBase()
 
 # Home screen
 @app.route('/') 

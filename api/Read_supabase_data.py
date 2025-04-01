@@ -29,7 +29,7 @@ from supabase import create_client, Client
 #     offset = 0
 #     all_data = []
 #     while True:
-#         response = supabase.table("laptimes").select("*").range(offset, offset + BATCH_SIZE - 1).execute()
+#         response = supabase.table("development").update("*").range(offset, offset + BATCH_SIZE - 1).execute()
 #         if not response.data:
 #             break  
 #         all_data.extend(response.data)
