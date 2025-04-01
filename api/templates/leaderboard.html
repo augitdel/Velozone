@@ -3,115 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/leaderboard.css') }}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet/session_active.css') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon/icon.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon/apple-icon.png') }}">
-    
+
     <title>Velozone - Race Stats</title>
 </head>
 <body>
-    <!-- Check if session is active -->
     <div id="session-indicator" class="session-indicator {% if is_session_active %}active{% else %}inactive{% endif %}"></div>
     {% block content %}
     {% endblock %}
 
-    <h1 class="title">Race Leaderboard - Velozone</h1>
+    <h1 class="title text-center mb-4">Race Leaderboard - Velozone</h1>
     <div class="container">
-        <div class="container_left">
-            <div class="average-times">
-                <h2>Average Lap Time</h2>
-                <div class="column">
-                    <div class="subcolumn">
-                        <ol start="{{ (page - 1) * 10 + 1 }}">
-                            {% if averages %}
-                                {% for item in averages[:5] %}
-                                    <li>{{ item[1] }} -- {{ item[2] }}s</li>
-                                {% endfor %}
-                            {% else %}
-                                <li>No data available</li>
-                            {% endif %}
-                        </ol>
-                    </div>
-                    <div class="subcolumn">
-                        <ol start="{{ (page - 1) * 10 + 6 }}">
-                            {% if averages %}
-                                {% for item in averages[5:10] %}
-                                    <li>{{ item[1] }} -- {{ item[2] }}s</li>
-                                {% endfor %}
-                            {% else %}
-                                <li>No data available</li>
-                            {% endif %}
-                        </ol>
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        <h2 class="card-title">Average Lap Time</h2>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ol class="list-group list-group-numbered" start="{{ (page - 1) * 10 + 1 }}">
+                                    {% if averages %}
+                                        {% for item in averages[:5] %}
+                                            <li class="list-group-item">{{ item[1] }} -- {{ item[2] }}s</li>
+                                        {% endfor %}
+                                    {% else %}
+                                        <li class="list-group-item">No data available</li>
+                                    {% endif %}
+                                </ol>
+                            </div>
+                            <div class="col-md-6">
+                                <ol class="list-group list-group-numbered" start="{{ (page - 1) * 10 + 6 }}">
+                                    {% if averages %}
+                                        {% for item in averages[5:10] %}
+                                            <li class="list-group-item">{{ item[1] }} -- {{ item[2] }}s</li>
+                                        {% endfor %}
+                                    {% else %}
+                                        <li class="list-group-item">No data available</li>
+                                    {% endif %}
+                                </ol>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="container_right">
-            <div class="performances">
-                <div class="top-laps">
-                    <h2>Top 5 Fastest Laps</h2>
-                    <ol>
-                        {% if top_laps %}
-                            {% for lap in top_laps %}
-                                <li>{{ lap[0] }} -- {{ lap[1] }}s</li>
-                            {% endfor %}
-                        {% else %}
-                            <li>No data available</li>
-                        {% endif %}
-                    </ol>
+            <div class="col-lg-4">
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        <h2 class="card-title">Fastest Laps</h2>
+                        <ol class="list-group list-group-numbered">
+                            {% if top_laps %}
+                                {% for lap in top_laps %}
+                                    <li class="list-group-item">{{ lap[0] }} -- {{ lap[1] }}s</li>
+                                {% endfor %}
+                            {% else %}
+                                <li class="list-group-item">No data available</li>
+                            {% endif %}
+                        </ol>
+                    </div>
                 </div>
 
-                <div class="worst-lap">
-                    <h2>Bad-man &#x1F987;</h2>
-                    <center>
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        <h2 class="card-title">Bad-man &#x1F987;</h2>
                         {% if badman_lap %}
-                            <p>{{ badman_lap[0][0] }} -- {{ badman_lap[0][1] }}s</p>
+                            <p class="card-text">{{ badman_lap[0][0] }} -- {{ badman_lap[0][1] }}s</p>
                         {% else %}
-                            <p>No data available</p>
+                            <p class="card-text">No data available</p>
                         {% endif %}
-                    </center>
+                    </div>
                 </div>
 
-                <div class="diesel-engine">
-                    <h2>"DEN DIESEL"</h2>
-                    <center>
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        <h2 class="card-title">DIESEL</h2>
                         {% if diesel %}
-                            <p>{{ diesel[0][0] }} -- {{ diesel[0][2] }}s</p>
+                            <p class="card-text">{{ diesel[0][0] }} -- {{ diesel[0][2] }}s</p>
                         {% else %}
-                            <p>No data available</p>
+                            <p class="card-text">No data available</p>
                         {% endif %}
-                    </center>
+                    </div>
                 </div>
-                <div class = "electrical engine">
-                    <h2>Electric motor</h2>
-                    <center>
+
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        <h2 class="card-title">TESLA</h2>
                         {% if electrical %}
-                            <p>{{ electric[0][0] }} -- {{ electric[0][2] }}s</p>
+                            <p class="card-text">{{ electric[0][0] }} -- {{ electric[0][2] }}s</p>
                         {% else %}
-                            <p>No data available</p>
+                            <p class="card-text">No data available</p>
                         {% endif %}
-                    </center>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- University Logo (Bottom Left) -->
     <div class="logo-wrapper">
         <div class="logo-container">
-            <img src="{{ url_for('static', filename='img/university_logo.png') }}" alt="University Logo">
+            <img src="{{ url_for('static', filename='img/university_logo.png') }}" alt="University Logo" class="img-fluid">
         </div>
         <div class="logo-container">
-            <img src="{{ url_for('static', filename='img/logo_faculty.png') }}" alt="Faculty Logo">
+            <img src="{{ url_for('static', filename='img/logo_faculty.png') }}" alt="Faculty Logo" class="img-fluid">
         </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/session_active.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/Leaderboard.js') }}"></script>
 
-    <!-- Do an update every 5 seconds -->
-     <script src="{{ url_for('static', filename='js/Leaderboard.js') }}"></script>
+    <div class="back-button-wrapper">
+        <a href="{{ url_for('home') }}" class="btn btn-primary">BACK</a>
+    </div>
+
 </body>
 </html>
