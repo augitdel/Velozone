@@ -1,14 +1,11 @@
 from flask import Flask, render_template, request, url_for, redirect, session, send_from_directory,jsonify
-<<<<<<< HEAD
 from flask_cors import CORS
 from transponder_names import TransponderDataBase
 # from data_analysis_branch import DataAnalysis
-=======
 from flask_cors import CORS 
 from flask_session import Session
 from .data_analysis_branch import DataAnalysis
 from .transponder_names import DataBase
->>>>>>> d83b6f4608fa0bacb592d50c34ba3c672b65279f
 # from extra_functions import limit_numeric_to_2_decimals
 # from data_analysis_classes import DataAnalysis
 # from data_analysis import remove_initial_lap, preprocess_lap_times
@@ -22,7 +19,6 @@ import time
 app = Flask(__name__, template_folder='templates')
 app.secret_key = os.urandom(24)
 
-<<<<<<< HEAD
 PDF_DIR = os.path.join(app.root_path, "tmp")
 PDF_PATH = os.path.join(PDF_DIR, "rider_report_UGent.pdf")
 
@@ -36,7 +32,6 @@ changed_lines = pd.DataFrame()
 session_data_analysis = []
 names_dict = {}
 names_database = {}
-=======
 # Configure session management
 app.config["SESSION_TYPE"] = "redis"
 app.config["SESSION_PERMANENT"] = True  # Make sessions persistent across browser sessions
@@ -57,14 +52,11 @@ changed_lines = []
 session_data_analysis = []
 # We create a Database variable
 names_dict = DataBase()
->>>>>>> d83b6f4608fa0bacb592d50c34ba3c672b65279f
 
 # Home screen
 @app.route('/') 
 @app.route('/home', methods=['GET', 'POST'])
 def home():
-<<<<<<< HEAD
-=======
     global names_dict
     competition_data = session.get('competition', None)
     #Initialize the flags
@@ -72,7 +64,6 @@ def home():
         session['session_active'] = False
     if 'session_closed' not in session:
         session['session_closed'] = False
->>>>>>> d83b6f4608fa0bacb592d50c34ba3c672b65279f
     if request.method == 'POST':
         data = request.json
         if data:
@@ -138,7 +129,6 @@ def start_session():
         session['session_active'] = True
         # Redirect to another page, such as the leaderboard or home page
         # Start fetchhing from the supabase
-<<<<<<< HEAD
         # Insert 5s of sleep time before making the first data object   
         #time.sleep(5)
         # Aanmaken van data object
@@ -146,7 +136,6 @@ def start_session():
         #session_data_analysis = DataAnalysis()
         #session_data_analysis.update(changed_lines)
 
-=======
         # Insert 5s of sleep time before making the first data object
         #    
         # time.sleep(5)
@@ -155,7 +144,6 @@ def start_session():
         changed_lines = pd.DataFrame()
         # session_data_analysis = DataAnalysis(changed_lines)
         # session_data_analysis.update(changed_lines)
->>>>>>> d83b6f4608fa0bacb592d50c34ba3c672b65279f
         return redirect(url_for('home'))
     session_active = session.get('session_active', False)
     return render_template('start_session.html',is_session_active = session_active)
@@ -164,17 +152,13 @@ def start_session():
 @app.route('/stop_session', methods=['GET', 'POST'])
 def stop_session():
     if request.method == 'POST':
-<<<<<<< HEAD
         session['stop_message'] = "Session has been stopped successfully." if request.form.get('decision') == 'true' else ""
         session_active = False
         session_stopped = True
-=======
-        session['generate_pdf'] = request.form.get('decision') == 'true'
         session['stop_message'] = "Session has been stopped successfully."  # Store in session
         # Set the bits
         session['session_active'] = False
         session['session_stopped'] = True
->>>>>>> d83b6f4608fa0bacb592d50c34ba3c672b65279f
         return redirect(url_for('home'))
     session_active = session.get('session_active', False)
     return render_template('stop_session.html', is_session_active = session_active)
@@ -211,11 +195,8 @@ def download_pdf():
 
 @app.route('/api/sessions/active')
 def get_session_status():
-<<<<<<< HEAD
     global is_session_active
-=======
     session_active = session.get('session_active', False)
->>>>>>> d83b6f4608fa0bacb592d50c34ba3c672b65279f
     print(f"session_active: {session_active}")
     return jsonify({'isActive': session_active})
 
