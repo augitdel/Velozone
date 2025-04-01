@@ -82,7 +82,7 @@ async def enable_simulation():
     )
 
     print("Setting enable_simulation to True...")
-    await supabase.table("development").update({"enable_simulation": True}).eq("id", 1).execute()
+    await supabase.table("development").update({"enable_simulation": False}).eq("id", 1).execute()
     print("Enable_simulation set to True!")
 
 
