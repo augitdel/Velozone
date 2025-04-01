@@ -60,3 +60,6 @@ Maak rapporten op basis van de data die er verzameld is tijdens de sessie
 
 ### Name configuration
 - `back` knop toevoegen om terug te gaan naar de hoofdpagina
+
+### Flag bits
+Om de bits te kunnen gebruiken in Vercel moet je verbinden met redis. 

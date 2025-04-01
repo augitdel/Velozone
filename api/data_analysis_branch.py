@@ -45,8 +45,8 @@ class DataAnalysis:
         self._file = pd.DataFrame(columns=columns_incomming_csv)
         self._newlines = pd.DataFrame(columns=columns_incomming_csv)
 
-        self.MIN_LAP_TIME = MIN_LAP_TIME
-        self.MAX_LAP_TIME = MAX_LAP_TIME
+        self._min_lap_time = MIN_LAP_TIME
+        self._max_lap_time = MAX_LAP_TIME
 
         # self.fileL01 = self.file.loc[self.file['loop'] == 'L01']
         # self.newlinesL01 = self.newlines.loc[self.newlines['loop'] == 'L01']
@@ -58,7 +58,7 @@ class DataAnalysis:
         self._diesel = pd.DataFrame()
         self._electric = pd.DataFrame()
         
-        self.debug = debug
+        self._debug = debug
 
         self.update(new_DF)
 
@@ -73,7 +73,7 @@ class DataAnalysis:
             - Filter out lap times that are too short or too long"""
 
         df['lapTime'] = pd.to_numeric(df['lapTime'], errors='coerce')  # Ensure lapTime is numeric
-        valid_laps = df[(df['lapTime'] >= self.MIN_LAP_TIME) & (df['lapTime'] <= self.MAX_LAP_TIME)]
+        valid_laps = df[(df['lapTime'] >= self._min_lap_time) & (df['lapTime'] <= self._max_lap_time)]
         valid_laps.dropna(subset=['lapTime'], inplace=True) # Drop rows with NaN in the 'lapTime' column
         return valid_laps
 
@@ -103,7 +103,7 @@ class DataAnalysis:
         existing_transponders = set(self._info_per_transponder['transponder_id'].astype(str))
         new_transponders = set(self._newlines['transponder_id']).difference(set(existing_transponders))
 
-        if self.debug:
+        if self._debug:
             print('start calling update functions...\n'+'='*40)
 
         # call all functions that need to be updated
@@ -115,7 +115,7 @@ class DataAnalysis:
         self._diesel_engine()
         self._electric_motor()
 
-        if self.debug:
+        if self._debug:
             print('update done\n'+'='*40)
 
     def _update_L01_laptimes(self):
@@ -125,7 +125,7 @@ class DataAnalysis:
         new_laptimes = self._newlines.loc[self._newlines['loop'] == 'L01'].groupby('transponder_id')['lapTime'].apply(list)
         self._info_per_transponder['L01_laptime_list'] = self._info_per_transponder.apply(lambda row: row['L01_laptime_list'] + new_laptimes.get(row.name, []) if row.name in self._newlines['transponder_id'].values else row['L01_laptime_list'], axis=1)
         
-        if self.debug:
+        if self._debug:
             print('L01_laptime_list updated\n'+'='*40)
 
     def _update_total_L01_laps(self):
@@ -134,7 +134,7 @@ class DataAnalysis:
         """
         # TODO: check if this is equal to the length of the L01_laptime_list
         self._info_per_transponder['total_L01_laps'] += self._info_per_transponder['transponder_id'].isin(self._newlines['transponder_id']).astype(int)
-        if self.debug:
+        if self._debug:
             print('total_L01_laps updated\n'+'='*40)
 
     def _average_lap_time(self):
@@ -142,7 +142,7 @@ class DataAnalysis:
         Function that updates the average laptime of all the updated transponders.
         """
         self._info_per_transponder['average_lap_time'] = self._info_per_transponder.apply(lambda row: np.mean(row['L01_laptime_list']) if row.name in self._newlines['transponder_id'].values and len(row['L01_laptime_list']) > 0 else np.nan, axis=1)
-        if self.debug:
+        if self._debug:
             print('average_lap_time updated\n'+'='*40)
 
     def _fastest_lap(self):
@@ -150,7 +150,7 @@ class DataAnalysis:
         Function that updates the fastest lap time for each transponder.
         """
         self._info_per_transponder['fastest_lap_time'] = self._info_per_transponder.apply(lambda row: np.min(row['L01_laptime_list']) if row.name in self._newlines['transponder_id'].values and len(row['L01_laptime_list']) > 0 else np.nan, axis=1)
-        if self.debug:
+        if self._debug:
             print('fastest_lap_time updated\n'+'='*40)
 
     def slowest_lap(self):
@@ -161,7 +161,7 @@ class DataAnalysis:
             DataFrame: A DataFrame containing the transponder IDs and their respective slowest lap times
         """
         self._info_per_transponder['slowest_lap_time'] = self._info_per_transponder.apply(lambda row: np.max(row['L01_laptime_list']) if row.name in self._newlines['transponder_id'].values and len(row['L01_laptime_list']) > 0 else np.nan, axis=1)
-        if self.debug:
+        if self._debug:
             print('slowest_lap_time updated\n'+'='*40)
 
     def _badman(self):
@@ -170,7 +170,7 @@ class DataAnalysis:
         """
         self._slowest_rider = self._info_per_transponder.loc[self._info_per_transponder['slowest_lap_time'].idxmax()]
 
-        if self.debug:
+        if self._debug:
             print('badman updated\n'+'='*40)
     
     def _diesel_engine(self,minimum_incalculated = 10,window = 20):
@@ -218,7 +218,7 @@ class DataAnalysis:
 
         # TODO: incorporate name of the rider in some way
 
-        if self.debug:
+        if self._debug:
             print('diesel_engine updated\n'+'='*40)
     
     def _electric_motor(self,  window=5, lap_distance=250):
@@ -273,58 +273,58 @@ class DataAnalysis:
         # Identify the transponder with the absolute highest acceleration
         self._electric = peak_acceleration.nlargest(1, 'peak_acceleration')
 
-        if self.debug:
+        if self._debug:
             print('electric_motor updated\n'+'='*40)
     
 
     # Getters and Setters
         
     @property
-    def get_badman(self):
+    def slowest_rider(self):
         return self._slowest_rider
     
     @property
-    def get_diesel_engine(self):
+    def diesel(self):
         return self._diesel
     
     @property
-    def get_electric_motor(self):
+    def electric(self):
         return self._electric
     
     @property
-    def get_info_per_transponder(self):
+    def info_per_transponder(self):
         return self._info_per_transponder
     
     @property
-    def get_file(self):
+    def file(self):
         return self._file
     
     @property
-    def get_Min_Lap_Time(self):
-        return self.MIN_LAP_TIME
+    def min_lap_time(self):
+        return self._min_lap_time
     
-    @MIN_LAP_TIME.setter
-    def MIN_LAP_TIME(self, new_min_lap_time):
-        self.MIN_LAP_TIME = new_min_lap_time
-        if self.debug:
+    @min_lap_time.setter
+    def min_lap_time(self, new_min_lap_time):
+        self._min_lap_time = new_min_lap_time
+        if self._debug:
             print(f'Minimum lap time set to {new_min_lap_time}')
 
     @property
-    def get_Max_Lap_Time(self):
-        return self.MAX_LAP_TIME
+    def max_lap_time(self):
+        return self._max_lap_time
 
-    @MAX_LAP_TIME.setter
+    @max_lap_time.setter
     def MAX_LAP_TIME(self, new_max_lap_time):
-        self.MAX_LAP_TIME = new_max_lap_time
-        if self.debug:
+        self._max_lap_time = new_max_lap_time
+        if self._debug:
             print(f'Maximum lap time set to {new_max_lap_time}')
     
     @property
-    def get_debug(self):
-        return self.debug
+    def debug(self):
+        return self._debug
     
     @debug.setter
     def debug(self, new_debug):
-        self.debug = new_debug
-        if self.debug:
+        self._debug = new_debug
+        if self._debug:
             print(f'Debug mode set to {new_debug}')
