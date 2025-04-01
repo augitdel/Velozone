@@ -61,32 +61,6 @@
     <!-- JavaScript -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="{{ url_for('static', filename='js/session_active.js') }}"></script>
-    <script>
-        function checkPDF() {
-            fetch('/check_pdf_status')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === "ready") {
-                        // Hide loader and text
-                        document.getElementById("loading-text").style.display = "none";
-                        document.getElementById("bike-loader").style.display = "none"; 
-                        document.getElementById("title").textContent = "Report Generation DONE!"
-                        // Show download button
-                        let downloadBtn = document.getElementById("download-btn");
-                        downloadBtn.style.display = "block";
-                        downloadBtn.onclick = function() {
-                            window.location.href = "/download_pdf";
-                        };
-                    } else {
-                        setTimeout(checkPDF, 2000); // Retry after 2 seconds
-                    }
-                    
-                });
-        }
-
-        window.onload = function () {
-            checkPDF();
-        };
-    </script>
+    <script>src="{{ url_for('static', filename='js/download_report.js') }}"</script>
 </body>
 </html>
