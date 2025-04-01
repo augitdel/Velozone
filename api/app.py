@@ -159,7 +159,8 @@ def generate_report():
 
 @app.route('/names')
 def names():
-    return render_template('names.html')
+    session_active = session.get('session_active', False)
+    return render_template('names.html',is_session_active = session_active)
 
 @app.route('/download_report')
 def download_report():
