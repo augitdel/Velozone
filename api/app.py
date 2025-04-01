@@ -5,7 +5,6 @@ from transponder_names import TransponderDataBase
 from flask_cors import CORS 
 from flask_session import Session
 from data_analysis_branch import DataAnalysis
-from transponder_names import TransponderDataBase
 # from extra_functions import limit_numeric_to_2_decimals
 # from data_analysis_classes import DataAnalysis
 # from data_analysis import remove_initial_lap, preprocess_lap_times
