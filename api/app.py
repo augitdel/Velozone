@@ -171,7 +171,7 @@ def check_pdf_status():
     time.sleep(5)
     # Return the pdf if it is generated
     if os.path.exists(PDF_PATH):
-        return jsonify({"status": "ready", "pdf_url": "/static/reports/rider_report_UGent.pdf"})
+        return jsonify({"status": "ready", "pdf_url": "/static/tmp/rider_report_UGent.pdf"})
     else:
         return jsonify({"status": "pending"})
 
