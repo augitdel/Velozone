@@ -4,10 +4,6 @@ from transponder_names import TransponderDataBase
 from data_analysis_branch import DataAnalysis
 from flask_cors import CORS 
 from flask_session import Session
-# from extra_functions import limit_numeric_to_2_decimals
-# from data_analysis_classes import DataAnalysis
-# from data_analysis import remove_initial_lap, preprocess_lap_times
-# from Read_supabase_data import *
 import pandas as pd
 import os
 import redis
@@ -22,7 +18,6 @@ PDF_PATH = os.path.join(PDF_DIR, "rider_report_UGent.pdf")
 
 CORS(app)
 
-
 # Configure session management
 # app.config["SESSION_TYPE"] = "redis"
 # app.config["SESSION_PERMANENT"] = True  # Make sessions persistent across browser sessions
@@ -36,14 +31,9 @@ PER_PAGE = 10
 PDF_DIR = os.path.join(app.root_path, "static/tmp")
 PDF_PATH = os.path.join(PDF_DIR, "rider_report_UGent.pdf")
 
-CORS(app) # Enable CORS for development
-
-# INITIALIZE THE DATAFRAMES
-changed_lines = []
-session_data_analysis = []
-# We create a Database variable
-names_dict = TransponderDataBase()
-
+# Structures to keep track of the names
+names_dict = {}
+names_database = TransponderDataBase()
 # Home screen
 @app.route('/') 
 @app.route('/home', methods=['GET', 'POST'])
@@ -58,8 +48,8 @@ def home():
     if request.method == 'POST':
         data = request.json
         if data:
+            print(data)
             names_dict = {item['transponder_id']: item['name'] for item in data}
-            names_database = TransponderDataBase()
             names_database.update(names_dict)
             session['transponders'] = names_database.get_database
             print("Received data:", names_database.get_database)
@@ -73,13 +63,17 @@ def home():
 
 @app.route('/leaderboard/')
 def leaderboard():
-    # Update every five seconds
-    avg_lap = []  
-    fast_lap = []  
-    slow_lap = []  
-    badman = [] 
-    diesel = []  
-    electric = [] 
+    # Update the DataFrames
+    info_per_transponder = session_data.info_per_transponder
+    # avg_lap : [(name,avg_lap_time)]
+    avg_lap = info_per_transponder[['transponder_name', 'average_lap_time']] 
+    # fast_lap: [(name, fast_lap)]
+    fast_lap = info_per_transponder.nsmallest(5, 'fastest_lap_time')[['transponder_name', 'fastest_lap_time']]
+    # Slowest_lap: (name, slow_lap)
+    slow_lap = info_per_transponder.nlargest(1,'slowest_lap_time')[['transponder_name', 'slowest_lap_time']]
+    badman = session_data.slowest_rider
+    diesel = session_data.diesel 
+    electric = session_data.electric
     
     return render_template('leaderboard.html', 
                            averages=avg_lap, 
@@ -87,54 +81,20 @@ def leaderboard():
                            slow_lap=slow_lap, 
                            badman_lap=badman,
                            diesel=diesel,
-                           electric=electric,
-    )
+                           electric=electric)
 
 # Start a new session
 @app.route('/start_session', methods=['POST', 'GET'])
 def start_session():
-    global changed_lines
-    global session_data_analysis
+    global session_data
     if request.method == 'POST':
-        # Retrieve data from the form submitted in the frontend (JavaScript)
-        start_date = request.form['startDate']
-        start_time = request.form['startTime']
-        duration = request.form['duration']
-        participants = request.form['participants']
-
-        # Store the data in the session
-        session['competition'] = {
-            'start_date': start_date,
-            'start_time': start_time,
-            'duration': duration,
-            'participants': participants
-        }
-        
-        # Print the data in the server console if needed
-        print("Competition started with the following details:")
-        print(f"Start Date: {start_date}")
-        print(f"Start Time: {start_time}")
-        print(f"Duration: {duration} hours")
-        print(f"Participants: {participants}")
-
+        # Set the flag to True
         session['session_active'] = True
-        # Redirect to another page, such as the leaderboard or home page
-        # Start fetchhing from the supabase
-        # Insert 5s of sleep time before making the first data object   
-        #time.sleep(5)
-        # Aanmaken van data object
-        changed_lines = pd.DataFrame()
-        #session_data_analysis = DataAnalysis()
-        #session_data_analysis.update(changed_lines)
 
-        # Insert 5s of sleep time before making the first data object
-        #    
-        # time.sleep(5)
+        # Initialize the Data Object -> this will contain all of the important data and do the analysis
+        # __INIT__ gets called and dataframes are created
+        session_data = DataAnalysis()
 
-        # Aanmaken van data object
-        changed_lines = pd.DataFrame()
-        # session_data_analysis = DataAnalysis(changed_lines)
-        # session_data_analysis.update(changed_lines)
         return redirect(url_for('home'))
     session_active = session.get('session_active', False)
     return render_template('start_session.html',is_session_active = session_active)
@@ -185,6 +145,7 @@ def check_pdf_status():
 @app.route('/download_pdf')
 def download_pdf():
     """Allow users to download the PDF"""
+    print("searching for pdf")
     return send_from_directory(PDF_DIR, "rider_report_UGent.pdf", as_attachment=True)
 
 @app.route('/api/sessions/active')
@@ -202,7 +163,6 @@ def get_session_stopped():
 
 @app.route('/api/sessions/renew_data')
 def fetch_supabase():
-    global data_obj
     # Get the data from the supabase
     
     # Update the data_obj with new lines from supabase

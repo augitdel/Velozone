@@ -29,7 +29,7 @@
                                 <ol class="list-group list-group-numbered">
                                     {% if averages %}
                                         {% for item in averages[:5] %}
-                                            <li class="list-group-item">{{ item[1] }} -- {{ item[2] }}s</li>
+                                            <li class="list-group-item">{{ item[0] }} -- {{ item[1] }}s</li>
                                         {% endfor %}
                                     {% else %}
                                         <li class="list-group-item">No data available</li>
@@ -40,7 +40,7 @@
                                 <ol class="list-group list-group-numbered">
                                     {% if averages %}
                                         {% for item in averages[5:10] %}
-                                            <li class="list-group-item">{{ item[1] }} -- {{ item[2] }}s</li>
+                                            <li class="list-group-item">{{ item[0] }} -- {{ item[1] }}s</li>
                                         {% endfor %}
                                     {% else %}
                                         <li class="list-group-item">No data available</li>
@@ -71,7 +71,7 @@
                     <div class="card-body text-center">
                         <h2 class="card-title">Bad-man &#x1F987;</h2>
                         {% if badman_lap %}
-                            <p class="card-text">{{ badman_lap[0][0] }} -- {{ badman_lap[0][1] }}s</p>
+                            <p class="card-text">{{ badman_lap[0] }} -- {{ badman_lap[1] }}s</p>
                         {% else %}
                             <p class="card-text">No data available</p>
                         {% endif %}
@@ -82,7 +82,7 @@
                     <div class="card-body text-center">
                         <h2 class="card-title">DIESEL</h2>
                         {% if diesel %}
-                            <p class="card-text">{{ diesel[0][0] }} -- {{ diesel[0][2] }}s</p>
+                            <p class="card-text">{{ diesel[0]}} -- {{ diesel[1]}}s</p>
                         {% else %}
                             <p class="card-text">No data available</p>
                         {% endif %}
@@ -93,7 +93,7 @@
                     <div class="card-body text-center">
                         <h2 class="card-title">TESLA</h2>
                         {% if electrical %}
-                            <p class="card-text">{{ electric[0][0] }} -- {{ electric[0][2] }}s</p>
+                            <p class="card-text">{{ electric[0]}} -- {{ electric[1]}}s</p>
                         {% else %}
                             <p class="card-text">No data available</p>
                         {% endif %}
