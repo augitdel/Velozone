@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, url_for, redirect, session, send_from_directory,jsonify
 from flask_cors import CORS 
 from flask_session import Session
-from .data_analysis_branch import DataAnalysis
-from .transponder_names import DataBase
+from data_analysis_branch import DataAnalysis
+from transponder_names import DataBase
 # from extra_functions import limit_numeric_to_2_decimals
 # from data_analysis_classes import DataAnalysis
 # from data_analysis import remove_initial_lap, preprocess_lap_times
@@ -17,16 +17,16 @@ app = Flask(__name__, template_folder='templates')
 app.secret_key = os.urandom(24)
 
 # Configure session management
-app.config["SESSION_TYPE"] = "redis"
-app.config["SESSION_PERMANENT"] = True  # Make sessions persistent across browser sessions
-app.config["SESSION_USE_SIGNER"] = True
-app.config["SESSION_KEY_PREFIX"] = "velozone_session:"
-app.config["SESSION_REDIS"] = redis.from_url(os.environ.get("REDIS_URL")) # Configure your Redis URL
+# app.config["SESSION_TYPE"] = "redis"
+# app.config["SESSION_PERMANENT"] = True  # Make sessions persistent across browser sessions
+# app.config["SESSION_USE_SIGNER"] = True
+# app.config["SESSION_KEY_PREFIX"] = "velozone_session:"
+# app.config["SESSION_REDIS"] = redis.from_url(os.environ.get("REDIS_URL")) # Configure your Redis URL
 
-Session(app)
+# Session(app)
 
 PER_PAGE = 10
-PDF_DIR = os.path.join(app.root_path, "tmp")
+PDF_DIR = os.path.join(app.root_path, "static/tmp")
 PDF_PATH = os.path.join(PDF_DIR, "rider_report_UGent.pdf")
 
 CORS(app) # Enable CORS for development
@@ -169,11 +169,14 @@ def download_report():
 @app.route('/check_pdf_status')
 def check_pdf_status():
     """Check if the PDF file is generated"""
-    time.sleep(5)
+    # time.sleep(5)
+    print(os.path.exists(PDF_PATH))
     # Return the pdf if it is generated
     if os.path.exists(PDF_PATH):
+        print("report generation done!")
         return jsonify({"status": "ready", "pdf_url": "/static/tmp/rider_report_UGent.pdf"})
     else:
+        print("can not find report folder")
         return jsonify({"status": "pending"})
 
 @app.route('/download_pdf')
