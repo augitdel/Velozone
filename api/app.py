@@ -1,8 +1,10 @@
 from flask import Flask, render_template, request, url_for, redirect, session, send_from_directory,jsonify
+from flask_cors import CORS
+from api.transponder_names import TransponderDataBase
+# from data_analysis_branch import DataAnalysis
 from flask_cors import CORS 
 from flask_session import Session
-from .data_analysis_branch import DataAnalysis
-from .transponder_names import DataBase
+from api.data_analysis_branch import DataAnalysis
 # from extra_functions import limit_numeric_to_2_decimals
 # from data_analysis_classes import DataAnalysis
 # from data_analysis import remove_initial_lap, preprocess_lap_times
@@ -16,6 +18,19 @@ import time
 app = Flask(__name__, template_folder='templates')
 app.secret_key = os.urandom(24)
 
+PDF_DIR = os.path.join(app.root_path, "tmp")
+PDF_PATH = os.path.join(PDF_DIR, "rider_report_UGent.pdf")
+
+CORS(app)
+
+
+session_active = False
+session_stopped = False
+
+changed_lines = pd.DataFrame()
+session_data_analysis = []
+names_dict = {}
+names_database = {}
 # Configure session management
 app.config["SESSION_TYPE"] = "redis"
 app.config["SESSION_PERMANENT"] = True  # Make sessions persistent across browser sessions
@@ -35,7 +50,7 @@ CORS(app) # Enable CORS for development
 changed_lines = []
 session_data_analysis = []
 # We create a Database variable
-names_dict = DataBase()
+names_dict = TransponderDataBase()
 
 # Home screen
 @app.route('/') 
@@ -49,51 +64,38 @@ def home():
     if 'session_closed' not in session:
         session['session_closed'] = False
     if request.method == 'POST':
-        # Receive the data from the transponder_ids and names
-        # Create the 
-        names_dict = request.form.getlist('names[]')
-        pass
+        data = request.json
+        if data:
+            names_dict = {item['transponder_id']: item['name'] for item in data}
+            names_database = TransponderDataBase()
+            names_database.update(names_dict)
+            session['transponders'] = names_database.get_database
+            print("Received data:", names_database.get_database)
+            return jsonify({"message": "Transponder data opgeslagen!", "data": names_database.get_database}), 200
+            
+        else:
+            return jsonify({"error": "Geen data ontvangen"}), 400
+    competition_data = session.get('competition', None)
     return render_template('index.html', competition=competition_data)
 
 
-@app.route('/upload', methods=['POST'])
-def upload_transponder_data():
-    data = request.get_json()
-    # print("Received transponder data:")
-    # for item in data:
-    #     print(f"ID: {item['id']}, Name: {item['name']}")
-    #     # Here you can process the data, e.g., store it in a file or database
-    return jsonify({"message": "Data received successfully!"}), 200
-
 @app.route('/leaderboard/')
-def leaderboard(page = 1):
+def leaderboard():
     # Update every five seconds
-    start_idx = (page - 1) * PER_PAGE
-    end_idx = start_idx + PER_PAGE
-
     avg_lap = []  
     fast_lap = []  
     slow_lap = []  
     badman = [] 
     diesel = []  
     electric = [] 
-
-    avg_lap_cut = avg_lap[start_idx:end_idx]
-    total_riders = len(avg_lap)
-    total_pages = (total_riders + PER_PAGE - 1) // PER_PAGE  
-    next_page = page + 1 if page < total_pages else 1  
-    prev_page = page - 1 if page > 1 else total_pages 
     
     return render_template('leaderboard.html', 
-                           averages=avg_lap_cut, 
+                           averages=avg_lap, 
                            top_laps=fast_lap, 
                            slow_lap=slow_lap, 
                            badman_lap=badman,
                            diesel=diesel,
                            electric=electric,
-                           next_page=next_page,
-                           prev_page=prev_page,
-                           page=page
     )
 
 # Start a new session
@@ -126,6 +128,13 @@ def start_session():
         session['session_active'] = True
         # Redirect to another page, such as the leaderboard or home page
         # Start fetchhing from the supabase
+        # Insert 5s of sleep time before making the first data object   
+        #time.sleep(5)
+        # Aanmaken van data object
+        changed_lines = pd.DataFrame()
+        #session_data_analysis = DataAnalysis()
+        #session_data_analysis.update(changed_lines)
+
         # Insert 5s of sleep time before making the first data object
         #    
         # time.sleep(5)
@@ -142,7 +151,9 @@ def start_session():
 @app.route('/stop_session', methods=['GET', 'POST'])
 def stop_session():
     if request.method == 'POST':
-        session['generate_pdf'] = request.form.get('decision') == 'true'
+        session['stop_message'] = "Session has been stopped successfully." if request.form.get('decision') == 'true' else ""
+        session_active = False
+        session_stopped = True
         session['stop_message'] = "Session has been stopped successfully."  # Store in session
         # Set the bits
         session['session_active'] = False
@@ -183,6 +194,7 @@ def download_pdf():
 
 @app.route('/api/sessions/active')
 def get_session_status():
+    global is_session_active
     session_active = session.get('session_active', False)
     print(f"session_active: {session_active}")
     return jsonify({'isActive': session_active})

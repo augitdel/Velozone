@@ -14,8 +14,8 @@ function checkSessionStatus() {
         .catch(error => console.error('Error checking session status:', error));
 }
 
-// Check session status every 3 seconds (adjust the interval as needed)
-setInterval(checkSessionStatus, 3000);
+// Check session status every 10 seconds (adjust the interval as needed)
+setInterval(checkSessionStatus, 10000);
 
 // Initial check when the page loads
 checkSessionStatus();
