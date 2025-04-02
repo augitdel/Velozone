@@ -2,12 +2,15 @@ import json
 import asyncio
 import time
 from threading import Thread
-from supabase import acreate_client, AsyncClient
+from supabase import acreate_client, AsyncClient, create_client, Client
 
 # Load configuration once
 CONFIG_PATH = "./api/static/config/config.json"
 with open(CONFIG_PATH, "r") as f:
     config = json.load(f)
+
+ACCESS_TOKEN = config["outputs"]["supabase"]["auth"]["access_token"]
+REFRESH_TOKEN = config["outputs"]["supabase"]["auth"]["refresh_token"]
 
 
 class SupabaseClientRealtime:
@@ -15,12 +18,15 @@ class SupabaseClientRealtime:
         self.config = config
         self.supabase_rt = None
 
+
     async def connect_to_supabase(self):
         """Establish an asynchronous connection to Supabase."""
         self.supabase_rt: AsyncClient = await acreate_client(
             self.config["outputs"]["supabase"]["url"],
             self.config["outputs"]["supabase"]["key"]
         )
+
+        await self.supabase_rt.auth.set_session(ACCESS_TOKEN,REFRESH_TOKEN)
 
     async def monitor_table(self, table, callback):
         """Monitor a table for updates and trigger a callback."""
@@ -74,21 +80,7 @@ def start_monitor_thread():
         return None
 
 
-async def enable_simulation():
-    """Zet enable_simulation op True voordat de monitoring start."""
-    supabase = await acreate_client(
-        config["outputs"]["supabase"]["url"],
-        config["outputs"]["supabase"]["key"]
-    )
-
-    print("Setting enable_simulation to True...")
-    await supabase.table("development").update({"enable_simulation": False}).eq("id", 1).execute()
-    print("Enable_simulation set to True!")
-
-
 if __name__ == "__main__":
-    asyncio.run(enable_simulation())
-
     monitor_thread = start_monitor_thread()
     try:
         while True:
