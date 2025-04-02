@@ -35,15 +35,6 @@
             <form id="stopSessionForm">
                 <div class="row">
                     <div class="col-md-6 mx-auto text-center">
-                        <div class="question-title">
-                            Do you want a PDF generated?
-                        </div>
-
-                        <div class="btn-container mb-3">
-                            <button type="button" id="yesButton" class="btn btn-custom w-50" onclick="setDecision('yes')">Yes</button>
-                            <button type="button" id="noButton" class="btn btn-custom w-50" onclick="setDecision('no')">No</button>
-                        </div>
-
                         {% if is_session_active %}
                             <button type="button" class="btn btn-danger w-100" onclick="showStopConfirmation()">Stop Session</button>
                         {% else %}

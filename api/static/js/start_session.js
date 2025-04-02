@@ -1,43 +1,44 @@
-// Flatpickr for date and time selection
-flatpickr("#startDate", { dateFormat: "Y-m-d", altInput: true, altFormat: "F j, Y" });
+// Flatpickr alleen voor tijdselectie
 flatpickr("#startTime", { enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true });
 
 function startCompetition() {
-    // Get form values
-    const startDate = document.getElementById('startDate').value;
-    const startTime = document.getElementById('startTime').value;
-    const duration = document.getElementById('duration').value;
-    const participants = document.getElementById('participants').value;
+    // Huidige datum genereren in "YYYY-MM-DD" formaat
+    const today = new Date().toISOString().split("T")[0];
+    
+    // Form-waarden ophalen
+    const startTime = document.getElementById("startTime").value;
+    const duration = document.getElementById("duration").value;
+    const participants = document.getElementById("participants").value;
 
-    // Check if all fields are filled in
-    if (!startDate || !startTime || !duration || !participants) {
-        document.getElementById('error').classList.remove('hidden');
-        return; // Stop further execution if form is invalid
+    // Check of alle velden zijn ingevuld
+    if (!startTime || !duration || !participants) {
+        document.getElementById("error").classList.remove("hidden");
+        return;
     }
 
-    // Hide the error message if the form is valid
-    document.getElementById('error').classList.add('hidden');
-            
-    // Send a POST request with the form data to Flask
-    fetch('/start_session', {
-        method: 'POST',
+    // Verberg foutmelding als alles correct is ingevuld
+    document.getElementById("error").classList.add("hidden");
+
+    // POST-verzoek naar de Flask backend
+    fetch("/start_session", {
+        method: "POST",
         body: new URLSearchParams({
-            startDate: startDate,
+            startDate: today,  // Automatisch gegenereerde datum
             startTime: startTime,
             duration: duration,
             participants: participants
         }),
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            "Content-Type": "application/x-www-form-urlencoded",
         }
     })
     .then(response => {
         if (response.ok) {
-            // After successful POST, display action buttons
-            document.getElementById('actionButtons').classList.remove('hidden');
+            document.getElementById("actionButtons").classList.remove("hidden");
         } else {
-            console.error("Error in starting competition.");
+            console.error("Fout bij starten van de wedstrijd.");
         }
     })
     .catch(error => console.error("Error:", error));
 }
+

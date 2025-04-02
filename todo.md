@@ -30,21 +30,21 @@ bij bulds api.app toevoegen
 Aanmaken van lege dataframes voor het opslaan van de data. Transponders koppelen aan namen (optioneel)
 
 --> transponders worden gekoppeld aan namen, dataFrames moeten nog aangemaakt worden
-- transponders moeten ook uit database verwijders kunnen worden
-- start date = datum van vandaag
+- transponders moeten ook uit database verwijders kunnen worden - OK
+- start date = datum van vandaag - OK
 
 ### Leaderboard
 Streamen van het live-leaderboard op het scherm. --> testen op live data
-- `back` knop toevoegen om terug te gaan naar de hoofdpagina (linksonder)
-- op de onderkant van de pagina logo's van wielercentrum, cycling vlaanderen... toevoegen
-- logo's naar rechts verschuiven
+- `back` knop toevoegen om terug te gaan naar de hoofdpagina (linksonder) OK
+- op de onderkant van de pagina logo's van wielercentrum, cycling vlaanderen... toevoegen OK
+- logo's naar rechts verschuiven OK
 - met bootstrap rows en cols de titel en de gegevens incorporeren
 - bad-man erop zetten?
 
 ### Stop Sessie
 -Stoppen van alle dataverzameling en het sluiten van het leaderboard
 --> zorgen dat je enkel kan stoppen wanneer er ook effectief een sessie is gestart
-- keuze raportgeneratie moet niet gemaakt worden, dit is met een knop op de hoofdpagina
+- keuze raportgeneratie moet niet gemaakt worden, dit is met een knop op de hoofdpagina 
 - knop die de hele site `reset` voor moest er ergens iets fout gaan
 - automatisch stoppen met fetchen vanaf dat begintijd + compitieduratie + 5 minuten > huidige tijd
 

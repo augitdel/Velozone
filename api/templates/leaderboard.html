@@ -17,6 +17,57 @@
     {% block content %}
     {% endblock %}
 
+<<<<<<< HEAD
+    <h1 class="title">Race Leaderboard - Velozone</h1>
+
+    <div class="container">
+        <div class="container_left">
+            <div class="average-times">
+                <h2>AVERAGE LAP TIME</h2>
+                <div class="column">
+                    <div class="subcolumn">
+                        <ol>
+                            <!-- Dynamic content will be inserted here -->
+                            <li>No data available</li> <!-- Fallback for empty data -->
+                        </ol>
+                    </div>
+                    <div class="subcolumn">
+                        <ol start>
+                            <!-- Dynamic content will be inserted here -->
+                            <li>No data available</li> <!-- Fallback for empty data -->
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container_right">
+            <div class="performances">
+                <div class="top-laps">
+                    <h2>FASTEST LAPS</h2>
+                    <ol>
+                        <li>No data available</li> <!-- Fallback for empty data -->
+                    </ol>
+                </div>
+
+                <div class="worst-lap">
+                    <h2>BAD-MAN</h2>
+                    <center>
+                        <p>No data available</p> <!-- Fallback for empty data -->
+                    </center>
+                </div>
+
+                <div class="diesel-engine">
+                    <h2>DIESEL</h2>
+                    <center>
+                        <p>No data available</p> <!-- Fallback for empty data -->
+                    </center>
+                </div>
+                <div class="electrical-engine">
+                    <h2>TESLA</h2>
+                    <center>
+                        <p>No data available</p> <!-- Fallback for empty data -->
+                    </center>
+=======
     <h1 class="title text-center mb-4">Race Leaderboard - Velozone</h1>
     <div class="container">
         <div class="row">
@@ -98,17 +149,28 @@
                             <p class="card-text">No data available</p>
                         {% endif %}
                     </div>
+>>>>>>> d83b6f4608fa0bacb592d50c34ba3c672b65279f
                 </div>
             </div>
         </div>
     </div>
+<<<<<<< HEAD
+    <!-- Back Button -->
+    <a href="{{ url_for('home') }}" class="btn btn-secondary back-button">Back</a>
+        
+    <!-- University Logo (Bottom Left) -->
+=======
 
+>>>>>>> d83b6f4608fa0bacb592d50c34ba3c672b65279f
     <div class="logo-wrapper">
         <div class="logo-container">
             <img src="{{ url_for('static', filename='img/university_logo.png') }}" alt="University Logo" class="img-fluid">
         </div>
         <div class="logo-container">
             <img src="{{ url_for('static', filename='img/logo_faculty.png') }}" alt="Faculty Logo" class="img-fluid">
+        </div>
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='img/logo-cycling-vlaanderen-horizontal.jpg') }}" alt="Cycling vlaanderen Logo">
         </div>
     </div>
 
@@ -119,5 +181,14 @@
         <a href="{{ url_for('home') }}" class="btn btn-primary">BACK</a>
     </div>
 
+<<<<<<< HEAD
+    <!-- Do an update every 5 seconds -->
+    <script src="{{ url_for('static', filename='js/Leaderboard.js') }}"></script>
+
 </body>
 </html>
+
+=======
+</body>
+</html>
+>>>>>>> d83b6f4608fa0bacb592d50c34ba3c672b65279f
