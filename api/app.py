@@ -71,16 +71,14 @@ def leaderboard():
     fast_lap = info_per_transponder.nsmallest(5, 'fastest_lap_time')[['transponder_name', 'fastest_lap_time']]
     # Slowest_lap: (name, slow_lap)
     slow_lap = info_per_transponder.nlargest(1,'slowest_lap_time')[['transponder_name', 'slowest_lap_time']]
+    # Badman --> check how the data enters
     badman = session_data.slowest_rider
+    # Diesel --> check how the data enters
     diesel = session_data.diesel 
+    # Electric --> check how the data enters
     electric = session_data.electric
     
-    return render_template('leaderboard.html', 
-                           averages=avg_lap, 
-                           top_laps=fast_lap, 
-                           slow_lap=slow_lap, 
-                           badman_lap=badman,
-                           diesel=diesel,
+    return render_template('leaderboard.html', averages=avg_lap, top_laps=fast_lap, slow_lap=slow_lap, badman_lap=badman, diesel=diesel,
                            electric=electric)
 
 # Start a new session
@@ -104,8 +102,6 @@ def start_session():
 def stop_session():
     if request.method == 'POST':
         session['stop_message'] = "Session has been stopped successfully." if request.form.get('decision') == 'true' else ""
-        session_active = False
-        session_stopped = True
         session['stop_message'] = "Session has been stopped successfully."  # Store in session
         # Set the bits
         session['session_active'] = False
@@ -113,6 +109,11 @@ def stop_session():
         return redirect(url_for('home'))
     session_active = session.get('session_active', False)
     return render_template('stop_session.html', is_session_active = session_active)
+
+# TODO: implement it such that we can reset the variables
+@app.route('/refresh')
+def refresh_session():
+    pass
 
 @app.route('/generate_report')
 def generate_report():
@@ -132,7 +133,6 @@ def download_report():
 @app.route('/check_pdf_status')
 def check_pdf_status():
     """Check if the PDF file is generated"""
-    # time.sleep(5)
     print(os.path.exists(PDF_PATH))
     # Return the pdf if it is generated
     if os.path.exists(PDF_PATH):
@@ -150,7 +150,6 @@ def download_pdf():
 
 @app.route('/api/sessions/active')
 def get_session_status():
-    global is_session_active
     session_active = session.get('session_active', False)
     print(f"session_active: {session_active}")
     return jsonify({'isActive': session_active})
@@ -164,9 +163,11 @@ def get_session_stopped():
 @app.route('/api/sessions/renew_data')
 def fetch_supabase():
     # Get the data from the supabase
-    
-    # Update the data_obj with new lines from supabase
+    # TODO : Create object here that links with the supabase
+    changed_file = pd.DataFrame()
 
+    # Update the sessio_data with new lines from supabase
+    session_data.update(changed_file)
     # Read specific attributes via GETTER method
 
     # send to frontend 
