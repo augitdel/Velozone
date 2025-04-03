@@ -18,7 +18,6 @@ class SupabaseClientRealtime:
         self.config = config
         self.supabase_rt = None
 
-
     async def connect_to_supabase(self):
         """Establish an asynchronous connection to Supabase."""
         self.supabase_rt: AsyncClient = await acreate_client(
@@ -26,12 +25,21 @@ class SupabaseClientRealtime:
             self.config["outputs"]["supabase"]["key"]
         )
 
-        await self.supabase_rt.auth.set_session(ACCESS_TOKEN,REFRESH_TOKEN)
+        await self.supabase_rt.auth.set_session(ACCESS_TOKEN, REFRESH_TOKEN)
+
+    async def enable_simulation(self):
+        """Set enable_simulation to True before starting monitoring."""
+        print("Setting enable_simulation to True...")
+        response = await self.supabase_rt.table("development").update({"enable_simulation": True}).eq("id", 1).execute()
+        print(f"Enable_simulation set to True: {response.data}")
 
     async def monitor_table(self, table, callback):
         """Monitor a table for updates and trigger a callback."""
         if not self.supabase_rt:
             await self.connect_to_supabase()
+
+        # Ensure simulation is enabled before monitoring
+        await self.enable_simulation()
 
         await self.supabase_rt.realtime.connect()
 
@@ -40,7 +48,7 @@ class SupabaseClientRealtime:
             .on_postgres_changes(
                 "UPDATE", schema="public", table=table, callback=callback)
             .subscribe()
-        )        
+        )
 
         await self.supabase_rt.realtime.listen()
 
