@@ -58,7 +58,8 @@ class DataAnalysis:
         
         self._debug = debug
 
-        self.update(new_DF)
+        if new_DF != None:
+            self.update(new_DF)
 
     def _cleanup(self):
         self._file.drop_duplicates(inplace = True)
@@ -91,9 +92,30 @@ class DataAnalysis:
         """
         # load the changed supabase file, check which are the new lines, preprocess them and append them to the file
         # TODO: possible optimalisation: don't check with the whole self.file, but compare with timestamps saved to the self.info_per_transponder df
-        self._newlines = self.preprocess_lap_times(pd.merge(changed_file, self._file, how='outer', indicator=True, on=['transponder_id', 'utcTimestamp']).loc[lambda x: x['_merge'] == 'left_only'])
-        self._file = pd.concat([self._file, self._newlines])
+        if self._file.empty:
+            self._file = changed_file.copy()  # Initialize with the first data batch
+            self._newlines = changed_file.copy()
+        else:
+            new_rows = pd.merge(
+                changed_file, self._file, 
+                how='outer', indicator=True, 
+                on=['transponder_id', 'utcTimestamp']
+            ).loc[lambda x: x['_merge'] == 'left_only'].copy()  # Ensure copy to avoid SettingWithCopyWarning
+
+            # Rename `_x` columns to their original names
+            columns_to_rename = {col: col.replace('_x', '') for col in new_rows.columns if col.endswith('_x')}
+            new_rows = new_rows.rename(columns=columns_to_rename)
+            
+            # Drop `_y` columns and the `_merge` column
+            new_rows = new_rows[[col for col in new_rows.columns if not col.endswith('_y') and col != '_merge']]
+
+            print("Columns after cleaning:", new_rows.columns)
+
+            self._newlines = self.preprocess_lap_times(new_rows)
+            self._file = pd.concat([self._file, self._newlines], ignore_index=True)
         
+        print(self._file)
+        print(self._newlines)  #Empty
         self._cleanup()  # TODO: does the whole file needs to be cleaned up/sorted after an update, or is cleanup from the newlines enough?
         
         # update the transponder names if necessary

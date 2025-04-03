@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Function to fetch leaderboard data
     function fetchLeaderboardData() {
-        fetch('/api/leaderboard_data')  // Replace with your actual endpoint
+        fetch('/api/sessions/renew_data')  // Replace with your actual endpoint
             .then(response => response.json())
             .then(data => updateLeaderboard(data))
             .catch(error => console.error('Error fetching leaderboard data:', error));
