@@ -1,9 +1,13 @@
 from flask import Flask, render_template, request, url_for, redirect, session, send_from_directory,jsonify
 from flask_cors import CORS
-from .transponder_names import TransponderDataBase
-from .data_analysis_branch import DataAnalysis
-from flask_cors import CORS 
+from transponder_names import TransponderDataBase
 from flask_session import Session
+from data_analysis_branch import DataAnalysis
+# from extra_functions import limit_numeric_to_2_decimals
+# from data_analysis_classes import DataAnalysis
+# from data_analysis import remove_initial_lap, preprocess_lap_times
+from Supabase_table_monitoring import monitor_thread, get_and_clear_dataframe
+from threading import Thread, Event
 import pandas as pd
 import os
 import redis
@@ -25,7 +29,18 @@ app.config["SESSION_USE_SIGNER"] = True
 app.config["SESSION_KEY_PREFIX"] = "velozone_session:"
 app.config["SESSION_REDIS"] = redis.from_url(os.environ.get("REDIS_URL")) # Configure your Redis URL
 
-Session(app)
+changed_lines = pd.DataFrame()
+session_data_analysis = []
+names_dict = {}
+names_database = {}
+# # Configure session management
+# app.config["SESSION_TYPE"] = "redis"
+# app.config["SESSION_PERMANENT"] = True  # Make sessions persistent across browser sessions
+# app.config["SESSION_USE_SIGNER"] = True
+# app.config["SESSION_KEY_PREFIX"] = "velozone_session:"
+# app.config["SESSION_REDIS"] = redis.from_url(os.environ.get("REDIS_URL")) # Configure your Redis URL
+
+# Session(app)
 
 PER_PAGE = 10
 PDF_DIR = os.path.join(app.root_path, "static/tmp")
@@ -100,7 +115,22 @@ def start_session():
     if request.method == 'POST':
         # Set the flag to True
         session['session_active'] = True
+        try:
+            while True:
+                time.sleep(5)
+
+                changed_lines = get_and_clear_dataframe()
+                if not changed_lines.empty:
+                    print("Nieuwe data ontvangen:")
+                    print(changed_lines)
+                else:
+                            print("Geen nieuwe data.")
+        except KeyboardInterrupt:
+                print("Monitoring gestopt.")
+        session_data_analysis = DataAnalysis(changed_lines)
+        session_data_analysis.update(changed_lines)
         return redirect(url_for('home'))
+    
     session_active = session.get('session_active', False)
     return render_template('start_session.html',is_session_active = session_active)
 
