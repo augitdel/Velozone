@@ -1,9 +1,9 @@
 from flask import Flask, render_template, request, url_for, redirect, session, send_from_directory, jsonify
 from flask_cors import CORS
-from transponder_names import TransponderDataBase
+from api.transponder_names import TransponderDataBase
 from flask_session import Session
-from data_analysis_branch import DataAnalysis
-from Supabase_table_monitoring import monitor_thread, get_and_clear_dataframe
+from api.data_analysis_branch import DataAnalysis
+from api.Supabase_table_monitoring import monitor_thread, get_and_clear_dataframe
 from threading import Thread, Event
 import pandas as pd
 import os
@@ -256,3 +256,4 @@ def favicon():
 
 if __name__ == '__main__':
     app.run(debug=True)
+    monitor_thread = Thread(target=monitor_thread, daemon=True)
