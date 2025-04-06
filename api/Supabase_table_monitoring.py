@@ -1,8 +1,11 @@
 import json
 import asyncio
 import time
+import pandas as pd
 from threading import Thread
 from supabase import acreate_client, AsyncClient, create_client, Client
+from datetime import datetime, timezone
+
 
 # Load configuration once
 CONFIG_PATH = "./api/static/config/config.json"
@@ -11,6 +14,13 @@ with open(CONFIG_PATH, "r") as f:
 
 ACCESS_TOKEN = config["outputs"]["supabase"]["auth"]["access_token"]
 REFRESH_TOKEN = config["outputs"]["supabase"]["auth"]["refresh_token"]
+
+df_wielerrecords = pd.DataFrame(columns=[
+    "transponder_id", "loop", "utcTimestamp", "utcTime", "lapTime",
+    "eventName", "trackedRider"
+])
+
+tz_utc = timezone.utc
 
 
 class SupabaseClientRealtime:
@@ -54,11 +64,44 @@ class SupabaseClientRealtime:
 
 
 def handle_table_update(payload):
-    """Callback function to process table updates."""
+    """Callback function to process table updates and store them in DataFrame."""
+    global df_wielerrecords
+
     print(f"Received update: {payload}")
     if 'data' in payload and 'record' in payload['data']:
         record = payload['data']['record']
         print(f"Updated record: {record}")
+
+        location = record.get("location")  #e.g. "L03"
+        if not location:
+            print("No location/device found in update.")
+            return
+
+        try:
+            rtc_time_ms = record.get(f"{location}.rtcTime")
+            lap_time = record.get(f"{location}.lapTime")
+            
+            if rtc_time_ms is None or lap_time is None:
+                return
+
+            utc_ts = rtc_time_ms / 1000
+            utc_time_str = datetime.fromtimestamp(utc_ts, tz=tz_utc).strftime('%Y-%m-%d %H:%M:%S.%f')
+
+            new_row = {
+                "transponder_id": record.get("tag", ""),
+                "loop": location,
+                "utcTimestamp": utc_ts,
+                "utcTime": utc_time_str,
+                "lapTime": lap_time,
+                "eventName": "Vlaamse wielerschool",
+                "trackedRider": "",
+            }
+
+            # Voeg toe aan DataFrame
+            df_wielerrecords = pd.concat([df_wielerrecords, pd.DataFrame([new_row])], ignore_index=True)
+
+        except Exception as e:
+            print(f"Fout bij verwerken update: {e}")
 
 
 def start_monitor_thread():
@@ -86,6 +129,17 @@ def start_monitor_thread():
     except Exception as e:
         print(f"Error starting monitor thread: {e}")
         return None
+
+
+def get_and_clear_dataframe():
+    """Geeft de dataframe terug en wist de inhoud."""
+    global df_wielerrecords
+    df_copy = df_wielerrecords.copy()
+    df_wielerrecords = pd.DataFrame(columns=[
+        "transponder_id", "loop", "utcTimestamp", "utcTime", "lapTime",
+        "eventName", "trackedRider"
+    ])
+    return df_copy
 
 
 if __name__ == "__main__":
