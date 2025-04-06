@@ -1,10 +1,10 @@
 from flask import Flask, render_template, request, url_for, redirect, session, send_from_directory, jsonify
 from flask_cors import CORS
-from api.transponder_names import TransponderDataBase
+from transponder_names import TransponderDataBase
 from flask_session import Session
-from api.data_analysis_branch import DataAnalysis
-from api.Supabase_table_monitoring import monitor_thread, get_and_clear_dataframe
-from threading import Thread, Event
+from data_analysis_branch import DataAnalysis
+from Supabase_table_monitoring import start_monitor_thread, get_and_clear_dataframe
+from threading import Thread
 import pandas as pd
 import os
 import redis
@@ -20,12 +20,12 @@ PDF_DIR = os.path.join(app.root_path, "tmp")
 PDF_PATH = os.path.join(PDF_DIR, "rider_report_UGent.pdf")
 
 # Configure session management
-app.config["SESSION_TYPE"] = "redis"
-app.config["SESSION_PERMANENT"] = True  # Make sessions persistent across browser sessions
-app.config["SESSION_USE_SIGNER"] = True
-app.config["SESSION_KEY_PREFIX"] = "velozone_session:"
-app.config["SESSION_REDIS"] = redis.from_url(os.environ.get("REDIS_URL")) # Configure your Redis URL
-Session(app)
+# app.config["SESSION_TYPE"] = "redis"
+# app.config["SESSION_PERMANENT"] = True  # Make sessions persistent across browser sessions
+# app.config["SESSION_USE_SIGNER"] = True
+# app.config["SESSION_KEY_PREFIX"] = "velozone_session:"
+# app.config["SESSION_REDIS"] = redis.from_url(os.environ.get("REDIS_URL")) # Configure your Redis URL
+# Session(app)
 
 # Structures to keep track of the names
 names_dict = {}
@@ -87,7 +87,6 @@ def leaderboard():
 @app.route('/start_session', methods=['POST', 'GET'])
 def start_session():
     global session_data
-
     if request.method == 'POST':
         # Retrieve data from the form submitted in the frontend (JavaScript)
         start_date = request.form['startDate']
@@ -97,22 +96,20 @@ def start_session():
  
 
         session['session_active'] = True
-        session['start_time']
-         
-        # Store the data in the session
-        # session['competition'] = {
-        #      'start_date': start_date,
-        #      'start_time': start_time,
-        #      'duration': duration,
-        #      'participants': participants
-        # }
+        session['session_stopped'] = False
+        #Store the data in the session
+        session['competition'] = {
+              'start_date': start_date,
+              'start_time': start_time,
+              'duration': duration,
+             'participants': participants
+        }
         # Print the data in the server console if needed
-        #  print("Competition started with the following details:")
-        #  print(f"Start Date: {start_date}")
-        #  print(f"Start Time: {start_time}")
-        #  print(f"Duration: {duration} hours")
-        #  print(f"Participants: {participants}")
-        
+        print("Competition started with the following details:")
+        print(f"Start Date: {start_date}")
+        print(f"Start Time: {start_time}")
+        print(f"Duration: {duration} hours")
+        print(f"Participants: {participants}")
         return redirect(url_for('home'))
     
     session_active = session.get('session_active', False)
@@ -225,4 +222,4 @@ def favicon():
 
 if __name__ == '__main__':
     app.run(debug=True)
-    monitor_thread = Thread(target=monitor_thread, daemon=True)
+    monitor_thread = Thread(target=start_monitor_thread, daemon=True)
