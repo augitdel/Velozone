@@ -6,7 +6,6 @@ from threading import Thread
 from supabase import acreate_client, AsyncClient, create_client, Client
 from datetime import datetime, timezone
 
-
 # Load configuration once
 CONFIG_PATH = "./api/static/config/config.json"
 with open(CONFIG_PATH, "r") as f:
@@ -15,10 +14,8 @@ with open(CONFIG_PATH, "r") as f:
 ACCESS_TOKEN = config["outputs"]["supabase"]["auth"]["access_token"]
 REFRESH_TOKEN = config["outputs"]["supabase"]["auth"]["refresh_token"]
 
-df_wielerrecords = pd.DataFrame(columns=[
-    "transponder_id", "loop", "utcTimestamp", "utcTime", "lapTime",
-    "eventName", "trackedRider"
-])
+columns_incomming_DF = ['transponder_id','loop','utcTimestamp','utcTime','lapTime','lapSpeed','maxSpeed','cameraPreset','cameraPan','cameraTilt','cameraZoom','eventName','recSegmentId','trackedRider']
+df_wielerrecords = pd.DataFrame(columns=columns_incomming_DF)
 
 tz_utc = timezone.utc
 
@@ -78,23 +75,38 @@ def handle_table_update(payload):
             return
 
         try:
-            rtc_time_ms = record.get(f"{location}.rtcTime")
-            lap_time = record.get(f"{location}.lapTime")
-            
-            if rtc_time_ms is None or lap_time is None:
+            transponder_id = record.get("tag", "")
+            rtcTime = record.get(f"{location}.rtcTime")
+            lapTime = record.get(f"{location}.lapTime")
+            lapSpeed = record.get(f"{location}.lapSpeed")
+            maxSpeed = record.get(f"{location}.maxSpeed")
+            cameraPreset = record.get(f"{location}.cameraPreset")
+            cameraPan = record.get(f"{location}.cameraPan")
+            cameraTilt = record.get(f"{location}.cameraTilt")
+            cameraZoom = record.get(f"{location}.cameraZoom")
+            trackedRider = record.get(f"{location}.trackedRider")
+            if rtcTime is None or lapTime is None:
                 return
 
-            utc_ts = rtc_time_ms / 1000
+            utc_ts = rtcTime / 1000
             utc_time_str = datetime.fromtimestamp(utc_ts, tz=tz_utc).strftime('%Y-%m-%d %H:%M:%S.%f')
-
+            
+            # ['transponder_id','loop','utcTimestamp','utcTime','lapTime','lapSpeed','maxSpeed','cameraPreset','cameraPan','cameraTilt','cameraZoom','eventName','recSegmentId','trackedRider']
             new_row = {
-                "transponder_id": record.get("tag", ""),
-                "loop": location,
-                "utcTimestamp": utc_ts,
-                "utcTime": utc_time_str,
-                "lapTime": lap_time,
+                "transponder_id": transponder_id if transponder_id else "",
+                "loop": location if location else "",
+                "utcTimestamp": utc_ts if utc_ts else "",
+                "utcTime": utc_time_str if utc_time_str else "",
+                "lapTime": lapTime if lapTime else "",
+                "lapSpeed": lapSpeed if lapSpeed else "",
+                "maxSpeed": maxSpeed if maxSpeed else "",
+                "cameraPreset": cameraPreset if cameraPreset else "",
+                "cameraPan": cameraPan if cameraPan else "",
+                "cameraTilt": cameraTilt if cameraTilt else "",
+                "cameraZoom": cameraZoom if cameraZoom else "", 
                 "eventName": "Vlaamse wielerschool",
-                "trackedRider": "",
+                "recSegmentId": location if location else "",
+                "trackedRider": trackedRider if trackedRider else ""
             }
 
             # Voeg toe aan DataFrame
@@ -114,7 +126,7 @@ def start_monitor_thread():
 
             # Keep the connection alive
             while True:
-                await asyncio.sleep(60)
+                await asyncio.sleep(7200)   # runs now for 7200s = 2h
 
         # Start the monitoring thread
         monitor_thread = Thread(
@@ -135,10 +147,8 @@ def get_and_clear_dataframe():
     """Geeft de dataframe terug en wist de inhoud."""
     global df_wielerrecords
     df_copy = df_wielerrecords.copy()
-    df_wielerrecords = pd.DataFrame(columns=[
-        "transponder_id", "loop", "utcTimestamp", "utcTime", "lapTime",
-        "eventName", "trackedRider"
-    ])
+    # Has to be adjusted to recent changes
+    df_wielerrecords = pd.DataFrame(columns=columns_incomming_DF)
     return df_copy
 
 
