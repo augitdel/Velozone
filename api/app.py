@@ -113,21 +113,6 @@ def start_session():
         #  print(f"Duration: {duration} hours")
         #  print(f"Participants: {participants}")
         
-        try:
-            while True:
-                time.sleep(5)
-
-                changed_lines = get_and_clear_dataframe()
-                if not changed_lines.empty:
-                    print("Nieuwe data ontvangen:")
-                    print(changed_lines)
-                else:
-                            print("Geen nieuwe data.")
-        except KeyboardInterrupt:
-                print("Monitoring gestopt.")
-        
-        session_data_analysis = DataAnalysis(changed_lines)
-        session_data_analysis.update(changed_lines)
         return redirect(url_for('home'))
     
     session_active = session.get('session_active', False)
@@ -199,23 +184,7 @@ def get_session_stopped():
 @app.route('/api/sessions/renew_data')
 def fetch_supabase():
     # Get the data from the supabase
-    # TODO : Create object here that links with the supabase
-    changed_file = pd.DataFrame({
-            'transponder_id': [1, 2, 3, 1, 2, 3],
-            'loop': [1, 1, 1, 2, 2, 2],
-            'utcTimestamp': [1678886400000, 1678886401000, 1678886402000, 1678886405000, 1678886406000, 1678886407000],
-            'utcTime': ['20:00:00', '20:00:01', '20:00:02', '20:00:05', '20:00:06', '20:00:07'],
-            'lapTime': [19.5, 20.2, 18.8, 19.8, 20.5, 19.1],  # Adjusted lap times
-            'lapSpeed': [50.1, 49.5, 50.8, 50.0, 49.3, 50.5],
-            'maxSpeed': [70.2, 69.8, 71.0, 70.5, 69.5, 70.8],
-            'cameraPreset': [1, 1, 1, 1, 1, 1],
-            'cameraPan': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            'cameraTilt': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            'cameraZoom': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-            'eventName': ['Race', 'Race', 'Race', 'Race', 'Race', 'Race'],
-            'recSegmentId': [1, 1, 1, 2, 2, 2],
-            'trackedRider': ['Rider A', 'Rider B', 'Rider C', 'Rider A', 'Rider B', 'Rider C']
-        })
+    changed_file = get_and_clear_dataframe()
 
     # Update the sessio_data with new lines from supabase
     session_data.update(changed_file)
