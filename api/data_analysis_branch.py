@@ -35,15 +35,13 @@ def load_transponder_names(transponder_ids):
         name_df.to_excel(TRANS_NAME_FILE, index=False)
     return name_df
 
-
-
 class DataAnalysis:
     # IMPORTANT: As per convention the class properties and methods prefixed with an underscore are considered private and should not be accessed directly from outside the class.
     # However, some of the properties can be read and set with getters and setters.
     def __init__(self, new_DF, MIN_LAP_TIME=13, MAX_LAP_TIME=50, debug=False):        
-        columns_incomming_csv = ['transponder_id','loop','utcTimestamp','utcTime','lapTime','lapSpeed','maxSpeed','cameraPreset','cameraPan','cameraTilt','cameraZoom','eventName','recSegmentId','trackedRider']
-        self._file = pd.DataFrame(columns=columns_incomming_csv)
-        self._newlines = pd.DataFrame(columns=columns_incomming_csv)
+        columns_incomming_DF = ['transponder_id','loop','utcTimestamp','utcTime','lapTime','lapSpeed','maxSpeed','cameraPreset','cameraPan','cameraTilt','cameraZoom','eventName','recSegmentId','trackedRider']
+        self._file = pd.DataFrame(columns=columns_incomming_DF)
+        self._newlines = pd.DataFrame(columns=columns_incomming_DF)
 
         self._min_lap_time = MIN_LAP_TIME
         self._max_lap_time = MAX_LAP_TIME
@@ -60,7 +58,8 @@ class DataAnalysis:
         
         self._debug = debug
 
-        self.update(new_DF)
+        if new_DF != None:
+            self.update(new_DF)
 
     def _cleanup(self):
         self._file.drop_duplicates(inplace = True)
@@ -79,7 +78,7 @@ class DataAnalysis:
 
     def update(self, changed_file):
         """
-        Loads the changed lines from the CSV file and appends them to the existing DataFrame.
+        Loads the changed lines from the DF and appends them to the existing DataFrame.
         Then it updates the following:
         - The transponder names
         - The average lap time for each transponder
@@ -93,9 +92,30 @@ class DataAnalysis:
         """
         # load the changed supabase file, check which are the new lines, preprocess them and append them to the file
         # TODO: possible optimalisation: don't check with the whole self.file, but compare with timestamps saved to the self.info_per_transponder df
-        self._newlines = self.preprocess_lap_times(pd.merge(changed_file, self._file, how='outer', indicator=True, on=['transponder_id', 'utcTimestamp']).loc[lambda x: x['_merge'] == 'left_only'])
-        self._file = pd.concat([self._file, self._newlines])
+        if self._file.empty:
+            self._file = changed_file.copy()  # Initialize with the first data batch
+            self._newlines = changed_file.copy()
+        else:
+            new_rows = pd.merge(
+                changed_file, self._file, 
+                how='outer', indicator=True, 
+                on=['transponder_id', 'utcTimestamp']
+            ).loc[lambda x: x['_merge'] == 'left_only'].copy()  # Ensure copy to avoid SettingWithCopyWarning
+
+            # Rename `_x` columns to their original names
+            columns_to_rename = {col: col.replace('_x', '') for col in new_rows.columns if col.endswith('_x')}
+            new_rows = new_rows.rename(columns=columns_to_rename)
+            
+            # Drop `_y` columns and the `_merge` column
+            new_rows = new_rows[[col for col in new_rows.columns if not col.endswith('_y') and col != '_merge']]
+
+            print("Columns after cleaning:", new_rows.columns)
+
+            self._newlines = self.preprocess_lap_times(new_rows)
+            self._file = pd.concat([self._file, self._newlines], ignore_index=True)
         
+        print(self._file)
+        print(self._newlines)  #Empty
         self._cleanup()  # TODO: does the whole file needs to be cleaned up/sorted after an update, or is cleanup from the newlines enough?
         
         # update the transponder names if necessary
@@ -277,8 +297,7 @@ class DataAnalysis:
             print('electric_motor updated\n'+'='*40)
     
 
-    # Getters and Setters
-        
+    # GETTERS AND SETTERS
     @property
     def slowest_rider(self):
         return self._slowest_rider
@@ -300,6 +319,10 @@ class DataAnalysis:
         return self._file
     
     @property
+    def info_per_transponder(self):
+        return self._info_per_transponder
+    
+    @property
     def min_lap_time(self):
         return self._min_lap_time
     
@@ -314,7 +337,7 @@ class DataAnalysis:
         return self._max_lap_time
 
     @max_lap_time.setter
-    def MAX_LAP_TIME(self, new_max_lap_time):
+    def max_lap_time(self, new_max_lap_time):
         self._max_lap_time = new_max_lap_time
         if self._debug:
             print(f'Maximum lap time set to {new_max_lap_time}')
