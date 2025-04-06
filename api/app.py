@@ -10,52 +10,27 @@ import os
 import redis
 import time
 
-
+# App configuration
 app = Flask(__name__, template_folder='templates')
 app.secret_key = os.urandom(24)
+CORS(app)
 
+#PDF directory configuration
 PDF_DIR = os.path.join(app.root_path, "tmp")
 PDF_PATH = os.path.join(PDF_DIR, "rider_report_UGent.pdf")
 
-CORS(app)
-
 # Configure session management
 app.config["SESSION_TYPE"] = "redis"
 app.config["SESSION_PERMANENT"] = True  # Make sessions persistent across browser sessions
 app.config["SESSION_USE_SIGNER"] = True
 app.config["SESSION_KEY_PREFIX"] = "velozone_session:"
 app.config["SESSION_REDIS"] = redis.from_url(os.environ.get("REDIS_URL")) # Configure your Redis URL
-
-
-changed_lines = pd.DataFrame()
-session_data_analysis = []
-names_dict = {}
-names_database = {}
-
-# Configure session management
-app.config["SESSION_TYPE"] = "redis"
-app.config["SESSION_PERMANENT"] = True  # Make sessions persistent across browser sessions
-app.config["SESSION_USE_SIGNER"] = True
-app.config["SESSION_KEY_PREFIX"] = "velozone_session:"
-app.config["SESSION_REDIS"] = redis.from_url(os.environ.get("REDIS_URL")) # Configure your Redis URL
-
 Session(app)
-
-PER_PAGE = 10
-PDF_DIR = os.path.join(app.root_path, "static/tmp")
-PDF_PATH = os.path.join(PDF_DIR, "rider_report_UGent.pdf")
-
-# INITIALIZE THE DATAFRAMES
-changed_lines = []
-session_data_analysis = []
-# We create a Database variable
-names_dict = TransponderDataBase()
 
 # Structures to keep track of the names
 names_dict = {}
 names_database = TransponderDataBase()
 # Initialize the Data Object -> this will contain all of the important data and do the analysis
-# __INIT__ gets called and dataframes are created
 init_frame = None
 session_data = DataAnalysis(init_frame)
 
@@ -64,8 +39,7 @@ session_data = DataAnalysis(init_frame)
 @app.route('/home', methods=['GET', 'POST'])
 def home():
     global names_dict
-    competition_data = session.get('competition', None)
-    #Initialize the flags
+    #Initialize the flags of the active session in the session
     if 'session_active' not in session:
         session['session_active'] = False
     if 'session_closed' not in session:
@@ -73,17 +47,13 @@ def home():
     if request.method == 'POST':
         data = request.json
         if data:
-            print(data)
             names_dict = {item['transponder_id']: item['name'] for item in data}
             names_database.update(names_dict)
             session['transponders'] = names_database.get_database
-            print("Received data:", names_database.get_database)
-            return jsonify({"message": "Transponder data opgeslagen!", "data": names_database.get_database}), 200
-            
+            return jsonify({"message": "Transponder data opgeslagen!", "data": names_database.get_database}), 200 
         else:
             return jsonify({"error": "Geen data ontvangen"}), 400
-    competition_data = session.get('competition', None)
-    return render_template('index.html', competition=competition_data)
+    return render_template('index.html')
 
 
 @app.route('/leaderboard')
@@ -117,9 +87,32 @@ def leaderboard():
 @app.route('/start_session', methods=['POST', 'GET'])
 def start_session():
     global session_data
+
     if request.method == 'POST':
-        # Set the flag to True
+        # Retrieve data from the form submitted in the frontend (JavaScript)
+        start_date = request.form['startDate']
+        start_time = request.form['startTime']
+        duration = request.form['duration']
+        participants = request.form['participants']
+ 
+
         session['session_active'] = True
+        session['start_time']
+         
+        # Store the data in the session
+        # session['competition'] = {
+        #      'start_date': start_date,
+        #      'start_time': start_time,
+        #      'duration': duration,
+        #      'participants': participants
+        # }
+        # Print the data in the server console if needed
+        #  print("Competition started with the following details:")
+        #  print(f"Start Date: {start_date}")
+        #  print(f"Start Time: {start_time}")
+        #  print(f"Duration: {duration} hours")
+        #  print(f"Participants: {participants}")
+        
         try:
             while True:
                 time.sleep(5)
@@ -132,6 +125,7 @@ def start_session():
                             print("Geen nieuwe data.")
         except KeyboardInterrupt:
                 print("Monitoring gestopt.")
+        
         session_data_analysis = DataAnalysis(changed_lines)
         session_data_analysis.update(changed_lines)
         return redirect(url_for('home'))
