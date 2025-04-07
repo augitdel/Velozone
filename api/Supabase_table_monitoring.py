@@ -149,7 +149,6 @@ def get_and_clear_dataframe():
     df_copy = df_wielerrecords.copy()
     # Has to be adjusted to recent changes
     df_wielerrecords = pd.DataFrame(columns=columns_incomming_DF)
-    print(df_copy)
     return df_copy
 
 def run_get_and_clear_every(interval=3):
