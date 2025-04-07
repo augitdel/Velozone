@@ -37,7 +37,6 @@ class SupabaseClientRealtime:
     async def enable_simulation(self):
         """Set enable_simulation to True before starting monitoring."""
         print("Setting enable_simulation to True...")
-        # Disable and re-enable the 'enable simulation' bit to get new data from the simulation (rerun in between)
         response = await self.supabase_rt.table("development").update({"enable_simulation": True}).eq("id", 1).execute()
         print(f"Enable_simulation set to True: {response.data}")
 

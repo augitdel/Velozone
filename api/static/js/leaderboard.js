@@ -4,22 +4,12 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('/api/sessions/renew_data')  // Replace with your actual endpoint
             .then(response => response.json())
             .then(data => updateLeaderboard(data))
-            .then(console.log(data))
             .catch(error => console.error('Error fetching leaderboard data:', error));
     }
 
     // Function to update the leaderboard on the page
     function updateLeaderboard(data) {
         // Update the "Average Lap Time" section
-
-        const transponder_names = data.transponder_names;
-        if (transponder_names.length === 0) {
-            console.log("No transponder names found.");
-        }
-        else {
-            
-        }
-
         const averagesList = document.querySelector('.average-times .column');
         if (averagesList) {
             averagesList.innerHTML = ''; // Clear existing list
@@ -29,9 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 averages.forEach(item => {
                     const listItem = document.createElement('li');
-                    // Find the coresponding name in the dict:
-                    listItem.textContent = `${transponder_names[item[1]] ?? item[1]} -- ${item[2]}s`;
-                    // listItem.textContent = `${item[1]} -- ${item[2]}s`;
+                    listItem.textContent = `${item[1]} -- ${item[2]}s`;
                     averagesList.appendChild(listItem);
                 });
             }
