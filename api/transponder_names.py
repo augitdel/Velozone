@@ -1,3 +1,5 @@
+import pandas as pd
+
 # Class for the database
 class TransponderDataBase():
     def __init__(self):
@@ -9,3 +11,9 @@ class TransponderDataBase():
     @property
     def get_database(self):
         return self._database
+    def to_dataframe(self):
+        df = pd.DataFrame(
+            list(self._database.items()),
+            columns=["transponder_id", "transponder_name"]
+        )
+        return df

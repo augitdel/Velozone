@@ -29,7 +29,8 @@ PDF_PATH = os.path.join(PDF_DIR, "rider_report_UGent.pdf")
 
 # Structures to keep track of the names
 names_dict = {}
-names_database = TransponderDataBase()
+names_database_dict = TransponderDataBase()
+names_database_df = names_database_dict.to_dataframe()
 # Initialize the Data Object -> this will contain all of the important data and do the analysis
 init_frame = None
 session_data = DataAnalysis(init_frame)
@@ -39,6 +40,7 @@ session_data = DataAnalysis(init_frame)
 @app.route('/home', methods=['GET', 'POST'])
 def home():
     global names_dict
+    global names_database_df
     #Initialize the flags of the active session in the session
     if 'session_active' not in session:
         session['session_active'] = False
@@ -48,9 +50,11 @@ def home():
         data = request.json
         if data:
             names_dict = {item['transponder_id']: item['name'] for item in data}
-            names_database.update(names_dict)
-            session['transponders'] = names_database.get_database
-            return jsonify({"message": "Transponder data opgeslagen!", "data": names_database.get_database}), 200 
+            names_database_dict.update(names_dict)
+            names_database_df = names_database_dict.to_dataframe()
+            print(names_database_df)
+            session['transponders'] = names_database_dict.get_database
+            return jsonify({"message": "Transponder data opgeslagen!", "data": names_database_dict.get_database}), 200 
         else:
             return jsonify({"error": "Geen data ontvangen"}), 400
     return render_template('index.html')
