@@ -1,53 +1,61 @@
 document.addEventListener('DOMContentLoaded', function() {
+    let currentIndex = 0;
+    let averagesInterval;
+
     // Function to fetch leaderboard data
+    function initialFetchLeaderboardData() {
+        fetch('/api/sessions/renew_data')
+        .then(response => response.json())
+        .then(data => getDynamicInterval(data.participants))
+        .catch(error => console.error('Error fetching leaderboard data:', error));
+    }
+
     function fetchLeaderboardData() {
         fetch('/api/sessions/renew_data')  // Replace with your actual endpoint
             .then(response => response.json())
             .then(data => updateLeaderboard(data))
-            .then(console.log(data))
             .catch(error => console.error('Error fetching leaderboard data:', error));
+    }
+
+    function getTransponderName(id, data) {
+        return data.transponder_names?.[id] ?? id;
     }
 
     // Function to update the leaderboard on the page
     function updateLeaderboard(data) {
-        // Update the "Average Lap Time" section
+        console.log(data);
 
-        const transponder_names = data.transponder_names;
-        if (transponder_names.length === 0) {
-            console.log("No transponder names found.");
-        }
-        else {
-            
-        }
-
+        // Update the "Average Lap Time" section with gradual display
         const averagesList = document.querySelector('.average-times .column');
         if (averagesList) {
-            averagesList.innerHTML = ''; // Clear existing list
             const averages = data.averages || [];
             if (averages.length === 0) {
                 averagesList.innerHTML = '<li>No data available</li>';
             } else {
-                averages.forEach(item => {
-                    const listItem = document.createElement('li');
-                    // Find the coresponding name in the dict:
-                    listItem.textContent = `${transponder_names[item[1]] ?? item[1]} -- ${item[2]}s`;
-                    // listItem.textContent = `${item[1]} -- ${item[2]}s`;
-                    averagesList.appendChild(listItem);
-                });
+                // Gradual update of the averages list (10 items per batch)
+                clearInterval(averagesInterval); // Clear previous interval
+                currentIndex = 0; 
+                displayBatch(averages, data, averagesList);
+
+                averagesInterval = setInterval(() => {
+                    if (currentIndex < data.participants) {
+                        displayBatch(averages, data, averagesList);
+                    } else { clearInterval(averagesInterval); }
+                }, 5000); 
             }
         }
 
         // Update the "Fastest Laps" section
         const fastestLapsList = document.querySelector('.top-laps ol');
         if (fastestLapsList) {
-            fastestLapsList.innerHTML = ''; // Clear existing list
+            fastestLapsList.innerHTML = ''; 
             const topLaps = data.top_laps || [];
             if (topLaps.length === 0) {
                 fastestLapsList.innerHTML = '<li>No data available</li>';
             } else {
                 topLaps.forEach(lap => {
                     const listItem = document.createElement('li');
-                    listItem.textContent = `${lap[0]} -- ${lap[1]}s`;
+                    listItem.textContent = `${getTransponderName(lap[0], data)} -- ${lap[1]}s`;
                     fastestLapsList.appendChild(listItem);
                 });
             }
@@ -56,8 +64,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update the "Badman Lap" section
         const badmanLap = document.querySelector('.worst-lap p');
         if (badmanLap) {
+            badmanLap.textContent = '';
             if (data.badman_lap && data.badman_lap.length > 0) {
-                badmanLap.textContent = `${data.badman_lap[0][0]} -- ${data.badman_lap[0][1]}s`;
+                badmanLap.textContent = `${getTransponderName(data.badman_lap[0][0], data)} -- ${data.badman_lap[0][1]}s`;
             } else {
                 badmanLap.textContent = 'No data available';
             }
@@ -66,8 +75,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update the "Diesel Engine" section
         const diesel = document.querySelector('.diesel-engine p');
         if (diesel) {
+            diesel.textContent = '';
             if (data.diesel && data.diesel.length > 0) {
-                diesel.textContent = `${data.diesel[0][0]} -- ${data.diesel[0][2]}s`;
+                diesel.textContent = `${getTransponderName(data.diesel[0][0], data)} -- ${data.diesel[0][1]}s`;
             } else {
                 diesel.textContent = 'No data available';
             }
@@ -76,11 +86,30 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update the "Electrical Engine" section
         const electricalEngine = document.querySelector('.electrical-engine p');
         if (electricalEngine) {
+            electricalEngine.textContent = '';
             if (data.electrical && data.electrical.length > 0) {
-                electricalEngine.textContent = `${data.electrical[0][0]} -- ${data.electrical[0][2]}s`;
+                electricalEngine.textContent = `${getTransponderName(data.electrical[0][0], data)} -- ${data.electrical[0][1]}s`;
             } else {
                 electricalEngine.textContent = 'No data available';
             }
+        }
+    }
+
+    // Helper function to display a batch of 10 items
+    function displayBatch(averages, data, averagesList) {
+        averagesList.innerHTML = ''; // Clear existing list before adding new batch
+        // Get the next 10 items
+        const batch = averages.slice(currentIndex, currentIndex + 10);
+        if (batch.length > 0) {
+            batch.forEach(item => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `${getTransponderName(item[0], data)} -- ${item[1]}s`;
+                averagesList.appendChild(listItem);
+            });
+            currentIndex += 10;
+        }
+        if (currentIndex >= data.participants) {
+            currentIndex = 0; // Reset index when we reach the end
         }
     }
 
@@ -88,5 +117,5 @@ document.addEventListener('DOMContentLoaded', function() {
     fetchLeaderboardData();
 
     // Set interval to refresh data every 5 seconds
-    setInterval(fetchLeaderboardData, 5000); // Refresh every 5 seconds
+    setInterval(fetchLeaderboardData, 10000); // Refresh every 10 seconds
 });
