@@ -64,10 +64,10 @@ def handle_table_update(payload):
     """Callback function to process table updates and store them in DataFrame."""
     global df_wielerrecords
 
-    print(f"Received update: {payload}")
+    # print(f"Received update: {payload}")
     if 'data' in payload and 'record' in payload['data']:
         record = payload['data']['record']
-        print(f"Updated record: {record}")
+        # print(f"Updated record: {record}")
 
         location = record.get("location")  #e.g. "L03"
         if not location:
@@ -149,11 +149,28 @@ def get_and_clear_dataframe():
     df_copy = df_wielerrecords.copy()
     # Has to be adjusted to recent changes
     df_wielerrecords = pd.DataFrame(columns=columns_incomming_DF)
+    print(df_copy)
     return df_copy
+
+def run_get_and_clear_every(interval=3):
+    """Roept get_and_clear_dataframe elke X seconden aan."""
+    def loop():
+        while True:
+            time.sleep(interval)
+            df = get_and_clear_dataframe()
+            if not df.empty:
+                print("\nNieuwe data uit Supabase:")
+                print(df)
+            else:
+                print("Geen nieuwe data op dit moment.")
+    # Start de thread
+    Thread(target=loop, daemon=True).start()
+
 
 
 if __name__ == "__main__":
     monitor_thread = start_monitor_thread()
+    run_get_and_clear_every(interval=3)
     try:
         while True:
             time.sleep(1)
