@@ -89,25 +89,79 @@ class DataAnalysis:
         if self._debug:
             print('start calling update functions...\n'+'='*40)
 
+        print("START OF DEBUGGING")
+        print(f"self._file: {self._file}")
+        print(f"self._newlines: {self._newlines}")
         # call all functions that need to be updated
+
+        print("STEP 0")
+        self._update_transponder_id()
+        print(f"info_per_transponder: {self._info_per_transponder}")
+        
+        print("STEP 1")
         self._update_L01_laptimes()
+        print(f"info_per_transponder: {self._info_per_transponder}")
+
+        print("STEP 2")
         self._update_total_L01_laps()
+        print(f"info_per_transponder: {self._info_per_transponder}")
+
+        print("STEP 3")
         self._average_lap_time()
+        print(f"info_per_transponder: {self._info_per_transponder}")
+
+        print("STEP 4")
         self._fastest_lap()
+        print(f"info_per_transponder: {self._info_per_transponder}")
+        
+        print("STEP 5")
         self._badman()
+        print(f"info_per_transponder: {self._info_per_transponder}")
+
+        print("STEP 6")
         self._diesel_engine()
+        print(f"info_per_transponder: {self._info_per_transponder}")
+        
+        print("STEP 7")
         self._electric_motor()
+        print(f"info_per_transponder: {self._info_per_transponder}")
 
         if self._debug:
             print('update done\n'+'='*40)
+
+    def _update_transponder_id(self):
+        """
+        Function that updates the entries (transponder_id's) in the info_per_transponder DataFrame.
+        """        
+        new_laptime_indices = set(self._newlines['transponder_id'].to_list())
+        info_per_transponder_indices = set(self._info_per_transponder.index.to_list())
+
+        diff = new_laptime_indices - info_per_transponder_indices
+        print(diff)
+        
+        if diff:
+            setdf = {'transponder_id': list(diff),
+            'transponder_name': ['' for _ in diff], 
+            'L01_laptime_list': [[] for _ in diff],
+            'fastest_lap_time': [np.nan for _ in diff], 
+            'average_lap_time' : [np.nan for _ in diff], 
+            'slowest_lap_time': [np.nan for _ in diff],         
+            'total_L01_laps': [0 for _ in diff]
+            }
+            print(f'setdf:\n {setdf}')
+            df_from_setdf = pd.DataFrame(setdf).set_index('transponder_id')
+            self._info_per_transponder = pd.concat([self._info_per_transponder, df_from_setdf], ignore_index=False)
+ 
 
     def _update_L01_laptimes(self):
         """
         Function that updates the lap times of the L01 loop for each transponder in self.info_per_transponder DataFrame
         """
         new_laptimes = self._newlines.loc[self._newlines['loop'] == 'L01'].groupby('transponder_id')['lapTime'].apply(list)
+        # 
+        print(f"new_laptimes:\n {new_laptimes}")
         self._info_per_transponder['L01_laptime_list'] = self._info_per_transponder.apply(lambda row: row['L01_laptime_list'] + new_laptimes.get(row.name, []) if row.name in self._newlines['transponder_id'].values else row['L01_laptime_list'], axis=1)
-        
+        print(f"self._info_per_transponder:\n {self._info_per_transponder}")
         if self._debug:
             print('L01_laptime_list updated\n'+'='*40)
 
@@ -170,7 +224,7 @@ class DataAnalysis:
         
         Result:
         ---------
-            self.diesel: DataFrame containing the transponder ID, standard deviation on his laptimes, average lap time, CV (Coefficient of Variation) and rolling variability for the most consistent rider.
+            self.diesel (DataFrame): DataFrame containing the transponder ID, standard deviation on his laptimes, average lap time, CV (Coefficient of Variation) and rolling variability for the most consistent rider.
         """
         # Filter only laps recorded at loop 'L01' to focus on complete laps
         df_filtered = self._file.loc[self._file['loop'] == 'L01']
