@@ -30,3 +30,6 @@ dist/
 
 # PDF reports
 reports/
+
+# csv files
+*.csv
