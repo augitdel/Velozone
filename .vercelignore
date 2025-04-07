@@ -33,3 +33,7 @@ reports/
 
 # csv files
 *.csv
+
+# testingfiles
+'testfile copy'.ipynb
+testfile.py
