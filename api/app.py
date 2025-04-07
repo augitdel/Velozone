@@ -3,7 +3,7 @@ from flask_cors import CORS
 from transponder_names import TransponderDataBase
 from flask_session import Session
 from data_analysis_branch import DataAnalysis
-from Supabase_table_monitoring import start_monitor_thread, get_and_clear_dataframe
+from Supabase_table_monitoring import start_monitor_thread, get_and_clear_dataframe, run_get_and_clear_every
 from threading import Thread
 import pandas as pd
 import os
@@ -182,6 +182,7 @@ def get_session_stopped():
 def fetch_supabase():
     # Get the data from the supabase
     changed_file = get_and_clear_dataframe()
+    print(changed_file)
 
     # Update the sessio_data with new lines from supabase
     session_data.update(changed_file)
@@ -221,5 +222,6 @@ def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static/favicon'), 'favicon.ico', mimetype='image/vnd.microsoft.icon') 
 
 if __name__ == '__main__':
+    monitor_thread = start_monitor_thread()
+    # run_get_and_clear_every(interval=3) 
     app.run(debug=True)
-    monitor_thread = Thread(target=start_monitor_thread, daemon=True)
