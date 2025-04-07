@@ -63,7 +63,8 @@ class DataAnalysis:
 
     def _cleanup(self):
         self._file.drop_duplicates(inplace = True)
-        self._newlines.dropna(subset=['transponder_id', 'loop', 'utcTimestamp'], inplace=True).sort_values(by=['transponder_id','utcTime'], inplace=True)
+        self._newlines.dropna(subset=['transponder_id', 'loop', 'utcTimestamp'], inplace=True)
+        self._newlines.sort_values(by=['transponder_id','utcTime'], inplace=True)
 
     def preprocess_lap_times(self, df):
         """Operations:
