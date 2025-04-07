@@ -182,10 +182,10 @@ def get_session_stopped():
 def fetch_supabase():
     # Get the data from the supabase
     changed_file = get_and_clear_dataframe()
-    print(changed_file)
 
-    # Update the sessio_data with new lines from supabase
-    session_data.update(changed_file)
+    # Update the sessio_data with new lines from supabase and all available couples of transponders with the corresponding names in a dictionary
+    if not changed_file.empty:
+        session_data.update(changed_file)
     info_per_transponder = session_data.info_per_transponder
     try:
         # avg_lap : [(name,avg_lap_time)]

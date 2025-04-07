@@ -1,39 +1,6 @@
 # Import necessary libraries
 import pandas as pd
 import numpy as np
-from flask import Flask, render_template
-from faker import Faker
-import os
-
-app = Flask(__name__)
-
-TRANS_NAME_FILE = "transponder_names.xlsx"
-
-def generate_random_name():
-    """Generate a random name."""
-    fake = Faker()
-    return fake.first_name()
-
-def load_transponder_names(transponder_ids):
-    """Ensure each transponder has a name and save it to an Excel file."""
-    if os.path.exists(TRANS_NAME_FILE):
-        name_df = pd.read_excel(TRANS_NAME_FILE, dtype={'transponder_id': str})
-    else:
-        name_df = pd.DataFrame(columns=['transponder_id', 'name'])
-    
-    # Convert to set for fast lookup
-    existing_ids = set(name_df['transponder_id'].astype(str))
-    print(existing_ids)
-    # Ensure all transponder_ids have a name
-    new_entries = [{'transponder_id': str(tid), 'name': generate_random_name()} 
-                   for tid in transponder_ids if str(tid) not in existing_ids]
-
-    if new_entries:
-        new_df = pd.DataFrame(new_entries)
-        name_df = pd.concat([name_df, new_df], ignore_index=True).drop_duplicates(subset=['transponder_id'])
-        # Save the updated file
-        name_df.to_excel(TRANS_NAME_FILE, index=False)
-    return name_df
 
 class DataAnalysis:
     # IMPORTANT: As per convention the class properties and methods prefixed with an underscore are considered private and should not be accessed directly from outside the class.
@@ -42,20 +9,21 @@ class DataAnalysis:
         columns_incomming_DF = ['transponder_id','loop','utcTimestamp','utcTime','lapTime','lapSpeed','maxSpeed','cameraPreset','cameraPan','cameraTilt','cameraZoom','eventName','recSegmentId','trackedRider']
         self._file = pd.DataFrame(columns=columns_incomming_DF)
         self._newlines = pd.DataFrame(columns=columns_incomming_DF)
-
+        
+        # Macros of the object
         self._min_lap_time = MIN_LAP_TIME
         self._max_lap_time = MAX_LAP_TIME
 
         # self.fileL01 = self.file.loc[self.file['loop'] == 'L01']
         # self.newlinesL01 = self.newlines.loc[self.newlines['loop'] == 'L01']
-
+        
+        # Parameters for the leaderboard
         self._info_per_transponder = pd.DataFrame(columns=['transponder_id', 'transponder_name', 'L01_laptime_list', 'fastest_lap_time', 'average_lap_time', 'slowest_lap_time', 'total_L01_laps'])
         self._info_per_transponder.set_index('transponder_id', inplace=True)
-
         self._slowest_rider = pd.DataFrame()
         self._diesel = pd.DataFrame()
         self._electric = pd.DataFrame()
-        
+        # Debug flag
         self._debug = debug
 
         if new_DF != None:
@@ -63,8 +31,9 @@ class DataAnalysis:
 
     def _cleanup(self):
         self._file.drop_duplicates(inplace = True)
-        self._newlines.dropna(subset=['transponder_id', 'loop', 'utcTimestamp'], inplace=True)
-        self._newlines.sort_values(by=['transponder_id','utcTime'], inplace=True)
+        # These lines have to be split up
+        self._newlines = self._newlines.dropna(subset=['transponder_id', 'loop', 'utcTimestamp'])
+        self._newlines = self._newlines.sort_values(by=['transponder_id','utcTime'])
 
     def preprocess_lap_times(self, df):
         """Operations:
@@ -74,10 +43,10 @@ class DataAnalysis:
 
         df['lapTime'] = pd.to_numeric(df['lapTime'], errors='coerce')  # Ensure lapTime is numeric
         valid_laps = df[(df['lapTime'] >= self._min_lap_time) & (df['lapTime'] <= self._max_lap_time)]
-        valid_laps.dropna(subset=['lapTime'], inplace=True) # Drop rows with NaN in the 'lapTime' column
+        valid_laps = valid_laps.dropna(subset=['lapTime']) # Drop rows with NaN in the 'lapTime' column
         return valid_laps
 
-    def update(self, changed_file):
+    def update(self, changed_file: pd.DataFrame):
         """
         Loads the changed lines from the DF and appends them to the existing DataFrame.
         Then it updates the following:
@@ -110,19 +79,12 @@ class DataAnalysis:
             # Drop `_y` columns and the `_merge` column
             new_rows = new_rows[[col for col in new_rows.columns if not col.endswith('_y') and col != '_merge']]
 
-            print("Columns after cleaning:", new_rows.columns)
-
             self._newlines = self.preprocess_lap_times(new_rows)
             self._file = pd.concat([self._file, self._newlines], ignore_index=True)
         
-        print(self._file)
-        print(self._newlines)  #Empty
         self._cleanup()  # TODO: does the whole file needs to be cleaned up/sorted after an update, or is cleanup from the newlines enough?
         
-        # update the transponder names if necessary
-        # TODO: how to do this in a more efficient way? Finish the implementation
-        existing_transponders = set(self._info_per_transponder['transponder_id'].astype(str))
-        new_transponders = set(self._newlines['transponder_id']).difference(set(existing_transponders))
+        # transponder names aren't being updated here as it is more efficient to do this in the frontend.
 
         if self._debug:
             print('start calling update functions...\n'+'='*40)
@@ -154,6 +116,8 @@ class DataAnalysis:
         Function that updates the total number of (L01) laps each transponder has completed and fills this information in the info_per_transponder DataFrame.
         """
         # TODO: check if this is equal to the length of the L01_laptime_list
+        if self._info_per_transponder.empty:
+            return 
         self._info_per_transponder['total_L01_laps'] += self._info_per_transponder['transponder_id'].isin(self._newlines['transponder_id']).astype(int)
         if self._debug:
             print('total_L01_laps updated\n'+'='*40)
@@ -189,6 +153,8 @@ class DataAnalysis:
         """
             Function that calculates the slowest rider of the session and stores it in self.slowest_rider.
         """
+        if self._info_per_transponder.empty:
+            return
         self._slowest_rider = self._info_per_transponder.loc[self._info_per_transponder['slowest_lap_time'].idxmax()]
 
         if self._debug:
@@ -210,7 +176,7 @@ class DataAnalysis:
         df_filtered = self._file.loc[self._file['loop'] == 'L01']
         
         # Drop any rows where 'lapTime' is missing
-        df_filtered.dropna(subset=['lapTime'], inplace=True)
+        df_filtered = df_filtered.dropna(subset=['lapTime'])
         
         # Exclude transponders with fewer than minimum_incalculated laps
         df_filtered = df_filtered.groupby('transponder_id').filter(lambda x: len(x) > minimum_incalculated)
@@ -238,7 +204,7 @@ class DataAnalysis:
         self._diesel = most_consistent_riders.nsmallest(1, 'CV')
 
         # TODO: incorporate name of the rider in some way
-
+        # --> done in the frontend
         if self._debug:
             print('diesel_engine updated\n'+'='*40)
     
@@ -297,35 +263,44 @@ class DataAnalysis:
         if self._debug:
             print('electric_motor updated\n'+'='*40)
     
+    def update_transponder_names(self, transponder_names: pd.DataFrame):
+        """
+        Update the transponder names in the info_per_transponder DataFrame.
+
+        Parameters:
+            transponder_names (pd.DataFrame): DataFrame containing two columns: 'transponder_id' and 'transponder_name'. 'transponder_id' should be set as the index of this dataframe.
+        """
+        self._info_per_transponder['transponder_name'] = self._info_per_transponder.index.map(transponder_names['transponder_name'])
+
 
     # GETTERS AND SETTERS
     @property
     def slowest_rider(self):
-        return self._slowest_rider
+        return getattr(self, '_slowest_rider', None)
     
     @property
     def diesel(self):
-        return self._diesel
+        return getattr(self,'_diesel', None)
     
     @property
     def electric(self):
-        return self._electric
+        return getattr(self, '_electric', None)
     
     @property
     def info_per_transponder(self):
-        return self._info_per_transponder
+        return getattr(self, '_info_per_transponder', None)
     
     @property
     def file(self):
-        return self._file
+        return getattr(self, '_file', None)
     
     @property
     def info_per_transponder(self):
-        return self._info_per_transponder
+        return getattr(self, '_info_per_transponder', None)
     
     @property
     def min_lap_time(self):
-        return self._min_lap_time
+        return getattr(self, '_min_lap_time', None)
     
     @min_lap_time.setter
     def min_lap_time(self, new_min_lap_time):
@@ -335,7 +310,7 @@ class DataAnalysis:
 
     @property
     def max_lap_time(self):
-        return self._max_lap_time
+        return getattr(self, '_max_lap_time', None)
 
     @max_lap_time.setter
     def max_lap_time(self, new_max_lap_time):
@@ -345,7 +320,7 @@ class DataAnalysis:
     
     @property
     def debug(self):
-        return self._debug
+        return getattr(self, '_debug', None)
     
     @debug.setter
     def debug(self, new_debug):

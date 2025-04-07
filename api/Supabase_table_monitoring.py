@@ -110,7 +110,12 @@ def handle_table_update(payload):
             }
 
             # Voeg toe aan DataFrame
-            df_wielerrecords = pd.concat([df_wielerrecords, pd.DataFrame([new_row])], ignore_index=True)
+            new_row_DF = pd.DataFrame([new_row])
+            if not df_wielerrecords.empty:
+                if not new_row_DF.empty:
+                    df_wielerrecords = pd.concat([df_wielerrecords, new_row_DF], ignore_index=True)
+            else:
+                df_wielerrecords = new_row_DF
 
         except Exception as e:
             print(f"Fout bij verwerken update: {e}")
