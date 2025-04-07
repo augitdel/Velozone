@@ -28,10 +28,11 @@ PDF_PATH = os.path.join(PDF_DIR, "rider_report_UGent.pdf")
 
 # Initialize the Data Object -> this will contain all of the important data and do the analysis
 init_frame = None
-session_data = DataAnalysis(init_frame)
+session_data = DataAnalysis(init_frame, debug=False)
 
 # Initialize the names dictionary 
 names_dict = {}
+participants = 0
 
 # Home screen
 @app.route('/') 
@@ -86,6 +87,7 @@ def leaderboard():
 @app.route('/start_session', methods=['POST', 'GET'])
 def start_session():
     global session_data
+    global participants
     if request.method == 'POST':
         # Retrieve data from the form submitted in the frontend (JavaScript)
         start_date = request.form['startDate']
@@ -182,30 +184,37 @@ def fetch_supabase():
     # Get the data from the supabase
     changed_file = get_and_clear_dataframe()
     # Update the sessio_data with new lines from supabase and all available couples of transponders with the corresponding names in a dictionary
+    print(f"changed_file:\n {changed_file}")
+    
     if not changed_file.empty:
         session_data.update(changed_file)
         print("New Data found!")
     info_per_transponder = session_data.info_per_transponder
-    try:
-        # avg_lap : [(name,avg_lap_time)]
-        avg_lap = info_per_transponder[['transponder_name', 'average_lap_time']].tolist()
-        # fast_lap: [(name, fast_lap)]
-        fast_lap = info_per_transponder.nsmallest(5, 'fastest_lap_time')[['transponder_name', 'fastest_lap_time']].tolist()
-        # Slowest_lap: (name, slow_lap)
-        slow_lap = info_per_transponder.nlargest(1,'slowest_lap_time')[['transponder_name', 'slowest_lap_time']].tolist()
-        # Badman --> check how the data enters
-        badman = session_data.slowest_rider.tolist()
-        # Diesel --> check how the data enters
-        diesel = session_data.diesel.tolist()
-        # Electric --> check how the data enters
-        electric = session_data.electric.tolist()
-    except:
-        avg_lap = None
-        fast_lap = None
-        slow_lap = None
-        badman = None
-        diesel = None
-        electric = None
+    # avg_lap : [(name,avg_lap_time)]
+    print(f"info_per_transponder:\n {info_per_transponder}")
+
+    avg_lap_df = info_per_transponder[['transponder_name', 'average_lap_time']]
+    print(f"avg_lap_df: {avg_lap_df}")
+    
+    avg_lap = info_per_transponder[['transponder_name', 'average_lap_time']].values.tolist()
+    # print(f"avg_lap: {avg_lap}")
+
+    fast_lap = None
+    slow_lap = None
+    badman = None
+    diesel = None
+    electric = None
+
+    # # fast_lap: [(name, fast_lap)]
+    # fast_lap = info_per_transponder.nsmallest(5, 'fastest_lap_time')[['transponder_name', 'fastest_lap_time']].tolist()
+    # # Slowest_lap: (name, slow_lap)
+    # slow_lap = info_per_transponder.nlargest(1,'slowest_lap_time')[['transponder_name', 'slowest_lap_time']].tolist()
+    # # Badman --> check how the data enters
+    # badman = session_data.slowest_rider.tolist()
+    # # Diesel --> check how the data enters
+    # diesel = session_data.diesel.tolist()
+    # # Electric --> check how the data enters
+    # electric = session_data.electric.tolist()
 
     response_data = {
             'averages': avg_lap if avg_lap is not None else [],
@@ -214,7 +223,8 @@ def fetch_supabase():
             'badman_lap': badman if badman is not None else [],
             'diesel': diesel if diesel is not None else [],
             'electric': electric if electric is not None else [],
-            'transponder_names' : names_dict
+            'transponder_names' : names_dict if names_dict else {},
+            'participants': participants if participants else 0,
         }
     return jsonify(response_data)
 @app.route('/favicon.ico')
