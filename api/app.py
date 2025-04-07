@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, url_for, redirect, session, send_from_directory, jsonify
 from flask_cors import CORS
-from transponder_names import TransponderDataBase
 from flask_session import Session
 from data_analysis_branch import DataAnalysis
 from Supabase_table_monitoring import start_monitor_thread, get_and_clear_dataframe, run_get_and_clear_every
@@ -27,20 +26,18 @@ PDF_PATH = os.path.join(PDF_DIR, "rider_report_UGent.pdf")
 # app.config["SESSION_REDIS"] = redis.from_url(os.environ.get("REDIS_URL")) # Configure your Redis URL
 # Session(app)
 
-# Structures to keep track of the names
-names_dict = {}
-names_database_dict = TransponderDataBase()
-names_database_df = names_database_dict.to_dataframe()
 # Initialize the Data Object -> this will contain all of the important data and do the analysis
 init_frame = None
 session_data = DataAnalysis(init_frame)
+
+# Initialize the names dictionary 
+names_dict = {}
 
 # Home screen
 @app.route('/') 
 @app.route('/home', methods=['GET', 'POST'])
 def home():
     global names_dict
-    global names_database_df
     #Initialize the flags of the active session in the session
     if 'session_active' not in session:
         session['session_active'] = False
@@ -50,11 +47,9 @@ def home():
         data = request.json
         if data:
             names_dict = {item['transponder_id']: item['name'] for item in data}
-            names_database_dict.update(names_dict)
-            names_database_df = names_database_dict.to_dataframe()
-            print(names_database_df)
-            session['transponders'] = names_database_dict.get_database
-            return jsonify({"message": "Transponder data opgeslagen!", "data": names_database_dict.get_database}), 200 
+            print(f'names_dict: {names_dict}')
+            # session['transponders'] = names_dict
+            return jsonify({"message": "Transponder data opgeslagen!", "data": names_dict}), 200 
         else:
             return jsonify({"error": "Geen data ontvangen"}), 400
     return render_template('index.html')
@@ -186,24 +181,24 @@ def get_session_stopped():
 def fetch_supabase():
     # Get the data from the supabase
     changed_file = get_and_clear_dataframe()
-
     # Update the sessio_data with new lines from supabase and all available couples of transponders with the corresponding names in a dictionary
     if not changed_file.empty:
         session_data.update(changed_file)
+        print("New Data found!")
     info_per_transponder = session_data.info_per_transponder
     try:
         # avg_lap : [(name,avg_lap_time)]
-        avg_lap = info_per_transponder[['transponder_name', 'average_lap_time']] 
+        avg_lap = info_per_transponder[['transponder_name', 'average_lap_time']].tolist()
         # fast_lap: [(name, fast_lap)]
-        fast_lap = info_per_transponder.nsmallest(5, 'fastest_lap_time')[['transponder_name', 'fastest_lap_time']]
+        fast_lap = info_per_transponder.nsmallest(5, 'fastest_lap_time')[['transponder_name', 'fastest_lap_time']].tolist()
         # Slowest_lap: (name, slow_lap)
-        slow_lap = info_per_transponder.nlargest(1,'slowest_lap_time')[['transponder_name', 'slowest_lap_time']]
+        slow_lap = info_per_transponder.nlargest(1,'slowest_lap_time')[['transponder_name', 'slowest_lap_time']].tolist()
         # Badman --> check how the data enters
-        badman = session_data.slowest_rider
+        badman = session_data.slowest_rider.tolist()
         # Diesel --> check how the data enters
-        diesel = session_data.diesel 
+        diesel = session_data.diesel.tolist()
         # Electric --> check how the data enters
-        electric = session_data.electric
+        electric = session_data.electric.tolist()
     except:
         avg_lap = None
         fast_lap = None
@@ -218,7 +213,8 @@ def fetch_supabase():
             'slow_lap': slow_lap if slow_lap is not None else [],
             'badman_lap': badman if badman is not None else [],
             'diesel': diesel if diesel is not None else [],
-            'electric': electric if electric is not None else []
+            'electric': electric if electric is not None else [],
+            'transponder_names' : names_dict
         }
     return jsonify(response_data)
 @app.route('/favicon.ico')
