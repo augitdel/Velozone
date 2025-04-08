@@ -115,6 +115,7 @@ class DataAnalysis:
         print(f"info_per_transponder: {self._info_per_transponder}")
         
         print("STEP 5")
+        self.slowest_lap()
         self._badman()
         print(f"info_per_transponder: {self._info_per_transponder}")
 
@@ -172,7 +173,7 @@ class DataAnalysis:
         # TODO: check if this is equal to the length of the L01_laptime_list
         if self._info_per_transponder.empty:
             return 
-        self._info_per_transponder['total_L01_laps'] += self._info_per_transponder['transponder_id'].isin(self._newlines['transponder_id']).astype(int)
+        self._info_per_transponder['total_L01_laps'] += self._info_per_transponder.index.isin(self._newlines['transponder_id']).astype(int)
         if self._debug:
             print('total_L01_laps updated\n'+'='*40)
 
@@ -199,6 +200,8 @@ class DataAnalysis:
         Returns:
             DataFrame: A DataFrame containing the transponder IDs and their respective slowest lap times
         """
+        print(self._newlines['transponder_id'].values)
+
         self._info_per_transponder['slowest_lap_time'] = self._info_per_transponder.apply(lambda row: np.max(row['L01_laptime_list']) if row.name in self._newlines['transponder_id'].values and len(row['L01_laptime_list']) > 0 else np.nan, axis=1)
         if self._debug:
             print('slowest_lap_time updated\n'+'='*40)

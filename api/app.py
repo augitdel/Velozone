@@ -62,17 +62,17 @@ def leaderboard():
     info_per_transponder = session_data.info_per_transponder
     try:
         # avg_lap : [(name,avg_lap_time)]
-        avg_lap = info_per_transponder[['transponder_name', 'average_lap_time']] 
+        avg_lap = info_per_transponder[['transponder_name', 'average_lap_time']].values.tolist()
         # fast_lap: [(name, fast_lap)]
-        fast_lap = info_per_transponder.nsmallest(5, 'fastest_lap_time')[['transponder_name', 'fastest_lap_time']]
+        fast_lap = info_per_transponder.nsmallest(5, 'fastest_lap_time')[['transponder_name', 'fastest_lap_time']].values.tolist()
         # Slowest_lap: (name, slow_lap)
-        slow_lap = info_per_transponder.nlargest(1,'slowest_lap_time')[['transponder_name', 'slowest_lap_time']]
+        slow_lap = info_per_transponder.nlargest(1,'slowest_lap_time')[['transponder_name', 'slowest_lap_time']].values.tolist()
         # Badman --> check how the data enters
-        badman = session_data.slowest_rider
+        badman = session_data.slowest_rider.values.tolist()
         # Diesel --> check how the data enters
-        diesel = session_data.diesel 
+        diesel = session_data.diesel.values.tolist()
         # Electric --> check how the data enters
-        electric = session_data.electric
+        electric = session_data.electric.values.tolist()
     except:
         avg_lap = None
         fast_lap = None
@@ -80,6 +80,12 @@ def leaderboard():
         badman = None
         diesel = None
         electric = None
+    print(f"Type of avg_lap: {type(avg_lap)}")
+    print(f"Type of fast_lap: {type(fast_lap)}")
+    print(f"Type of slow_lap: {type(slow_lap)}")
+    print(f"Type of badman_lap: {type(badman)}")
+    print(f"Type of diesel: {type(diesel)}")
+    print(f"Type of electric: {type(electric)}")
     return render_template('leaderboard.html', averages=avg_lap, top_laps=fast_lap, slow_lap=slow_lap, badman_lap=badman, diesel=diesel,
                            electric=electric)
 
