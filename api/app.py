@@ -2,7 +2,8 @@ from flask import Flask, render_template, request, url_for, redirect, session, s
 from flask_cors import CORS
 from flask_session import Session
 from data_analysis_branch import DataAnalysis
-from Supabase_table_monitoring import start_monitor_thread, get_and_clear_dataframe, run_get_and_clear_every
+from Supabase_table_monitoring import start_monitor_thread, get_and_clear_dataframe
+from Transponder_names import TransponderDataBase
 from threading import Thread
 import pandas as pd
 import os
