@@ -20,13 +20,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function getTransponderName(id, data) {
         return data.transponder_names?.[id] ?? id;
     }
-
+    // TODO: Update the querySelector to match the correct element in your HTML
     // Function to update the leaderboard on the page
     function updateLeaderboard(data) {
         console.log(data);
 
         // Update the "Average Lap Time" section with gradual display
-        const averagesList = document.querySelector('.average-times .column');
+        const averagesList = document.querySelector('.average-times .column');      // Update here!
         if (averagesList) {
             const averages = data.averages || [];
             if (averages.length === 0) {
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Update the "Fastest Laps" section
-        const fastestLapsList = document.querySelector('.top-laps ol');
+        const fastestLapsList = document.querySelector('.top-laps ol');  // Update here!
         if (fastestLapsList) {
             fastestLapsList.innerHTML = ''; 
             const topLaps = data.top_laps || [];
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Update the "Badman Lap" section
-        const badmanLap = document.querySelector('.worst-lap p');
+        const badmanLap = document.querySelector('.worst-lap p');  // Update here!
         if (badmanLap) {
             badmanLap.textContent = '';
             if (data.badman_lap && data.badman_lap.length > 0) {
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Update the "Diesel Engine" section
-        const diesel = document.querySelector('.diesel-engine p');
+        const diesel = document.querySelector('.diesel-engine p');  // Update here!
         if (diesel) {
             diesel.textContent = '';
             if (data.diesel && data.diesel.length > 0) {
@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Update the "Electrical Engine" section
-        const electricalEngine = document.querySelector('.electrical-engine p');
+        const electricalEngine = document.querySelector('.electrical-engine p');  // Update here!
         if (electricalEngine) {
             electricalEngine.textContent = '';
             if (data.electrical && data.electrical.length > 0) {
@@ -116,6 +116,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial data load
     fetchLeaderboardData();
 
-    // Set interval to refresh data every 5 seconds
+    // Set interval to refresh data every [x] seconds
     setInterval(fetchLeaderboardData, 10000); // Refresh every 10 seconds
 });
