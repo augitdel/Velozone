@@ -63,8 +63,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const badmanLap = document.querySelector('.worst-lap');  
         if (badmanLap) {
             badmanLap.textContent = '';
-            if (data.badman_lap && data.badman_lap.length > 0) {
-                badmanLap.textContent = `${getTransponderName(data.badman_lap[0][0], data)} -- ${data.badman_lap[0][1]}s`;
+            if (data.slow_lap && data.slow_lap.length > 0) {
+                console.log(`data.slow_lap = ${data.slow_lap}`)
+                badmanLap.textContent = `${getTransponderName(data.slow_lap[0][0], data)} -- ${data.slow_lap[0][1]}s`;
             } else {
                 badmanLap.textContent = 'No data available';
             }

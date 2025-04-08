@@ -20,7 +20,7 @@ class DataAnalysis:
         # Parameters for the leaderboard
         self._info_per_transponder = pd.DataFrame(columns=['transponder_id', 'transponder_name', 'L01_laptime_list', 'fastest_lap_time', 'average_lap_time', 'slowest_lap_time', 'total_L01_laps'])
         self._info_per_transponder.set_index('transponder_id', inplace=True)
-        self._slowest_rider = pd.DataFrame()
+        self._badman = pd.DataFrame()
         self._diesel = pd.DataFrame()
         self._electric = pd.DataFrame()
         # Debug flag
@@ -194,10 +194,13 @@ class DataAnalysis:
         print(f"De dataframe is empty: {self._info_per_transponder.empty}")
         if self._info_per_transponder.empty:
             return
-        self._slowest_rider = self._info_per_transponder.loc[self._info_per_transponder['slowest_lap_time'].idxmax()]
+        # self._slowest_rider = self._info_per_transponder.loc[self._info_per_transponder['slowest_lap_time'].idxmax()]
+        self._badman = self._info_per_transponder.nlargest(1,'slowest_lap_time')[['slowest_lap_time']]
         if self._debug:
             print('badman updated\n'+'='*40)
     
+
+
     def _diesel_engine(self,minimum_incalculated = 10,window = 20):
         """
         Function that identifies the transponder with the most consistent lap times ("Diesel Engine").
@@ -333,8 +336,8 @@ class DataAnalysis:
         return getattr(self, '_file', None)
     
     @property
-    def info_per_transponder(self):
-        return getattr(self, '_info_per_transponder', None)
+    def badman(self):
+        return getattr(self, '_slowest_laptime', None)
     
     @property
     def min_lap_time(self):

@@ -203,8 +203,7 @@ def fetch_supabase():
     slow_lap = info_per_transponder.nlargest(1,'slowest_lap_time')[['slowest_lap_time']].reset_index().values.tolist()
     print(f"slow_lap: {slow_lap}")
     # # Badman --> check how the data enters
-    badman = session_data.slowest_rider.values.tolist()
-    badman = None
+    badman = session_data.badman.reset_index().values.tolist()
     print(f"badman: {badman}")
     # # Diesel --> check how the data enters
     diesel = session_data.diesel.values.tolist()
