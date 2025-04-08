@@ -12,9 +12,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Function to fetch leaderboard data
     function fetchLeaderboardData() {
-        fetch('/api/sessions/renew_data')  // Replace with your actual endpoint
+        fetch('/api/sessions/renew_data')
             .then(response => response.json())
-            .then(data => updateLeaderboard(data))
+            .then(data => {
+                if (data && !isNaN(data.someValue)) {
+                    updateLeaderboard(data);
+                } else {
+                    console.error('Data bevat ongeldige waarde (NaN)');
+                    updateLeaderboard(defaultLeaderboardData);
+                }
+            })
             .catch(error => console.error('Error fetching leaderboard data:', error));
     }
 
