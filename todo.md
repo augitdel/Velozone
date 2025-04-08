@@ -63,3 +63,8 @@ Maak rapporten op basis van de data die er verzameld is tijdens de sessie
 
 ### Flag bits
 Om de bits te kunnen gebruiken in Vercel moet je verbinden met redis. 
+
+### Updates van tijden in DF
+Bij de eerste update loopt het vaak mis en blijven fastest_lap, average_lap and slowest_lap gewoon Nan
+
+## Jonas --> updates uitvoeren in leaderboard.js

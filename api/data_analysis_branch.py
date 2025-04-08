@@ -89,43 +89,16 @@ class DataAnalysis:
         if self._debug:
             print('start calling update functions...\n'+'='*40)
 
-        print("START OF DEBUGGING")
-        print(f"self._file: {self._file}")
-        print(f"self._newlines: {self._newlines}")
         # call all functions that need to be updated
-
-        print("STEP 0")
         self._update_transponder_id()
-        print(f"info_per_transponder: {self._info_per_transponder}")
-        
-        print("STEP 1")
         self._update_L01_laptimes()
-        print(f"info_per_transponder: {self._info_per_transponder}")
-
-        print("STEP 2")
         self._update_total_L01_laps()
-        print(f"info_per_transponder: {self._info_per_transponder}")
-
-        print("STEP 3")
         self._average_lap_time()
-        print(f"info_per_transponder: {self._info_per_transponder}")
-
-        print("STEP 4")
         self._fastest_lap()
-        print(f"info_per_transponder: {self._info_per_transponder}")
-        
-        print("STEP 5")
         self.slowest_lap()
         self._badman()
-        print(f"info_per_transponder: {self._info_per_transponder}")
-
-        print("STEP 6")
         self._diesel_engine()
-        print(f"info_per_transponder: {self._info_per_transponder}")
-        
-        print("STEP 7")
         self._electric_motor()
-        print(f"info_per_transponder: {self._info_per_transponder}")
 
         if self._debug:
             print('update done\n'+'='*40)

@@ -62,7 +62,9 @@ def leaderboard():
     info_per_transponder = session_data.info_per_transponder
     try:
         # avg_lap : [(name,avg_lap_time)]
-        avg_lap = info_per_transponder[['transponder_name', 'average_lap_time']].values.tolist()
+        avg_lap_df = info_per_transponder[['average_lap_time']]
+        avg_lap_df.reset_index(inplace=True)
+        avg_lap = avg_lap_df[['transponder_id', 'average_lap_time']].values.tolist()
         # fast_lap: [(name, fast_lap)]
         fast_lap = info_per_transponder.nsmallest(5, 'fastest_lap_time')[['transponder_name', 'fastest_lap_time']].values.tolist()
         # Slowest_lap: (name, slow_lap)
@@ -191,19 +193,17 @@ def fetch_supabase():
     changed_file = get_and_clear_dataframe()
     # Update the sessio_data with new lines from supabase and all available couples of transponders with the corresponding names in a dictionary
     print(f"changed_file:\n {changed_file}")
-    
+
+    # Update with the new data
     if not changed_file.empty:
         session_data.update(changed_file)
         print("New Data found!")
+
     info_per_transponder = session_data.info_per_transponder
     # avg_lap : [(name,avg_lap_time)]
-    print(f"info_per_transponder:\n {info_per_transponder}")
-
-    avg_lap_df = info_per_transponder[['transponder_name', 'average_lap_time']]
-    print(f"avg_lap_df: {avg_lap_df}")
-    
-    avg_lap = info_per_transponder[['transponder_name', 'average_lap_time']].values.tolist()
-    # print(f"avg_lap: {avg_lap}")
+    avg_lap_df = info_per_transponder[['average_lap_time']]
+    avg_lap_df.reset_index(inplace=True)
+    avg_lap = avg_lap_df[['transponder_id', 'average_lap_time']].values.tolist()
 
     fast_lap = None
     slow_lap = None
