@@ -5,7 +5,7 @@ import numpy as np
 class DataAnalysis:
     # IMPORTANT: As per convention the class properties and methods prefixed with an underscore are considered private and should not be accessed directly from outside the class.
     # However, some of the properties can be read and set with getters and setters.
-    def __init__(self, new_DF, MIN_LAP_TIME=13, MAX_LAP_TIME=50, debug=False):        
+    def __init__(self, MIN_LAP_TIME=13, MAX_LAP_TIME=50, debug=False):        
         columns_incomming_DF = ['transponder_id','loop','utcTimestamp','utcTime','lapTime','lapSpeed','maxSpeed','cameraPreset','cameraPan','cameraTilt','cameraZoom','eventName','recSegmentId','trackedRider']
         self._file = pd.DataFrame(columns=columns_incomming_DF)
         self._newlines = pd.DataFrame(columns=columns_incomming_DF)
@@ -26,8 +26,8 @@ class DataAnalysis:
         # Debug flag
         self._debug = debug
 
-        if new_DF != None:
-            self.update(new_DF)
+        # if not new_DF.empty:
+        #     self.update(new_DF)
 
     def _cleanup(self):
         self._file.drop_duplicates(inplace = True)
@@ -62,9 +62,10 @@ class DataAnalysis:
         """
         # load the changed supabase file, check which are the new lines, preprocess them and append them to the file
         # TODO: possible optimalisation: don't check with the whole self.file, but compare with timestamps saved to the self.info_per_transponder df
+        print(f"changed_file:\n {changed_file}")
         if self._file.empty:
-            self._file = changed_file.copy()  # Initialize with the first data batch
-            self._newlines = changed_file.copy()
+            self._newlines = self.preprocess_lap_times(changed_file)
+            self._file = self._newlines.copy()  # Initialize with the first data batch
         else:
             new_rows = pd.merge(
                 changed_file, self._file, 
@@ -78,8 +79,10 @@ class DataAnalysis:
             
             # Drop `_y` columns and the `_merge` column
             new_rows = new_rows[[col for col in new_rows.columns if not col.endswith('_y') and col != '_merge']]
+            print(f"new_rows:\n {new_rows}")
 
             self._newlines = self.preprocess_lap_times(new_rows)
+            print(f"self._newlines:\n {self._newlines}")
             self._file = pd.concat([self._file, self._newlines], ignore_index=True)
         
         self._cleanup()  # TODO: does the whole file needs to be cleaned up/sorted after an update, or is cleanup from the newlines enough?
@@ -89,6 +92,8 @@ class DataAnalysis:
         if self._debug:
             print('start calling update functions...\n'+'='*40)
 
+        print("NEW UPDATES COMING UP... ")
+        print(f"self._newlines:\n {self._newlines[self._newlines['loop'] == 'L01']}")
         # call all functions that need to be updated
         self._update_transponder_id()
         self._update_L01_laptimes()
@@ -99,7 +104,7 @@ class DataAnalysis:
         self._badman()
         self._diesel_engine()
         self._electric_motor()
-
+        print("ALL UPDATES DONE")
         if self._debug:
             print('update done\n'+'='*40)
 
@@ -107,11 +112,10 @@ class DataAnalysis:
         """
         Function that updates the entries (transponder_id's) in the info_per_transponder DataFrame.
         """        
-        new_laptime_indices = set(self._newlines['transponder_id'].to_list())
+        new_laptime_indices = set(self._newlines.loc[self._newlines['loop'] == 'L01', 'transponder_id'].to_list())
         info_per_transponder_indices = set(self._info_per_transponder.index.to_list())
-
         diff = new_laptime_indices - info_per_transponder_indices
-        print(diff)
+        # print(diff)
         
         if diff:
             setdf = {'transponder_id': list(diff),
@@ -122,7 +126,7 @@ class DataAnalysis:
             'slowest_lap_time': [np.nan for _ in diff],         
             'total_L01_laps': [0 for _ in diff]
             }
-            print(f'setdf:\n {setdf}')
+            # print(f'setdf:\n {setdf}')
             df_from_setdf = pd.DataFrame(setdf).set_index('transponder_id')
             self._info_per_transponder = pd.concat([self._info_per_transponder, df_from_setdf], ignore_index=False)
  
@@ -132,10 +136,8 @@ class DataAnalysis:
         Function that updates the lap times of the L01 loop for each transponder in self.info_per_transponder DataFrame
         """
         new_laptimes = self._newlines.loc[self._newlines['loop'] == 'L01'].groupby('transponder_id')['lapTime'].apply(list)
-        # 
-        print(f"new_laptimes:\n {new_laptimes}")
         self._info_per_transponder['L01_laptime_list'] = self._info_per_transponder.apply(lambda row: row['L01_laptime_list'] + new_laptimes.get(row.name, []) if row.name in self._newlines['transponder_id'].values else row['L01_laptime_list'], axis=1)
-        print(f"self._info_per_transponder:\n {self._info_per_transponder}")
+       
         if self._debug:
             print('L01_laptime_list updated\n'+'='*40)
 
@@ -146,7 +148,8 @@ class DataAnalysis:
         # TODO: check if this is equal to the length of the L01_laptime_list
         if self._info_per_transponder.empty:
             return 
-        self._info_per_transponder['total_L01_laps'] += self._info_per_transponder.index.isin(self._newlines['transponder_id']).astype(int)
+        self._info_per_transponder['total_L01_laps'] = self._info_per_transponder.apply(lambda row: len(row['L01_laptime_list']) if row['L01_laptime_list'] else 0 ,axis = 1)
+
         if self._debug:
             print('total_L01_laps updated\n'+'='*40)
 
@@ -154,7 +157,8 @@ class DataAnalysis:
         """
         Function that updates the average laptime of all the updated transponders.
         """
-        self._info_per_transponder['average_lap_time'] = self._info_per_transponder.apply(lambda row: np.mean(row['L01_laptime_list']) if row.name in self._newlines['transponder_id'].values and len(row['L01_laptime_list']) > 0 else np.nan, axis=1)
+        self._info_per_transponder['average_lap_time'] = self._info_per_transponder.apply(lambda row: np.mean(row['L01_laptime_list']) if row.name in self._newlines['transponder_id'].values and len(row['L01_laptime_list']) > 0 else row['average_lap_time'], axis=1)
+
         if self._debug:
             print('average_lap_time updated\n'+'='*40)
 
@@ -162,7 +166,11 @@ class DataAnalysis:
         """
         Function that updates the fastest lap time for each transponder.
         """
-        self._info_per_transponder['fastest_lap_time'] = self._info_per_transponder.apply(lambda row: np.min(row['L01_laptime_list']) if row.name in self._newlines['transponder_id'].values and len(row['L01_laptime_list']) > 0 else np.nan, axis=1)
+        self._info_per_transponder['fastest_lap_time'] = self._info_per_transponder.apply(
+            lambda row: np.min(row['L01_laptime_list']) if row.name in self._newlines['transponder_id'].values and len(row['L01_laptime_list']) > 0 else row['fastest_lap_time'], 
+            axis=1
+        )
+  
         if self._debug:
             print('fastest_lap_time updated\n'+'='*40)
 
@@ -173,9 +181,9 @@ class DataAnalysis:
         Returns:
             DataFrame: A DataFrame containing the transponder IDs and their respective slowest lap times
         """
-        print(self._newlines['transponder_id'].values)
 
-        self._info_per_transponder['slowest_lap_time'] = self._info_per_transponder.apply(lambda row: np.max(row['L01_laptime_list']) if row.name in self._newlines['transponder_id'].values and len(row['L01_laptime_list']) > 0 else np.nan, axis=1)
+        self._info_per_transponder['slowest_lap_time'] = self._info_per_transponder.apply(lambda row: np.max(row['L01_laptime_list']) if row.name in self._newlines['transponder_id'].values and len(row['L01_laptime_list']) > 0 else row['slowest_lap_time'], axis=1)
+
         if self._debug:
             print('slowest_lap_time updated\n'+'='*40)
 
@@ -183,10 +191,10 @@ class DataAnalysis:
         """
             Function that calculates the slowest rider of the session and stores it in self.slowest_rider.
         """
+        print(f"De dataframe is empty: {self._info_per_transponder.empty}")
         if self._info_per_transponder.empty:
             return
         self._slowest_rider = self._info_per_transponder.loc[self._info_per_transponder['slowest_lap_time'].idxmax()]
-
         if self._debug:
             print('badman updated\n'+'='*40)
     
