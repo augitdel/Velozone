@@ -22,7 +22,7 @@
 
         <div class="row mb-4">
             <div class="col-md-6 mb-3">
-                <a href="{{ url_for('start_session') }}" class="btn btn-primary btn-lg btn-thick w-100">Start Session</a>
+                <a href="{{ url_for('start_session') }}" class="btn btn-start-session btn-lg btn-thick w-100">Start Session</a>
             </div>
             <div class="col-md-6 mb-3">
                 <a href="{{ url_for('stop_session') }}" class="btn btn-danger btn-lg btn-thick w-100">Stop Session</a>
@@ -41,16 +41,16 @@
             </div>
         </div>
 
-        <div class="row justify-content-center mb-5 image-container">
-            <div class="col-auto">
-                <img src="{{ url_for('static', filename='img/logo-sport-vlaanderen.png') }}" alt="Sport Vlaanderen Logo" class="img-fluid">
-            </div>
-            <div class="col-auto">
-                <img src="{{ url_for('static', filename='img/university_logo.png') }}" alt="UGent University Logo" class="img-fluid">
-            </div>
-            <div class="col-auto">
-                <img src="{{ url_for('static', filename='img/logo-cycling-vlaanderen-horizontal.jpg') }}" alt="Cycling Vlaanderen Logo" class="img-fluid">
-            </div>
+        <div class="row justify-content-center fixed-bottom mb-5 image-container align-items-center">
+            <a class="col-auto" href="https://www.ugent.be/en" target="_blank">
+                <img src="{{ url_for('static', filename='img/university_logo.png') }}" alt="University Logo" class="img-fluid">
+            </a>
+            <a class="col-auto" href="https://www.ugent.be/ea/en" target="_blank">
+                <img src="{{ url_for('static', filename='img/logo_faculty.png') }}" alt="Faculty Logo" class="img-fluid">
+            </a>
+            <a class="col-auto" href="https://cycling.vlaanderen/" target="_blank">
+                    <img src="{{ url_for('static', filename='img/logo-cycling-vlaanderen-horizontal.jpg') }}" alt="Cycling vlaanderen Logo">
+            </a>
         </div>
     </div>
 

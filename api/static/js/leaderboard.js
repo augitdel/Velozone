@@ -2,14 +2,15 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentIndex = 0;
     let averagesInterval;
 
-    // Function to fetch leaderboard data
-    function initialFetchLeaderboardData() {
-        fetch('/api/sessions/renew_data')
-        .then(response => response.json())
-        .then(data => getDynamicInterval(data.participants))
-        .catch(error => console.error('Error fetching leaderboard data:', error));
-    }
+    
+    // function initialFetchLeaderboardData() {
+    //     fetch('/api/sessions/renew_data')
+    //     .then(response => response.json())
+    //     .then(data => getDynamicInterval(data.participants))
+    //     .catch(error => console.error('Error fetching leaderboard data:', error));
+    // }
 
+    // Function to fetch leaderboard data
     function fetchLeaderboardData() {
         fetch('/api/sessions/renew_data')  // Replace with your actual endpoint
             .then(response => response.json())
@@ -20,13 +21,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function getTransponderName(id, data) {
         return data.transponder_names?.[id] ?? id;
     }
-    // TODO: Update the querySelector to match the correct element in your HTML
-    // Function to update the leaderboard on the page
     function updateLeaderboard(data) {
         console.log(data);
 
-        // Update the "Average Lap Time" section with gradual display
-        const averagesList = document.querySelector('.average-times .column');      // Update here!
+        const averagesList = document.querySelector('.list-averages');
         if (averagesList) {
             const averages = data.averages || [];
             if (averages.length === 0) {
@@ -46,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Update the "Fastest Laps" section
-        const fastestLapsList = document.querySelector('.top-laps ol');  // Update here!
+        const fastestLapsList = document.querySelector('.list-fastestlaps');
         if (fastestLapsList) {
             fastestLapsList.innerHTML = ''; 
             const topLaps = data.top_laps || [];
@@ -62,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Update the "Badman Lap" section
-        const badmanLap = document.querySelector('.worst-lap p');  // Update here!
+        const badmanLap = document.querySelector('.worst-lap');  
         if (badmanLap) {
             badmanLap.textContent = '';
             if (data.badman_lap && data.badman_lap.length > 0) {
@@ -73,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Update the "Diesel Engine" section
-        const diesel = document.querySelector('.diesel-engine p');  // Update here!
+        const diesel = document.querySelector('.diesel');  
         if (diesel) {
             diesel.textContent = '';
             if (data.diesel && data.diesel.length > 0) {
@@ -84,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Update the "Electrical Engine" section
-        const electricalEngine = document.querySelector('.electrical-engine p');  // Update here!
+        const electricalEngine = document.querySelector('.electrical');  
         if (electricalEngine) {
             electricalEngine.textContent = '';
             if (data.electrical && data.electrical.length > 0) {

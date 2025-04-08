@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, url_for, redirect, session, send_from_directory, jsonify
 from flask_cors import CORS
 from flask_session import Session
-from api.data_analysis_branch import DataAnalysis
-from api.Supabase_table_monitoring import start_monitor_thread, get_and_clear_dataframe
+from data_analysis_branch import DataAnalysis
+from Supabase_table_monitoring import start_monitor_thread, get_and_clear_dataframe
 from threading import Thread
 import pandas as pd
 import os
@@ -82,12 +82,6 @@ def leaderboard():
         badman = None
         diesel = None
         electric = None
-    print(f"Type of avg_lap: {type(avg_lap)}")
-    print(f"Type of fast_lap: {type(fast_lap)}")
-    print(f"Type of slow_lap: {type(slow_lap)}")
-    print(f"Type of badman_lap: {type(badman)}")
-    print(f"Type of diesel: {type(diesel)}")
-    print(f"Type of electric: {type(electric)}")
     return render_template('leaderboard.html', averages=avg_lap, top_laps=fast_lap, slow_lap=slow_lap, badman_lap=badman, diesel=diesel,
                            electric=electric)
 

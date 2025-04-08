@@ -67,6 +67,7 @@ def handle_table_update(payload):
 
     # print(f"Received update: {payload}")
     if 'data' in payload and 'record' in payload['data']:
+        # print(f"Received update: {payload}")
         record = payload['data']['record']
         # print(f"Updated record: {record}")
 

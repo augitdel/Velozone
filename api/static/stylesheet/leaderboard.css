@@ -35,13 +35,19 @@ body {
     max-height: 60px; /* Increased max height for larger images */
 }
 .logo-wrapper {
-    position: fixed;
-    bottom: 20px; /* Adjust bottom spacing as needed */
-    left: 20px;
-    right: 20px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    justify-content: flex-end;
+    align-items: flex-end;
+    position: absolute; /* Take the element out of the normal flow */
+    bottom: 0; /* Position it at the bottom of its relative parent */
+    right: 0; /* Position it at the right of its relative parent */
+    width: auto; /* Adjust as needed based on your logo sizes */
+    height: auto; /* Adjust as needed based on your logo sizes */
+    padding: 20px; /* Optional: Add some padding around the logos */
+  }
+
+.logo-wrapper, .logo-container {
+    pointer-events: auto;
 }
 
 @media (max-width: 768px) {
@@ -55,10 +61,9 @@ body {
 }
 
 .back-button {
+    display: flex;
+    align-items: flex-start;
     position: absolute;
-    bottom: 20px;
-    left: 20px;
-    font-size: 18px;
-    padding: 8px 15px;
-    border-radius: 5px;
+    bottom: 5px;
+    left: 5px;
 }

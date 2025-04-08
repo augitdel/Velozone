@@ -21,10 +21,19 @@
         <a href="{{ url_for('home') }}" class="btn btn-secondary mb-3">Back</a>
 
         <div class="logos text-center mb-4">
-            <img src="{{ url_for('static', filename='img/logo-sport-vlaanderen.png') }}" alt="Sport Vlaanderen Logo">
-            <img src="{{ url_for('static', filename='img/university_logo.png') }}" alt="UGent University Logo">
-            <img src="{{ url_for('static', filename='img/logo-cycling-vlaanderen-horizontal.jpg') }}" alt="Cycling Vlaanderen Logo">
+            <a href="https://www.sport.vlaanderen/" target="_blank" style="display: block;">
+                <img src="{{ url_for('static', filename='img/logo-sport-vlaanderen.png') }}" alt="Sport Vlaanderen Logo">
+            </a>
+
+            <a href="https://www.ugent.be/en" target="_blank">
+                <img src="{{ url_for('static', filename='img/university_logo.png') }}" alt="UGent University Logo">
+            </a>
+
+            <a href="https://cycling.vlaanderen/" target="_blank">
+                <img src="{{ url_for('static', filename='img/logo-cycling-vlaanderen-horizontal.jpg') }}" alt="Cycling Vlaanderen Logo">
+            </a>
         </div>
+    </div>
 
         <div class="section-card">
             <div class="row">
