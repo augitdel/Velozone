@@ -101,7 +101,7 @@ class DataAnalysis:
         self._average_lap_time()
         self._fastest_lap()
         self.slowest_lap()
-        self._badman()
+        self._update_badman()
         self._diesel_engine()
         self._electric_motor()
         print("ALL UPDATES DONE")
@@ -187,7 +187,7 @@ class DataAnalysis:
         if self._debug:
             print('slowest_lap_time updated\n'+'='*40)
 
-    def _badman(self):
+    def _update_badman(self):
         """
             Function that calculates the slowest rider of the session and stores it in self.slowest_rider.
         """
@@ -337,7 +337,7 @@ class DataAnalysis:
     
     @property
     def badman(self):
-        return getattr(self, '_slowest_laptime', None)
+        return getattr(self, '_badman', None)
     
     @property
     def min_lap_time(self):
