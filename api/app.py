@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, url_for, redirect, session, send_from_directory, jsonify
 from flask_cors import CORS
 from flask_session import Session
-from .data_analysis_branch import DataAnalysis
-from .Supabase_table_monitoring import start_monitor_thread, get_and_clear_dataframe
+from data_analysis_branch import DataAnalysis
+from Supabase_table_monitoring import start_monitor_thread, get_and_clear_dataframe
 from threading import Thread
 import pandas as pd
 import os
@@ -19,12 +19,12 @@ PDF_DIR = os.path.join(app.root_path, "tmp")
 PDF_PATH = os.path.join(PDF_DIR, "rider_report_UGent.pdf")
 
 # Configure session management
-app.config["SESSION_TYPE"] = "redis"
-app.config["SESSION_PERMANENT"] = True  # Make sessions persistent across browser sessions
-app.config["SESSION_USE_SIGNER"] = True
-app.config["SESSION_KEY_PREFIX"] = "velozone_session:"
-app.config["SESSION_REDIS"] = redis.from_url(os.environ.get("REDIS_URL")) # Configure your Redis URL
-Session(app)
+# app.config["SESSION_TYPE"] = "redis"
+# app.config["SESSION_PERMANENT"] = True  # Make sessions persistent across browser sessions
+# app.config["SESSION_USE_SIGNER"] = True
+# app.config["SESSION_KEY_PREFIX"] = "velozone_session:"
+# app.config["SESSION_REDIS"] = redis.from_url(os.environ.get("REDIS_URL")) # Configure your Redis URL
+# Session(app)
 
 # Initialize the Data Object -> this will contain all of the important data and do the analysis
 session_data = DataAnalysis(debug=False)
@@ -134,16 +134,13 @@ def stop_session():
 def refresh_session():
     pass
 
+############## REPORT GENERATION ##############
 @app.route('/generate_report')
 def generate_report():
+    # Get the status bits
     session_active = session.get('session_active', False)
     session_stopped = session.get('session_stopped', False)
     return render_template('generate_report.html', is_session_active = session_active, is_session_stopped = session_stopped) 
-
-@app.route('/names')
-def names():
-    session_active = session.get('session_active', False)
-    return render_template('names.html',is_session_active = session_active)
 
 @app.route('/download_report')
 def download_report():
@@ -166,6 +163,13 @@ def download_pdf():
     """Allow users to download the PDF"""
     print("searching for pdf")
     return send_from_directory(PDF_DIR, "rider_report_UGent.pdf", as_attachment=True)
+
+##############################################
+
+@app.route('/names')
+def names():
+    session_active = session.get('session_active', False)
+    return render_template('names.html',is_session_active = session_active)
 
 @app.route('/api/sessions/active')
 def get_session_status():
