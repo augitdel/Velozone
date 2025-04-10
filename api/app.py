@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, url_for, redirect, session, send_from_directory, jsonify
 from flask_cors import CORS
 from flask_session import Session
-from data_analysis_branch import DataAnalysis
-from Supabase_table_monitoring import start_monitor_thread, get_and_clear_dataframe
+from .data_analysis_branch import DataAnalysis
+from .Supabase_table_monitoring import start_monitor_thread, get_and_clear_dataframe
 from threading import Thread
 import pandas as pd
 import os
@@ -19,12 +19,12 @@ PDF_DIR = os.path.join(app.root_path, "tmp")
 PDF_PATH = os.path.join(PDF_DIR, "rider_report_UGent.pdf")
 
 # Configure session management
-# app.config["SESSION_TYPE"] = "redis"
-# app.config["SESSION_PERMANENT"] = True  # Make sessions persistent across browser sessions
-# app.config["SESSION_USE_SIGNER"] = True
-# app.config["SESSION_KEY_PREFIX"] = "velozone_session:"
-# app.config["SESSION_REDIS"] = redis.from_url(os.environ.get("REDIS_URL")) # Configure your Redis URL
-# Session(app)
+app.config["SESSION_TYPE"] = "redis"
+app.config["SESSION_PERMANENT"] = True  # Make sessions persistent across browser sessions
+app.config["SESSION_USE_SIGNER"] = True
+app.config["SESSION_KEY_PREFIX"] = "velozone_session:"
+app.config["SESSION_REDIS"] = redis.from_url(os.environ.get("REDIS_URL")) # Configure your Redis URL
+Session(app)
 
 # Initialize the Data Object -> this will contain all of the important data and do the analysis
 session_data = DataAnalysis(debug=False)
@@ -194,7 +194,7 @@ def fetch_supabase():
 
     info_per_transponder = session_data.info_per_transponder
     # avg_lap : [(name,avg_lap_time)]
-    avg_lap = info_per_transponder[['average_lap_time']].reset_index().values.tolist()
+    avg_lap = info_per_transponder[['average_lap_time']].sort_values(by='average_lap_time').reset_index().values.tolist()
     print(f"avg_lap: {avg_lap}")
     # # fast_lap: [(name, fast_lap)]
     fast_lap = info_per_transponder.nsmallest(5, 'fastest_lap_time')[['fastest_lap_time']].reset_index().values.tolist()
@@ -210,6 +210,8 @@ def fetch_supabase():
     print(f"diesel: {diesel}")
     # # Electric --> check how the data enters
     electric = session_data.electric.values.tolist()
+    if len(electric) > 0 and pd.isna(electric[0][1]):
+        electric = None
     print(f"electric: {electric}")
 
     response_data = {
@@ -218,13 +220,12 @@ def fetch_supabase():
             'slow_lap': slow_lap if slow_lap is not None else [],
             'badman_lap': badman if badman is not None else [],
             'diesel': diesel if diesel is not None else [],
-            'electric': electric if electric is not None else [],
+            'electrical': electric if electric is not None else [],
             'transponder_names' : names_dict if names_dict else {},
             'participants': participants if participants else 0,
         }
-    
-    print("END OF APP.PY")
     return jsonify(response_data)
+
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static/favicon'), 'favicon.ico', mimetype='image/vnd.microsoft.icon') 
