@@ -33,7 +33,9 @@ body {
     text-align: center;
     z-index: 100; /* Ensure it stays on top of other content */
 }
-
+.container{
+    margin-top: 130px;
+}
 .card-title {
     color: #007bff;
     text-align: center;
@@ -67,7 +69,7 @@ body {
 }
 
 .average-laps {
-    font-size: 1.8em; /* Reduced font size */
+    font-size: 1.7em; /* Reduced font size */
     font-weight: bold; /* Optional: Make it bold */
     border: 1px solid lightblue;
     padding: 8px; /* Reduced padding */
