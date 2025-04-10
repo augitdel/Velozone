@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, url_for, redirect, session, s
 from flask_cors import CORS
 from flask_session import Session
 from data_analysis_branch import DataAnalysis
+from report_generator import main
 from Supabase_table_monitoring import start_monitor_thread, get_and_clear_dataframe
 from threading import Thread
 import pandas as pd
@@ -111,6 +112,7 @@ def start_session():
         print(f"Start Time: {start_time}")
         print(f"Duration: {duration} hours")
         print(f"Participants: {participants}")
+
         return redirect(url_for('home'))
     
     session_active = session.get('session_active', False)
@@ -125,6 +127,8 @@ def stop_session():
         # Set the bits
         session['session_active'] = False
         session['session_stopped'] = True
+        # Save self._file from session_data to a csv-file
+        session_data.save_to_csv()
         return redirect(url_for('home'))
     session_active = session.get('session_active', False)
     return render_template('stop_session.html', is_session_active = session_active)
@@ -144,6 +148,13 @@ def generate_report():
 
 @app.route('/download_report')
 def download_report():
+    # Call the __main__ function from the report generation script
+    # This will generate the PDF file in the tmp folder
+    if os.path.exists(PDF_PATH):
+        os.remove(PDF_PATH)
+    print("Generating report...")
+    if request.method == 'POST':
+        main('api\static\csv\lap_times.csv')
     return render_template('download_report.html')
 
 @app.route('/check_pdf_status')

@@ -100,16 +100,6 @@ body {
     border-radius: 8px; /* Add rounded corners */
 }
 
-.no-data {
-    font-size: 1em; /* Reduced font size */
-    font-style: italic; /* Optional: Italicize the message */
-    border: 1px solid lightblue; /* Add the border */
-    padding: 4px; /* Reduced padding */
-    text-align: center;
-    background-color: #007bff; /* Use a lighter blue */
-    color: white; /* Set the text color to white */
-    border-radius: 8px; /* Add rounded corners */
-}
 
 
 @media (max-width: 768px) {
