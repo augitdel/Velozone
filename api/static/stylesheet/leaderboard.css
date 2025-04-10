@@ -58,16 +58,6 @@ body {
     pointer-events: auto;
 }
 
-@media (max-width: 768px) {
-    .container {
-        flex-direction: column;
-    }
-
-    .columns {
-        flex-direction: column;
-    }
-}
-
 .back-button {
     display: flex;
     align-items: flex-start;
@@ -87,6 +77,11 @@ body {
     border-radius: 8px;
 }
 .list-fastestlaps {
+    list-style-position: inside; /* Try to bring the numbers inside */
+    padding-left: 8px; /* Adjust left padding to accommodate numbers */
+}
+
+.list-averages{
     list-style-position: inside; /* Try to bring the numbers inside */
     padding-left: 8px; /* Adjust left padding to accommodate numbers */
 }
@@ -115,4 +110,14 @@ body {
 
 .row{
     margin-top: 100px;
+}
+
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .columns {
+        flex-direction: column;
+    }
 }
