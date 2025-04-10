@@ -187,36 +187,35 @@ def get_session_stopped():
 def fetch_supabase():
     # Get the data from the supabase
     changed_file = get_and_clear_dataframe()
-    # Update the sessio_data with new lines from supabase and all available couples of transponders with the corresponding names in a dictionary
-    # print(f"changed_file:\n {changed_file}")
 
     # Update with the new data
-
     if not changed_file.empty:
         session_data.update(changed_file)
         print("New Data found!")
 
     info_per_transponder = session_data.info_per_transponder
-    # avg_lap : [(name,avg_lap_time)]
-    avg_lap = info_per_transponder[['average_lap_time']].sort_values(by='average_lap_time').reset_index().values.tolist()
-    print(f"avg_lap: {avg_lap}")
-    # # fast_lap: [(name, fast_lap)]
-    fast_lap = info_per_transponder.nsmallest(5, 'fastest_lap_time')[['fastest_lap_time']].reset_index().values.tolist()
-    print(f"fast_lap: {fast_lap}")
-    # # Slowest_lap: (name, slow_lap)
-    slow_lap = info_per_transponder.nlargest(1,'slowest_lap_time')[['slowest_lap_time']].reset_index().values.tolist()
-    print(f"slow_lap: {slow_lap}")
-    # # Badman --> check how the data enters
-    badman = session_data.badman.reset_index().values.tolist()
-    print(f"badman: {badman}")
-    # # Diesel --> check how the data enters
-    diesel = session_data.diesel.values.tolist()
-    print(f"diesel: {diesel}")
-    # # Electric --> check how the data enters
-    electric = session_data.electric.values.tolist()
-    if len(electric) > 0 and pd.isna(electric[0][1]):
+    if not info_per_transponder.empty:
+        # avg_lap : [(name,avg_lap_time)]
+        avg_lap = info_per_transponder[['average_lap_time', 'total_L01_laps']].sort_values(by='average_lap_time').reset_index().values.tolist()
+        # fast_lap: [(name, fast_lap)]
+        fast_lap = info_per_transponder.nsmallest(5, 'fastest_lap_time')[['fastest_lap_time']].reset_index().values.tolist()
+        #  Slowest_lap: (name, slow_lap)
+        slow_lap = info_per_transponder.nlargest(1,'slowest_lap_time')[['slowest_lap_time']].reset_index().values.tolist()
+        #  Badman --> check how the data enters
+        badman = session_data.badman.reset_index().values.tolist()
+        #  Diesel --> check how the data enters
+        diesel = session_data.diesel.values.tolist()
+        #  Electric --> check how the data enters
+        electric = session_data.electric.values.tolist()
+        if len(electric) > 0 and pd.isna(electric[0][1]):
+            electric = None
+    else:
+        avg_lap = None
+        fast_lap = None
+        slow_lap = None
+        badman = None
+        diesel = None
         electric = None
-    print(f"electric: {electric}")
 
     response_data = {
             'averages': avg_lap if avg_lap is not None else [],

@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
             batch.forEach(item => {
                 const listItem = document.createElement('li');
                 listItem.classList.add('average-laps');
-                listItem.textContent = `${getTransponderName(item[0], data)} -- ${item[1].toFixed(2)}s`;
+                listItem.textContent = `${getTransponderName(item[0], data)} -- ${item[1].toFixed(2)}s -- ${item[2]} laps`;
                 averagesList.appendChild(listItem);
             });
             currentIndex += 10;
