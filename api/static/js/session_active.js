@@ -15,7 +15,7 @@ function checkSessionStatus() {
 }
 
 // Check session status every 10 seconds (adjust the interval as needed)
-setInterval(checkSessionStatus, 10000);
+setInterval(checkSessionStatus, 3000);
 
 // Initial check when the page loads
 checkSessionStatus();

@@ -33,7 +33,9 @@ body {
     text-align: center;
     z-index: 100; /* Ensure it stays on top of other content */
 }
-
+.container{
+    margin-top: 130px;
+}
 .card-title {
     color: #007bff;
     text-align: center;
@@ -58,16 +60,6 @@ body {
     pointer-events: auto;
 }
 
-@media (max-width: 768px) {
-    .container {
-        flex-direction: column;
-    }
-
-    .columns {
-        flex-direction: column;
-    }
-}
-
 .back-button {
     display: flex;
     align-items: flex-start;
@@ -76,10 +68,9 @@ body {
     left: 5px;
 }
 
-/* leaderboard.css */
-
 .average-laps {
-    font-size: 1.8em; /* Reduced font size */
+    font-size: 1.7em; /* Reduced font size */
+    font-weight: bold; /* Optional: Make it bold */
     border: 1px solid lightblue;
     padding: 8px; /* Reduced padding */
     margin-bottom: 4px; /* Reduced bottom margin */
@@ -93,7 +84,12 @@ body {
     padding-left: 8px; /* Adjust left padding to accommodate numbers */
 }
 
-.fastest-laps, .diesel, .electrical, .worst-lap {
+.list-averages{
+    list-style-position: inside; /* Try to bring the numbers inside */
+    padding-left: 8px; /* Adjust left padding to accommodate numbers */
+}
+
+.fastest-laps, .diesel, .electrical, .worst-lap{
     font-size: 1.1em; /* Reduced font size */
     font-weight: bold; /* Optional: Make it bold */
     border: 1px solid lightblue; /* Add the border */
@@ -104,17 +100,14 @@ body {
     border-radius: 8px; /* Add rounded corners */
 }
 
-.no-data {
-    font-size: 1em; /* Reduced font size */
-    font-style: italic; /* Optional: Italicize the message */
-    border: 1px solid lightblue; /* Add the border */
-    padding: 4px; /* Reduced padding */
-    text-align: center;
-    background-color: #007bff; /* Use a lighter blue */
-    color: white; /* Set the text color to white */
-    border-radius: 8px; /* Add rounded corners */
-}
 
-.row{
-    margin-top: 100px;
+
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .columns {
+        flex-direction: column;
+    }
 }

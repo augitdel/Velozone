@@ -1,6 +1,7 @@
 # Import necessary libraries
 import pandas as pd
 import numpy as np
+import os
 
 class DataAnalysis:
     # IMPORTANT: As per convention the class properties and methods prefixed with an underscore are considered private and should not be accessed directly from outside the class.
@@ -313,7 +314,23 @@ class DataAnalysis:
         """
         self._info_per_transponder['transponder_name'] = self._info_per_transponder.index.map(transponder_names['transponder_name'])
 
+    def save_to_csv(self):
+        """
+        Save the current state of the DataFrame to a CSV file.
 
+        Parameters:
+            filename (str): The name of the file to save the DataFrame to.
+        """
+        filename = 'api\static\csv\lap_times.csv'
+        if os.path.exists(filename):
+            os.remove(filename)  # Remove the existing file
+            if self._debug:
+                print(f"Existing file {filename} removed.")
+
+        self._file.to_csv(filename, index=False)
+        if self._debug:
+            print(f'DataFrame saved to {filename}')
+    
     # GETTERS AND SETTERS
     @property
     def slowest_rider(self):

@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #e0f7fa; /* Light blue background */
+    background-color: #f8f9fa; /* Light blue background */
     color: #007bff; /* Blue text color */
     display: flex;
     flex-direction: column;
@@ -16,24 +16,23 @@ body {
     font-size: 50px;
     margin-bottom: 20px;
 }
-.btn-custom {
-    background-color: #08cc08; /* Yellow button */
-    color: white;
-    padding: 15px 30px;
-    font-size: 20px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
+.btn{
+	margin-top: 20px;
 }
-.btn-custom:hover {
-    background-color: #e0a800; /* Darker yellow on hover */
+.back-button{
+	display: flex;
+    align-items: flex-start;
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
 }
-.progress {
-    width: 50%;
-    height: 20px;
+.home-button{
+	display: flex;
+	align-items: flex-start;
+	position: absolute;
+	bottom: 5px;
+	right: 5px;
 }
-
-
 * {
 	border: 0;
 	box-sizing: border-box;
@@ -48,16 +47,7 @@ body {
 	--trans-dur: 0.3s;
 	font-size: calc(16px + (32 - 16) * (100vw - 320px) / (2560 - 320));
 }
-body {
-	background-color: var(--bg);
-	color: var(--fg);
-	display: flex;
-	font: 1em/1.5 sans-serif;
-	height: 100vh;
-	transition:
-		background-color var(--trans-dur),
-		color var(--trans-dur);
-}
+
 .bike {
 	display: block;
 	margin: auto;
