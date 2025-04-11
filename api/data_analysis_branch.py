@@ -6,7 +6,7 @@ import os
 class DataAnalysis:
     # IMPORTANT: As per convention the class properties and methods prefixed with an underscore are considered private and should not be accessed directly from outside the class.
     # However, some of the properties can be read and set with getters and setters.
-    def __init__(self, MIN_LAP_TIME=13, MAX_LAP_TIME=50, debug=False):        
+    def __init__(self,names_dict = {}, MIN_LAP_TIME=13, MAX_LAP_TIME=50, debug=False):        
         columns_incomming_DF = ['transponder_id','loop','utcTimestamp','utcTime','lapTime','lapSpeed','maxSpeed','cameraPreset','cameraPan','cameraTilt','cameraZoom','eventName','recSegmentId','trackedRider']
         self._file = pd.DataFrame(columns=columns_incomming_DF)
         self._newlines = pd.DataFrame(columns=columns_incomming_DF)
@@ -27,6 +27,8 @@ class DataAnalysis:
         # Debug flag
         self._debug = debug
 
+        # Store the names_dict
+        self._names_dict = names_dict
         # if not new_DF.empty:
         #     self.update(new_DF)
 
@@ -116,11 +118,12 @@ class DataAnalysis:
         new_laptime_indices = set(self._newlines.loc[self._newlines['loop'] == 'L01', 'transponder_id'].to_list())
         info_per_transponder_indices = set(self._info_per_transponder.index.to_list())
         diff = new_laptime_indices - info_per_transponder_indices
+        all_indices = info_per_transponder_indices.union(new_laptime_indices)
         # print(diff)
         
         if diff:
             setdf = {'transponder_id': list(diff),
-            'transponder_name': ['' for _ in diff], 
+            'transponder_name': [self._names_dict.get(trans_id, trans_id) for trans_id in all_indices], 
             'L01_laptime_list': [[] for _ in diff],
             'fastest_lap_time': [np.nan for _ in diff], 
             'average_lap_time' : [np.nan for _ in diff], 
@@ -130,8 +133,13 @@ class DataAnalysis:
             # print(f'setdf:\n {setdf}')
             df_from_setdf = pd.DataFrame(setdf).set_index('transponder_id')
             self._info_per_transponder = pd.concat([self._info_per_transponder, df_from_setdf], ignore_index=False)
- 
 
+    def _update_names_dict(self,new_names_dict: dict):
+        """
+        Function that updates the names_dict with the new names.
+        """
+        self._names_dict = new_names_dict.copy()
+        
     def _update_L01_laptimes(self):
         """
         Function that updates the lap times of the L01 loop for each transponder in self.info_per_transponder DataFrame

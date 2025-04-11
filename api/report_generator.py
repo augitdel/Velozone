@@ -6,7 +6,7 @@ from fpdf import FPDF
 from datetime import datetime
 from data_analysis import remove_initial_lap, preprocess_lap_times, diesel_engine_df
 
-OUTPUT_DIR = 'tmp'
+OUTPUT_DIR = 'api/tmp'
 # ------------------------------------------------------------
 # 1. Load & Preprocess Data
 # ------------------------------------------------------------
@@ -508,8 +508,12 @@ def create_general_report(group_name,summary_df, group_stats,badman, diesel_engi
 
     # Draw rider names above the correct podium positions
     pdf.text(first_x, first_y, f"{top_riders.iloc[0, 0]} ({top_riders.iloc[0, 1]} laps)")
-    pdf.text(second_x, second_y, f"{top_riders.iloc[1, 0]} ({top_riders.iloc[1, 1]} laps)")
-    pdf.text(third_x, third_y, f"{top_riders.iloc[2, 0]} ({top_riders.iloc[2, 1]} laps)")
+    # Make sure there are at least two riders
+    if len(top_riders) > 1:
+        pdf.text(second_x, second_y, f"{top_riders.iloc[1, 0]} ({top_riders.iloc[1, 1]} laps)")
+    # Make sure there are at least three riders
+    if len(top_riders) > 2:
+        pdf.text(third_x, third_y, f"{top_riders.iloc[2, 0]} ({top_riders.iloc[2, 1]} laps)")
 
     # Create the table
     sorted_by_nr_laps = summary_df.sort_values(by='total_laps', ascending=False).reset_index(drop=True)
@@ -531,7 +535,7 @@ def create_general_report(group_name,summary_df, group_stats,badman, diesel_engi
 # ------------------------------------------------------------
 # 6. Main Execution
 # ------------------------------------------------------------
-def main(csv_file):
+def generate_reports(csv_file):
     # Read in the correct data file 
     csv_file_path =  csv_file
 
@@ -551,7 +555,9 @@ def main(csv_file):
     
     # Step 1: Load and preprocess
     df = load_and_preprocess_data(csv_file_path)
-    
+    if df.empty:
+        print("No data available after preprocessing.")
+        return
     # Step 2: Compute metrics
     summary_df, group_stats = compute_metrics(df, track_length=250, loop_filter='L01')
     badman, diesel_engine = general_stats(df)
@@ -583,8 +589,8 @@ def main(csv_file):
         rider_id = row['transponder_id']
         rider_df = df_filtered[df_filtered['transponder_id'] == rider_id]
         # Generate plot
-        plot_path_lap_times = generate_lap_time_plot(rider_id, rider_df, group_stats, output_folder='report/plots')
-        plot_path_fastest_lap = generate_fastest_lap_comparison_plot(rider_id, summary_df, output_folder='report/plots')
+        plot_path_lap_times = generate_lap_time_plot(rider_id, rider_df, group_stats, output_folder='api/static/report/plots')
+        plot_path_fastest_lap = generate_fastest_lap_comparison_plot(rider_id, summary_df, output_folder='api/static/report/plots')
         # For the Speed Over Time plot, pass the ENTIRE df_filtered,
         # so we can show the current rider vs. the rest in gray.
         plot_path_speed_time = generate_speed_over_time_plot(
@@ -599,5 +605,44 @@ def main(csv_file):
                               event_name='IDLab Test Event')
     print("Report generation complete.")
 
-if __name__ == "__main__":
-    main('api\static\csv\lap_times.csv')
+def make_specific_report(csv_file: str, rider_id: str):
+    """
+    Generates a PDF report for the specified rider.
+    Parameters:
+    csv_file (str): Path to the CSV file containing the data.
+    rider_id (str): The transponder ID of the rider for whom the report is generated.
+    """
+    # Step 1: Load and preprocess
+    df = load_and_preprocess_data(csv_file)
+    if df.empty:
+        print("No data available after preprocessing.")
+        return
+    # Step 2: Compute metrics
+    summary_df, group_stats = compute_metrics(df, track_length=250, loop_filter='L01')
+    badman, diesel_engine = general_stats(df)
+    df_filtered = df[df['loop'] == 'L01'] if 'loop' in df.columns else df
+    # Structure: ['transponder_id','total_laps','total_distance_m','fastest_lap_s','avg_lap_time_s']
+    # row[0] gives you the first row, i.e. the first cyclist and his stats
+    rider_summary = summary_df[summary_df['transponder_id'] == rider_id]
+    rider_df = df_filtered[df_filtered['transponder_id'] == rider_id]
+
+    # Check if they want to print the group report
+    if rider_id.upper == "GROUP":
+        create_general_report('UGent',summary_df,group_stats,badman,diesel_engine,output_dir=OUTPUT_DIR,event_name='IDLab Test Event')
+    else:
+        # Generate the plots 
+        plot_path_lap_times = generate_lap_time_plot(rider_id, rider_df, group_stats, output_folder='api/static/report/plots')
+        plot_path_fastest_lap = generate_fastest_lap_comparison_plot(rider_id, rider_summary, output_folder='api/static/report/plots')
+        # For the Speed Over Time plot, pass the ENTIRE df_filtered,
+        # so we can show the current rider vs. the rest in gray.
+        plot_path_speed_time = generate_speed_over_time_plot(rider_id, df_filtered, track_length=250, output_folder='reports/plots')
+        # Create PDF
+        create_rider_pdf_report(rider_id, rider_summary, group_stats, plot_path_lap_times,
+                                plot_path_fastest_lap, plot_path_speed_time, output_dir=OUTPUT_DIR,
+                                event_name='IDLab Test Event')
+
+    
+    
+    print("Report generation complete.")
+    
+

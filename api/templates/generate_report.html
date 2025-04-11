@@ -36,22 +36,30 @@
         </div>
         <!-- Data -->
         <div class="section-card">
-            <div class="row">
+            <div class="row">            
                 <div class="col-md-6 mx-auto text-center">
                     {%if is_session_active %}
                         <h2 class="mt-2 text-muted">First end the session before generating a report</h2>
                         <button id="generate-btn" class="btn btn-primary btn-lg w-100 mt-3 hidden" hidden>Generate Report</button>
                     {%elif is_session_stopped %}
-                    <h2 class="mt-2 text-muted">Click the button below to generate a detailed report of your track cycling session.</h2>
+                    <h2 class="mt-2 text-muted">Select your name and press the button</h2>
+                    <!-- Send the chosen rider to the python backend -->
+                    <form method="POST" action="/generate_report">
+                        <label for="rider-select" class="form-label"></label>
+                        <select id="rider-select" name="rider_name" class="form-select">
+                            {% for rider in riders %}
+                                <option value="{{ rider.name }}">{{ rider }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
                         <button id="generate-btn" class="btn btn-primary btn-lg w-100 mt-3">Generate Report</button>
                     {%else%}
                         <h2 class="mt-2 text-muted">First start a session and generate data before making the report</h2>
                         <button id="generate-btn" class="btn btn-primary btn-lg w-100 mt-3 hidden" hidden disabled>Generate Report</button>
                     {% endif %}
                 </div>
-            </div>
+            </div>  
         </div>
-
     </div>
     <script type = "text/javascript">
         document.getElementById('generate-btn').onclick = function() {
