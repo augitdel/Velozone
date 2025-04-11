@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, url_for, redirect, session, s
 from flask_cors import CORS
 from flask_session import Session
 from data_analysis_branch import DataAnalysis
-from report_generator import main
+from report_generator import generate_reports, make_specific_report
 from Supabase_table_monitoring import start_monitor_thread, get_and_clear_dataframe
 from threading import Thread
 import pandas as pd
@@ -49,7 +49,8 @@ def home():
         if data:
             names_dict = {item['transponder_id']: item['name'] for item in data}
             print(f'names_dict: {names_dict}')
-            # session['transponders'] = names_dict
+            # Update the session_data with the new names
+            session_data._update_names_dict(names_dict)
             return jsonify({"message": "Transponder data opgeslagen!", "data": names_dict}), 200 
         else:
             return jsonify({"error": "Geen data ontvangen"}), 400
@@ -139,22 +140,31 @@ def refresh_session():
     pass
 
 ############## REPORT GENERATION ##############
-@app.route('/generate_report')
+@app.route('/generate_report', methods=['POST', 'GET'])
 def generate_report():
     # Get the status bits
+    if request.method == 'POST':
+        print("POST request received, start creating the report")
+        # Get the selected rider from the form
+        data = request.get_json()
+        rider_name = data.get('rider_name')
+        if rider_name:
+            try:
+                make_specific_report('api/static/csv/lap_times.csv', rider_name)
+                return jsonify({'status': 'success', 'message': f'Report generated for {rider_name}'}), 200
+            except Exception as e:
+                print(f"Error generating report: {e}")
+                return jsonify({'status': 'error', 'message': 'Failed to generate report'}), 500
+        else:
+            return jsonify({'status': 'error', 'message': 'No rider selected'}), 400
     session_active = session.get('session_active', False)
     session_stopped = session.get('session_stopped', False)
-    return render_template('generate_report.html', is_session_active = session_active, is_session_stopped = session_stopped) 
+    # Get the riders from the session_data object
+    riders = ['GROUP'] + session_data.info_per_transponder['transponder_name'].tolist()
+    return render_template('generate_report.html', is_session_active = session_active, is_session_stopped = session_stopped, riders = riders) 
 
 @app.route('/download_report')
 def download_report():
-    # Call the __main__ function from the report generation script
-    # This will generate the PDF file in the tmp folder
-    if os.path.exists(PDF_PATH):
-        os.remove(PDF_PATH)
-    print("Generating report...")
-    if request.method == 'POST':
-        main('api\static\csv\lap_times.csv')
     return render_template('download_report.html')
 
 @app.route('/check_pdf_status')
@@ -205,6 +215,7 @@ def fetch_supabase():
         print("New Data found!")
 
     info_per_transponder = session_data.info_per_transponder
+    print(info_per_transponder)
     if not info_per_transponder.empty:
         # avg_lap : [(name,avg_lap_time)]
         avg_lap = info_per_transponder[['average_lap_time', 'total_L01_laps']].sort_values(by='average_lap_time').reset_index().values.tolist()
@@ -227,6 +238,12 @@ def fetch_supabase():
         badman = None
         diesel = None
         electric = None
+    print(f"avg_lap: {avg_lap}")
+    print(f"fast_lap: {fast_lap}")
+    print(f"slow_lap: {slow_lap}")
+    print(f"badman: {badman}")
+    print(f"diesel: {diesel}")
+    print(f"electric: {electric}")
 
     response_data = {
             'averages': avg_lap if avg_lap is not None else [],
