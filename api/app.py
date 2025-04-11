@@ -144,24 +144,27 @@ def refresh_session():
 def generate_report():
     # Get the status bits
     if request.method == 'POST':
+        print("POST request received, start creating the report")
         # Get the selected rider from the form
-        rider_name = request.form.get('rider_name')
-        make_specific_report('api/static/csv/lap_times.csv', rider_name)
+        data = request.get_json()
+        rider_name = data.get('rider_name')
+        if rider_name:
+            try:
+                make_specific_report('api/static/csv/lap_times.csv', rider_name)
+                return jsonify({'status': 'success', 'message': f'Report generated for {rider_name}'}), 200
+            except Exception as e:
+                print(f"Error generating report: {e}")
+                return jsonify({'status': 'error', 'message': 'Failed to generate report'}), 500
+        else:
+            return jsonify({'status': 'error', 'message': 'No rider selected'}), 400
     session_active = session.get('session_active', False)
     session_stopped = session.get('session_stopped', False)
     # Get the riders from the session_data object
     riders = ['GROUP'] + session_data.info_per_transponder['transponder_name'].tolist()
-    print(riders)
     return render_template('generate_report.html', is_session_active = session_active, is_session_stopped = session_stopped, riders = riders) 
 
 @app.route('/download_report')
 def download_report():
-    # Call the __main__ function from the report generation script
-    # This will generate the PDF file in the tmp folder
-    if os.path.exists(PDF_PATH):
-        os.remove(PDF_PATH)
-        print("path removed")
-    print("Report is being generated...")
     return render_template('download_report.html')
 
 @app.route('/check_pdf_status')

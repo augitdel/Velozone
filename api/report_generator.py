@@ -627,7 +627,7 @@ def make_specific_report(csv_file: str, rider_id: str):
     rider_df = df_filtered[df_filtered['transponder_id'] == rider_id]
 
     # Check if they want to print the group report
-    if rider_id.upper == "GROUP":
+    if rider_id.upper() == "GROUP":
         create_general_report('UGent',summary_df,group_stats,badman,diesel_engine,output_dir=OUTPUT_DIR,event_name='IDLab Test Event')
     else:
         # Generate the plots 
@@ -645,4 +645,5 @@ def make_specific_report(csv_file: str, rider_id: str):
     
     print("Report generation complete.")
     
-
+# if __name__== '__main__':
+#     make_specific_report('api/static/csv/lap_times.csv','GROUP')

@@ -118,12 +118,11 @@ class DataAnalysis:
         new_laptime_indices = set(self._newlines.loc[self._newlines['loop'] == 'L01', 'transponder_id'].to_list())
         info_per_transponder_indices = set(self._info_per_transponder.index.to_list())
         diff = new_laptime_indices - info_per_transponder_indices
-        all_indices = info_per_transponder_indices.union(new_laptime_indices)
         # print(diff)
         
         if diff:
             setdf = {'transponder_id': list(diff),
-            'transponder_name': [self._names_dict.get(trans_id, trans_id) for trans_id in all_indices], 
+            'transponder_name': [self._names_dict.get(trans_id, trans_id) for trans_id in diff], 
             'L01_laptime_list': [[] for _ in diff],
             'fastest_lap_time': [np.nan for _ in diff], 
             'average_lap_time' : [np.nan for _ in diff], 
@@ -134,11 +133,14 @@ class DataAnalysis:
             df_from_setdf = pd.DataFrame(setdf).set_index('transponder_id')
             self._info_per_transponder = pd.concat([self._info_per_transponder, df_from_setdf], ignore_index=False)
 
-    def _update_names_dict(self,new_names_dict: dict):
+    def _update_names_dict(self, new_names_dict: dict):
         """
-        Function that updates the names_dict with the new names.
+        Function that updates the names_dict with the new names and ensures the transponder_name column
+        in self._info_per_transponder matches the updated names.
         """
         self._names_dict = new_names_dict.copy()
+        # Update the transponder_name column in self._info_per_transponder to reflect the updated names
+        self._info_per_transponder['transponder_name'] = self._info_per_transponder.index.map(lambda trans_id: self._names_dict.get(trans_id, trans_id))
         
     def _update_L01_laptimes(self):
         """
@@ -312,15 +314,6 @@ class DataAnalysis:
 
         if self._debug:
             print('electric_motor updated\n'+'='*40)
-    
-    def update_transponder_names(self, transponder_names: pd.DataFrame):
-        """
-        Update the transponder names in the info_per_transponder DataFrame.
-
-        Parameters:
-            transponder_names (pd.DataFrame): DataFrame containing two columns: 'transponder_id' and 'transponder_name'. 'transponder_id' should be set as the index of this dataframe.
-        """
-        self._info_per_transponder['transponder_name'] = self._info_per_transponder.index.map(transponder_names['transponder_name'])
 
     def save_to_csv(self):
         """
