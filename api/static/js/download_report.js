@@ -20,6 +20,7 @@ function checkPDF() {
                     window.location.href = "/download_pdf";
                 };
             } else {
+                console.log("PDF not ready, retrying...");
                 setTimeout(checkPDF, 2000); // Retry after 2 seconds
             }
         })

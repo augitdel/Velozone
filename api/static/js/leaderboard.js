@@ -23,7 +23,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     function updateLeaderboard(data) {
         console.log(data);
-
+        
+        //  Update the "Average Lap" Section
         const averagesList = document.querySelector('.list-averages');
         if (averagesList) {
             const averages = data.averages || [];
@@ -34,7 +35,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 clearInterval(averagesInterval); // Clear previous interval
                 currentIndex = 0; 
                 displayBatch(averages, data, averagesList);
-
                 averagesInterval = setInterval(() => {
                     if (currentIndex < data.participants) {
                         displayBatch(averages, data, averagesList);
@@ -53,7 +53,8 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 topLaps.forEach(lap => {
                     const listItem = document.createElement('li');
-                    listItem.textContent = `${getTransponderName(lap[0], data)} -- ${lap[1]}s`;
+                    listItem.classList.add('fastest-laps');
+                    listItem.textContent = `${getTransponderName(lap[0], data)} -- ${lap[1].toFixed(2)}s`;
                     fastestLapsList.appendChild(listItem);
                 });
             }
@@ -62,10 +63,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update the "Badman Lap" section
         const badmanLap = document.querySelector('.worst-lap');  
         if (badmanLap) {
+            badmanLap.classList.add('worst-lap');
             badmanLap.textContent = '';
             if (data.slow_lap && data.slow_lap.length > 0) {
                 console.log(`data.slow_lap = ${data.slow_lap}`)
-                badmanLap.textContent = `${getTransponderName(data.slow_lap[0][0], data)} -- ${data.slow_lap[0][1]}s`;
+                badmanLap.textContent = `${getTransponderName(data.slow_lap[0][0], data)} -- ${data.slow_lap[0][1].toFixed(2)}s`;
             } else {
                 badmanLap.textContent = 'No data available';
             }
@@ -74,9 +76,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update the "Diesel Engine" section
         const diesel = document.querySelector('.diesel');  
         if (diesel) {
+            diesel.classList.add('diesel');
             diesel.textContent = '';
             if (data.diesel && data.diesel.length > 0) {
-                diesel.textContent = `${getTransponderName(data.diesel[0][0], data)} -- ${data.diesel[0][1]}s`;
+                diesel.textContent = `${getTransponderName(data.diesel[0][0], data)} -- ${data.diesel[0][1].toFixed(2)}s`;
             } else {
                 diesel.textContent = 'No data available';
             }
@@ -85,9 +88,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update the "Electrical Engine" section
         const electricalEngine = document.querySelector('.electrical');  
         if (electricalEngine) {
+            electricalEngine.classList.add('electrical');
             electricalEngine.textContent = '';
             if (data.electrical && data.electrical.length > 0) {
-                electricalEngine.textContent = `${getTransponderName(data.electrical[0][0], data)} -- ${data.electrical[0][1]}s`;
+                electricalEngine.textContent = `${getTransponderName(data.electrical[0][0], data)} -- ${data.electrical[0][1].toFixed(2)}s`;
             } else {
                 electricalEngine.textContent = 'No data available';
             }
@@ -102,7 +106,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (batch.length > 0) {
             batch.forEach(item => {
                 const listItem = document.createElement('li');
-                listItem.textContent = `${getTransponderName(item[0], data)} -- ${item[1]}s`;
+                listItem.classList.add('average-laps');
+                listItem.textContent = `${getTransponderName(item[0], data)} -- ${item[1].toFixed(2)}s -- ${item[2]} laps`;
                 averagesList.appendChild(listItem);
             });
             currentIndex += 10;

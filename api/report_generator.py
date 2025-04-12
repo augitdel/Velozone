@@ -2,13 +2,11 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-# import seaborn as sns  # Optionally use seaborn
 from fpdf import FPDF
 from datetime import datetime
-# import urllib3
-from api.data_analysis import remove_initial_lap, preprocess_lap_times, diesel_engine_df
+from data_analysis import remove_initial_lap, preprocess_lap_times, diesel_engine_df
 
-OUTPUT_DIR = 'reports'
+OUTPUT_DIR = 'api/tmp'
 # ------------------------------------------------------------
 # 1. Load & Preprocess Data
 # ------------------------------------------------------------
@@ -288,9 +286,9 @@ class PDFReport(FPDF):
         self.set_font('Arial', 'B', 12)
         # Calculate positions for logos
         logos = [
-            'media/logo-sport-vlaanderen.png',
-            'media/logo-cycling-vlaanderen-horizontal.jpg',
-            'media/logo-belgian-cycling.png'
+            'api/static/img/logo-sport-vlaanderen.png',
+            'api/static/img/logo-cycling-vlaanderen-horizontal.jpg',
+            'api/static/img/Logo-Belgian-Cycling.jpg'
         ]
         # Compute logo width for height 10
         logo_width = 10 * 1.5  # 1.5 aspect ratio
@@ -353,7 +351,7 @@ def create_rider_pdf_report(
     # -- Add Group/Event Logo --
     logo_width = 60
     pdf.set_x((pdf.w - logo_width) / 2)
-    pdf.image('media/logo-idlab.jpg', w=logo_width)
+    pdf.image('api\static\img\logo-idlab.jpg', w=logo_width)
     pdf.ln(5)  
 
     pdf.set_font('Arial', 'B', 14)
@@ -462,7 +460,7 @@ def create_general_report(group_name,summary_df, group_stats,badman, diesel_engi
     pdf.cell(0, 16, 'Sport.Vlaanderen - Wielercentrum Eddy Merckx', 0, 1, 'C')
     pdf.ln(5)
     
-    pdf.image('media/logo-idlab.jpg', x=(pdf.w - 60) / 2, w=60)
+    pdf.image('api\static\img\logo-idlab.jpg', x=(pdf.w - 60) / 2, w=60)
     pdf.ln(5)
     
     pdf.set_font('Arial', 'B', 14)
@@ -475,7 +473,10 @@ def create_general_report(group_name,summary_df, group_stats,badman, diesel_engi
     pdf.set_fill_color(200, 220, 255)  # Light blue for key statistics
     pdf.cell(0, 8, f'Worst lap: {badman.iloc[0,0]} - {badman.iloc[0,1]:.2f}s', ln=True, align='C', fill=True)
     pdf.ln(4)
-    pdf.cell(0, 8, f'Most Consistent Rider: {diesel_engine.iloc[0,0]} - {diesel_engine.iloc[0,2]:.2f}s', ln=True, align='C', fill=True)
+    if diesel_engine.empty:
+        pdf.cell(0, 8, 'No diesel engine data available.', ln=True, align='C', fill=True)
+    else:
+        pdf.cell(0, 8, f'Most Consistent Rider: {diesel_engine.iloc[0,0]} - {diesel_engine.iloc[0,2]:.2f}s', ln=True, align='C', fill=True)
     pdf.ln(4)
     best_rider = summary_df.nsmallest(1, 'avg_lap_time_s')
     pdf.cell(0, 8, f'Best Rider: {best_rider.iloc[0,0]} - {best_rider.iloc[0,4]:.2f}s - {best_rider.iloc[0,1]} laps', ln=True, align='C', fill=True)
@@ -492,7 +493,7 @@ def create_general_report(group_name,summary_df, group_stats,badman, diesel_engi
     pdf.cell(0, 10, "Podium - Most Laps", ln=True, align='C', fill=True)
     pdf.ln(10)
     # Image of the podium
-    pdf.image('media\podium.png', x=image_x, w=image_width)
+    pdf.image('api\static\img\podium.png', x=image_x, w=image_width)
     pdf.ln(5)
 
     # Define text positions relative to the podium image
@@ -507,8 +508,12 @@ def create_general_report(group_name,summary_df, group_stats,badman, diesel_engi
 
     # Draw rider names above the correct podium positions
     pdf.text(first_x, first_y, f"{top_riders.iloc[0, 0]} ({top_riders.iloc[0, 1]} laps)")
-    pdf.text(second_x, second_y, f"{top_riders.iloc[1, 0]} ({top_riders.iloc[1, 1]} laps)")
-    pdf.text(third_x, third_y, f"{top_riders.iloc[2, 0]} ({top_riders.iloc[2, 1]} laps)")
+    # Make sure there are at least two riders
+    if len(top_riders) > 1:
+        pdf.text(second_x, second_y, f"{top_riders.iloc[1, 0]} ({top_riders.iloc[1, 1]} laps)")
+    # Make sure there are at least three riders
+    if len(top_riders) > 2:
+        pdf.text(third_x, third_y, f"{top_riders.iloc[2, 0]} ({top_riders.iloc[2, 1]} laps)")
 
     # Create the table
     sorted_by_nr_laps = summary_df.sort_values(by='total_laps', ascending=False).reset_index(drop=True)
@@ -530,9 +535,9 @@ def create_general_report(group_name,summary_df, group_stats,badman, diesel_engi
 # ------------------------------------------------------------
 # 6. Main Execution
 # ------------------------------------------------------------
-def main(csv_file):
+def generate_reports(csv_file):
     # Read in the correct data file 
-    csv_file_path = 'RecordingContext_20250214.csv'
+    csv_file_path =  csv_file
 
     logoURL = "https://idlab.ugent.be/img/logo.png"
     # urllib3.request.urlretrieve(logoURL, "logo.png")
@@ -550,7 +555,9 @@ def main(csv_file):
     
     # Step 1: Load and preprocess
     df = load_and_preprocess_data(csv_file_path)
-    
+    if df.empty:
+        print("No data available after preprocessing.")
+        return
     # Step 2: Compute metrics
     summary_df, group_stats = compute_metrics(df, track_length=250, loop_filter='L01')
     badman, diesel_engine = general_stats(df)
@@ -582,8 +589,8 @@ def main(csv_file):
         rider_id = row['transponder_id']
         rider_df = df_filtered[df_filtered['transponder_id'] == rider_id]
         # Generate plot
-        plot_path_lap_times = generate_lap_time_plot(rider_id, rider_df, group_stats, output_folder='report/plots')
-        plot_path_fastest_lap = generate_fastest_lap_comparison_plot(rider_id, summary_df, output_folder='report/plots')
+        plot_path_lap_times = generate_lap_time_plot(rider_id, rider_df, group_stats, output_folder='api/static/report/plots')
+        plot_path_fastest_lap = generate_fastest_lap_comparison_plot(rider_id, summary_df, output_folder='api/static/report/plots')
         # For the Speed Over Time plot, pass the ENTIRE df_filtered,
         # so we can show the current rider vs. the rest in gray.
         plot_path_speed_time = generate_speed_over_time_plot(
@@ -598,5 +605,45 @@ def main(csv_file):
                               event_name='IDLab Test Event')
     print("Report generation complete.")
 
-if __name__ == '__main__':
-    main()
+def make_specific_report(csv_file: str, rider_id: str):
+    """
+    Generates a PDF report for the specified rider.
+    Parameters:
+    csv_file (str): Path to the CSV file containing the data.
+    rider_id (str): The transponder ID of the rider for whom the report is generated.
+    """
+    # Step 1: Load and preprocess
+    df = load_and_preprocess_data(csv_file)
+    if df.empty:
+        print("No data available after preprocessing.")
+        return
+    # Step 2: Compute metrics
+    summary_df, group_stats = compute_metrics(df, track_length=250, loop_filter='L01')
+    badman, diesel_engine = general_stats(df)
+    df_filtered = df[df['loop'] == 'L01'] if 'loop' in df.columns else df
+    # Structure: ['transponder_id','total_laps','total_distance_m','fastest_lap_s','avg_lap_time_s']
+    # row[0] gives you the first row, i.e. the first cyclist and his stats
+    rider_summary = summary_df[summary_df['transponder_id'] == rider_id]
+    rider_df = df_filtered[df_filtered['transponder_id'] == rider_id]
+
+    # Check if they want to print the group report
+    if rider_id.upper() == "GROUP":
+        create_general_report('UGent',summary_df,group_stats,badman,diesel_engine,output_dir=OUTPUT_DIR,event_name='IDLab Test Event')
+    else:
+        # Generate the plots 
+        plot_path_lap_times = generate_lap_time_plot(rider_id, rider_df, group_stats, output_folder='api/static/report/plots')
+        plot_path_fastest_lap = generate_fastest_lap_comparison_plot(rider_id, rider_summary, output_folder='api/static/report/plots')
+        # For the Speed Over Time plot, pass the ENTIRE df_filtered,
+        # so we can show the current rider vs. the rest in gray.
+        plot_path_speed_time = generate_speed_over_time_plot(rider_id, df_filtered, track_length=250, output_folder='reports/plots')
+        # Create PDF
+        create_rider_pdf_report(rider_id, rider_summary, group_stats, plot_path_lap_times,
+                                plot_path_fastest_lap, plot_path_speed_time, output_dir=OUTPUT_DIR,
+                                event_name='IDLab Test Event')
+
+    
+    
+    print("Report generation complete.")
+    
+# if __name__== '__main__':
+#     make_specific_report('api/static/csv/lap_times.csv','GROUP')
