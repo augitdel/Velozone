@@ -332,6 +332,19 @@ class DataAnalysis:
         if self._debug:
             print(f'DataFrame saved to {filename}')
     
+    def reset(self):
+        """
+        Reset the DataFrame to its initial state.
+        """
+        self._file = pd.DataFrame(columns=self._file.columns)
+        self._newlines = pd.DataFrame(columns=self._newlines.columns)
+        self._info_per_transponder = pd.DataFrame(columns=self._info_per_transponder.columns)
+        self._badman = pd.DataFrame()
+        self._diesel = pd.DataFrame()
+        self._electric = pd.DataFrame()
+        if self._debug:
+            print('DataFrame reset to initial state')
+            
     # GETTERS AND SETTERS
     @property
     def slowest_rider(self):
