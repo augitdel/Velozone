@@ -17,7 +17,6 @@ CORS(app)
 
 #PDF directory configuration
 PDF_DIR = os.path.join(app.root_path, "tmp")
-PDF_PATH = os.path.join(PDF_DIR, "rider_report_UGent.pdf")
 
 # Configure session management
 # app.config["SESSION_TYPE"] = "redis"
@@ -33,6 +32,10 @@ session_data = DataAnalysis(debug=False)
 # Initialize the names dictionary 
 names_dict = {}
 participants = 0
+# PDF-generation
+report_dir = None
+group_name = 'UGent'  # Default group name
+pdf_name = 'rider_report_UGent.pdf'  # Default PDF name
 
 # Home screen
 @app.route('/') 
@@ -91,13 +94,15 @@ def leaderboard():
 def start_session():
     global session_data
     global participants
+    global group_name
     if request.method == 'POST':
         # Retrieve data from the form submitted in the frontend (JavaScript)
         start_date = request.form['startDate']
         start_time = request.form['startTime']
         duration = request.form['duration']
         participants = request.form['participants']
- 
+        group_name = request.form['groupName']
+        print(group_name)
         session['session_active'] = True
         session['session_stopped'] = False
         #Store the data in the session
@@ -105,7 +110,8 @@ def start_session():
               'start_date': start_date,
               'start_time': start_time,
               'duration': duration,
-             'participants': participants
+             'participants': participants,
+             'group_name': group_name
         }
         # Print the data in the server console if needed
         print("Competition started with the following details:")
@@ -115,7 +121,8 @@ def start_session():
         print(f"Participants: {participants}")
 
         return redirect(url_for('home'))
-    
+    # Reset all the variables in the session_data object
+    session_data.reset()
     session_active = session.get('session_active', False)
     return render_template('start_session.html',is_session_active = session_active)
 
@@ -143,15 +150,26 @@ def refresh_session():
 @app.route('/generate_report', methods=['POST', 'GET'])
 def generate_report():
     # Get the status bits
+    global report_dir
+    global pdf_name
     if request.method == 'POST':
         print("POST request received, start creating the report")
         # Get the selected rider from the form
         data = request.get_json()
-        rider_name = data.get('rider_name')
-        if rider_name:
+        rider_id = data.get('rider_name')
+        if rider_id:
             try:
-                make_specific_report('api/static/csv/lap_times.csv', rider_name)
-                return jsonify({'status': 'success', 'message': f'Report generated for {rider_name}'}), 200
+                # Alter the report directory to the correct one
+                print(group_name)
+                if rider_id == 'GROUP':
+                    report_dir = os.path.join(app.root_path, f'tmp/rider_report_{group_name}.pdf')
+                    pdf_name = f'rider_report_{group_name}.pdf'
+                else:
+                    report_dir = os.path.join(app.root_path, f'tmp/rider_report_{rider_id}.pdf')
+                    pdf_name = f'rider_report_{rider_id}.pdf'
+                # Make the report
+                make_specific_report('api/static/csv/lap_times.csv', rider_id)
+                return jsonify({'status': 'success', 'message': f'Report generated for {rider_id}'}), 200
             except Exception as e:
                 print(f"Error generating report: {e}")
                 return jsonify({'status': 'error', 'message': 'Failed to generate report'}), 500
@@ -160,8 +178,8 @@ def generate_report():
     session_active = session.get('session_active', False)
     session_stopped = session.get('session_stopped', False)
     # Get the riders from the session_data object
-    riders = ['GROUP'] + session_data.info_per_transponder['transponder_name'].tolist()
-    return render_template('generate_report.html', is_session_active = session_active, is_session_stopped = session_stopped, riders = riders) 
+    riders = ['GROUP'] + session_data.info_per_transponder.index.tolist()
+    return render_template('generate_report.html', is_session_active = session_active, is_session_stopped = session_stopped, riders = riders, names_dict = names_dict) 
 
 @app.route('/download_report')
 def download_report():
@@ -170,11 +188,11 @@ def download_report():
 @app.route('/check_pdf_status')
 def check_pdf_status():
     """Check if the PDF file is generated"""
-    print(os.path.exists(PDF_PATH))
     # Return the pdf if it is generated
-    if os.path.exists(PDF_PATH):
+    print(report_dir)
+    if os.path.exists(report_dir):
         print("report generation done!")
-        return jsonify({"status": "ready", "pdf_url": "/static/tmp/rider_report_UGent.pdf"})
+        return jsonify({"status": "ready", "pdf_url": f"{report_dir}"})
     else:
         print("can not find report folder")
         return jsonify({"status": "pending"})
@@ -183,7 +201,7 @@ def check_pdf_status():
 def download_pdf():
     """Allow users to download the PDF"""
     print("searching for pdf")
-    return send_from_directory(PDF_DIR, "rider_report_UGent.pdf", as_attachment=True)
+    return send_from_directory(PDF_DIR, pdf_name, as_attachment=True)
 
 ##############################################
 

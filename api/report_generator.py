@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from fpdf import FPDF
 from datetime import datetime
-from data_analysis import remove_initial_lap, preprocess_lap_times, diesel_engine_df
+from data_analysis import preprocess_lap_times, diesel_engine_df
 
 OUTPUT_DIR = 'api/tmp'
 # ------------------------------------------------------------
@@ -332,7 +332,7 @@ class PDFReport(FPDF):
 def create_rider_pdf_report(
     rider_id, summary_row, group_stats, 
     lap_time_plot_path, fastest_lap_plot_path, speed_time_plot_path,
-    output_dir='output_reports', event_name=None, event_date=datetime.now().strftime('%Y-%m-%d')
+    output_dir=OUTPUT_DIR, event_name=None, event_date=datetime.now().strftime('%Y-%m-%d')
 ):
     image_width = 160
 
@@ -351,7 +351,7 @@ def create_rider_pdf_report(
     # -- Add Group/Event Logo --
     logo_width = 60
     pdf.set_x((pdf.w - logo_width) / 2)
-    pdf.image('api\static\img\logo-idlab.jpg', w=logo_width)
+    pdf.image('api/static/img/logo-idlab.jpg', w=logo_width)
     pdf.ln(5)  
 
     pdf.set_font('Arial', 'B', 14)
@@ -360,29 +360,26 @@ def create_rider_pdf_report(
     pdf.cell(0, 10, f'Summary for {rider_id}', ln=True, align='C')
     pdf.ln(5)
 
- 
-    
     # -- Key Stats --
+    print("calculate the stats")
     pdf.set_font('Arial', '', 12)
-    total_distance = summary_row['total_distance_m']
-    fastest_lap = summary_row['fastest_lap_s']
-    avg_lap_time = summary_row['avg_lap_time_s']
-    
+    total_distance = summary_row['total_distance_m'].iloc[0]
+    fastest_lap = summary_row['fastest_lap_s'].iloc[0]
+    avg_lap_time = summary_row['avg_lap_time_s'].iloc[0]
     group_avg_distance = group_stats['group_avg_distance_m']
     group_avg_fastest_lap = group_stats['group_avg_fastest_lap_s']
     group_avg_lap_time = group_stats['group_avg_lap_time_s']
-    
     pdf.cell(0, 10, f"Total Distance: {total_distance:.2f} m (Group Avg: {group_avg_distance:.2f} m)", ln=True, align='C')
     pdf.cell(0, 10, f"Fastest Lap: {fastest_lap:.2f} s (Group Avg Fastest Lap: {group_avg_fastest_lap:.2f} s)", ln=True, align='C')
     pdf.cell(0, 10, f"Average Lap Time: {avg_lap_time:.2f} s (Group Avg: {group_avg_lap_time:.2f} s)", ln=True, align='C')
-    
+
     # -- Summary Lines --
     pdf.ln(5)
     pdf.set_font('Arial', 'I', 12)
     distance_diff = total_distance - group_avg_distance
     fastest_diff = fastest_lap - group_avg_fastest_lap
     average_diff = avg_lap_time - group_avg_lap_time
-    
+    print("summary text")
     summary_text = [
         f"Distance vs. Group: {'+' if distance_diff >= 0 else '-'}{abs(distance_diff):.2f} m",
         f"Fastest Lap vs. Group: {'+' if fastest_diff >= 0 else '-'}{abs(fastest_diff):.2f} s",
@@ -428,7 +425,7 @@ def create_rider_pdf_report(
     pdf.output(output_path)
 
 def create_general_report(group_name,summary_df, group_stats,badman, diesel_engine, 
-    output_dir='output_reports', event_name=None, event_date=datetime.now().strftime('%Y-%m-%d')):
+    output_dir=OUTPUT_DIR, event_name=None, event_date=datetime.now().strftime('%Y-%m-%d')):
     """
     Creates a general report for the whole session of the group
 
@@ -460,7 +457,7 @@ def create_general_report(group_name,summary_df, group_stats,badman, diesel_engi
     pdf.cell(0, 16, 'Sport.Vlaanderen - Wielercentrum Eddy Merckx', 0, 1, 'C')
     pdf.ln(5)
     
-    pdf.image('api\static\img\logo-idlab.jpg', x=(pdf.w - 60) / 2, w=60)
+    pdf.image('api/static/img/logo-idlab.jpg', x=(pdf.w - 60) / 2, w=60)
     pdf.ln(5)
     
     pdf.set_font('Arial', 'B', 14)
@@ -493,7 +490,7 @@ def create_general_report(group_name,summary_df, group_stats,badman, diesel_engi
     pdf.cell(0, 10, "Podium - Most Laps", ln=True, align='C', fill=True)
     pdf.ln(10)
     # Image of the podium
-    pdf.image('api\static\img\podium.png', x=image_x, w=image_width)
+    pdf.image('api/static/img/podium.png', x=image_x, w=image_width)
     pdf.ln(5)
 
     # Define text positions relative to the podium image
@@ -630,20 +627,22 @@ def make_specific_report(csv_file: str, rider_id: str):
     if rider_id.upper() == "GROUP":
         create_general_report('UGent',summary_df,group_stats,badman,diesel_engine,output_dir=OUTPUT_DIR,event_name='IDLab Test Event')
     else:
+        print("Report generation for rider:", rider_id)
         # Generate the plots 
+        print("Plot Lap Times")
         plot_path_lap_times = generate_lap_time_plot(rider_id, rider_df, group_stats, output_folder='api/static/report/plots')
+        print("Plot Fastest Lap Comparison")
         plot_path_fastest_lap = generate_fastest_lap_comparison_plot(rider_id, rider_summary, output_folder='api/static/report/plots')
         # For the Speed Over Time plot, pass the ENTIRE df_filtered,
         # so we can show the current rider vs. the rest in gray.
-        plot_path_speed_time = generate_speed_over_time_plot(rider_id, df_filtered, track_length=250, output_folder='reports/plots')
+        print("Plot Speed Over Time")
+        plot_path_speed_time = generate_speed_over_time_plot(rider_id, df_filtered, track_length=250, output_folder='api/report/plots')
         # Create PDF
+        print("Creating PDF report")
         create_rider_pdf_report(rider_id, rider_summary, group_stats, plot_path_lap_times,
                                 plot_path_fastest_lap, plot_path_speed_time, output_dir=OUTPUT_DIR,
                                 event_name='IDLab Test Event')
 
-    
-    
+
     print("Report generation complete.")
     
-# if __name__== '__main__':
-#     make_specific_report('api/static/csv/lap_times.csv','GROUP')
