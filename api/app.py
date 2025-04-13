@@ -119,9 +119,28 @@ def start_session():
         print(f"Duration: {duration} hours")
         print(f"Participants: {participants}")
 
+        # Reset all the variables in the session_data object
+        session_data.reset()
+        # Remove all pdf's from the folder api/tmp
+        tmp_dir = os.path.join(app.root_path, 'tmp')
+        for file in os.listdir(tmp_dir):
+            file_path = os.path.join(tmp_dir, file)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except Exception as e:
+                print(f"Error deleting file {file_path}: {e}")
+
+        # Remove all files from the folder api/static/report/plots
+        plots_dir = os.path.join(app.root_path, 'static/report/plots')
+        for file in os.listdir(plots_dir):
+            file_path = os.path.join(plots_dir, file)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except Exception as e:
+                print(f"Error deleting file {file_path}: {e}")
         return redirect(url_for('home'))
-    # Reset all the variables in the session_data object
-    session_data.reset()
     session_active = session.get('session_active', False)
     return render_template('start_session.html',is_session_active = session_active)
 
@@ -167,9 +186,9 @@ def generate_report():
                 else:
                     report_dir = os.path.join(app.root_path, f'tmp/rider_report_{rider_name}.pdf')
                     pdf_name = f'rider_report_{rider_name}.pdf'
-                # Make the report
-                make_specific_report('api/static/csv/lap_times.csv', rider_id, group_name, names_dict)
-                return jsonify({'status': 'success', 'message': f'Report generated for {rider_name}'}), 200
+                # Make the report 
+                make_specific_report('api/static/csv/lap_times.csv', rider_id, group_name, names_dict)  
+                return jsonify({'status': 'processing', 'message': f'Started Generating Report for {rider_name}'}), 200
             except Exception as e:
                 print(f"Error generating report: {e}")
                 return jsonify({'status': 'error', 'message': 'Failed to generate report'}), 500
@@ -202,7 +221,6 @@ def download_pdf():
     """Allow users to download the PDF"""
     print("searching for pdf")
     return send_from_directory(PDF_DIR, pdf_name, as_attachment=True)
-
 ##############################################
 
 @app.route('/names')
