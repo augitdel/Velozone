@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, url_for, redirect, session, s
 from flask_cors import CORS
 from flask_session import Session
 from data_analysis_branch import DataAnalysis
-from report_generator import generate_reports, make_specific_report
+from report_generator import make_specific_report
 from Supabase_table_monitoring import start_monitor_thread, get_and_clear_dataframe
 from threading import Thread
 import pandas as pd
@@ -102,7 +102,6 @@ def start_session():
         duration = request.form['duration']
         participants = request.form['participants']
         group_name = request.form['groupName']
-        print(group_name)
         session['session_active'] = True
         session['session_stopped'] = False
         #Store the data in the session
@@ -157,6 +156,7 @@ def generate_report():
         # Get the selected rider from the form
         data = request.get_json()
         rider_id = data.get('rider_name')
+        rider_name = names_dict.get(rider_id,rider_id)
         if rider_id:
             try:
                 # Alter the report directory to the correct one
@@ -165,11 +165,11 @@ def generate_report():
                     report_dir = os.path.join(app.root_path, f'tmp/rider_report_{group_name}.pdf')
                     pdf_name = f'rider_report_{group_name}.pdf'
                 else:
-                    report_dir = os.path.join(app.root_path, f'tmp/rider_report_{rider_id}.pdf')
-                    pdf_name = f'rider_report_{rider_id}.pdf'
+                    report_dir = os.path.join(app.root_path, f'tmp/rider_report_{rider_name}.pdf')
+                    pdf_name = f'rider_report_{rider_name}.pdf'
                 # Make the report
-                make_specific_report('api/static/csv/lap_times.csv', rider_id)
-                return jsonify({'status': 'success', 'message': f'Report generated for {rider_id}'}), 200
+                make_specific_report('api/static/csv/lap_times.csv', rider_id, group_name, names_dict)
+                return jsonify({'status': 'success', 'message': f'Report generated for {rider_name}'}), 200
             except Exception as e:
                 print(f"Error generating report: {e}")
                 return jsonify({'status': 'error', 'message': 'Failed to generate report'}), 500
