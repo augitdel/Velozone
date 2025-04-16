@@ -1,4 +1,7 @@
 # Velozone
+## Important remark
+Currently, Velozone is not able to deploy to Vercel because of the use of `async` python functions and the fact that the python packages needed for our app to run are to big to deploy on Vercel.
+
 ## Velozone Usage
 Velozone is a costum developed webapp which allows the Wielercenter Eddy Merckx in Ghent to host trackcycling sessions with a realtime updating leaderboard and the ability to generate PDF reports containing the session data.
 
