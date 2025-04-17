@@ -23,11 +23,11 @@ Starting the session also starts a visual indicator which shows that the session
 Once a session is started, the leaderbord can be displayed either by clicking the `Go to Leaderboard` button after configuring the session or by clicking the `Leaderboard` button on the home page.
 
 The Leaderbord contains the next information:
-- Average laptimes
-- Top 5 fastest laps
-- Slowest lap (badman)
-- Most consistent-paced rider (diesel engine)
-- Rider with the highest acceleration (electric motor)
+- Average laptimes (in seconds)
+- Top 5 fastest laps (in seconds)
+- Slowest lap (badman) (in seconds)
+- Most consistent-paced rider (diesel engine) (in seconds) (The displayed number is the average of the mean deviation on the laptimes)
+- Rider with the highest acceleration (electric motor) (in m/s²)
 
 The leaderboard is updated every 3 seconds.
 
