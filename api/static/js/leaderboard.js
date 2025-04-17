@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
             electricalEngine.classList.add('electrical');
             electricalEngine.textContent = '';
             if (data.electrical && data.electrical.length > 0) {
-                electricalEngine.textContent = `${getTransponderName(data.electrical[0][0], data)} -- ${data.electrical[0][1].toFixed(2)}s`;
+                electricalEngine.textContent = `${getTransponderName(data.electrical[0][0], data)} -- ${data.electrical[0][1].toFixed(2)} m/s²`;
             } else {
                 electricalEngine.textContent = 'No data available';
             }
