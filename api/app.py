@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, url_for, redirect, session, s
 from flask_cors import CORS
 from flask_session import Session
 from data_analysis_branch import DataAnalysis
-from report_generator import generate_reports, make_specific_report
+from report_generator import make_specific_report
 from Supabase_table_monitoring import start_monitor_thread, get_and_clear_dataframe
 from threading import Thread
 import pandas as pd
@@ -102,7 +102,6 @@ def start_session():
         duration = request.form['duration']
         participants = request.form['participants']
         group_name = request.form['groupName']
-        print(group_name)
         session['session_active'] = True
         session['session_stopped'] = False
         #Store the data in the session
@@ -120,9 +119,28 @@ def start_session():
         print(f"Duration: {duration} hours")
         print(f"Participants: {participants}")
 
+        # Reset all the variables in the session_data object
+        session_data.reset()
+        # Remove all pdf's from the folder api/tmp
+        tmp_dir = os.path.join(app.root_path, 'tmp')
+        for file in os.listdir(tmp_dir):
+            file_path = os.path.join(tmp_dir, file)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except Exception as e:
+                print(f"Error deleting file {file_path}: {e}")
+
+        # Remove all files from the folder api/static/report/plots
+        plots_dir = os.path.join(app.root_path, 'static/report/plots')
+        for file in os.listdir(plots_dir):
+            file_path = os.path.join(plots_dir, file)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except Exception as e:
+                print(f"Error deleting file {file_path}: {e}")
         return redirect(url_for('home'))
-    # Reset all the variables in the session_data object
-    session_data.reset()
     session_active = session.get('session_active', False)
     return render_template('start_session.html',is_session_active = session_active)
 
@@ -157,6 +175,7 @@ def generate_report():
         # Get the selected rider from the form
         data = request.get_json()
         rider_id = data.get('rider_name')
+        rider_name = names_dict.get(rider_id,rider_id)
         if rider_id:
             try:
                 # Alter the report directory to the correct one
@@ -165,11 +184,11 @@ def generate_report():
                     report_dir = os.path.join(app.root_path, f'tmp/rider_report_{group_name}.pdf')
                     pdf_name = f'rider_report_{group_name}.pdf'
                 else:
-                    report_dir = os.path.join(app.root_path, f'tmp/rider_report_{rider_id}.pdf')
-                    pdf_name = f'rider_report_{rider_id}.pdf'
-                # Make the report
-                make_specific_report('api/static/csv/lap_times.csv', rider_id)
-                return jsonify({'status': 'success', 'message': f'Report generated for {rider_id}'}), 200
+                    report_dir = os.path.join(app.root_path, f'tmp/rider_report_{rider_name}.pdf')
+                    pdf_name = f'rider_report_{rider_name}.pdf'
+                # Make the report 
+                make_specific_report('api/static/csv/lap_times.csv', rider_id, group_name, names_dict)  
+                return jsonify({'status': 'processing', 'message': f'Started Generating Report for {rider_name}'}), 200
             except Exception as e:
                 print(f"Error generating report: {e}")
                 return jsonify({'status': 'error', 'message': 'Failed to generate report'}), 500
@@ -202,7 +221,6 @@ def download_pdf():
     """Allow users to download the PDF"""
     print("searching for pdf")
     return send_from_directory(PDF_DIR, pdf_name, as_attachment=True)
-
 ##############################################
 
 @app.route('/names')

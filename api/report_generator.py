@@ -1,12 +1,15 @@
 import os
 import pandas as pd
 import numpy as np
+import matplotlib
+matplotlib.use('agg')  # Set the backend to 'agg' (non-interactive)
 import matplotlib.pyplot as plt
 from fpdf import FPDF
 from datetime import datetime
-from data_analysis import preprocess_lap_times, diesel_engine_df
+from data_analysis import preprocess_lap_times, diesel_engine_df, electric_engine_df
 
 OUTPUT_DIR = 'api/tmp'
+names = {}
 # ------------------------------------------------------------
 # 1. Load & Preprocess Data
 # ------------------------------------------------------------
@@ -99,7 +102,9 @@ def general_stats(df, track_length=250, loop_filter='L01'):
     # Diesel Engine
     diesel_engine = diesel_engine_df(df_filtered)
 
-    return badman, diesel_engine
+    # Electric engine
+    electric_engine = electric_engine_df(df_filtered)
+    return badman, diesel_engine, electric_engine
 
 # ------------------------------------------------------------
 # 4. Generate Time-Series Plot
@@ -141,14 +146,15 @@ def generate_lap_time_plot(rider_id, rider_df, group_stats, output_folder='plots
         plt.axhline(y=group_avg_lap_time, color='r', linestyle='--', label='Group Avg Lap Time')
     plt.axhline(y=y_avg_laptime, color='g', linestyle='--', label='Rider Avg Lap Time')
     
-    plt.title(f'Lap Times for Rider {rider_id}')
+    rider_name = names.get(rider_id, rider_id)  # Get the name from the dictionary, fallback to rider_id if not found
+    plt.title(f'Lap Times for Rider {rider_name}')
     plt.xlabel(x_label)
     plt.ylabel('Lap Time [s]')
     plt.legend()
     plt.tight_layout()
     plt.ticklabel_format(axis='x', style='plain')
     
-    plot_filename = os.path.join(output_folder, f'{rider_id}_lap_time_plot.png')
+    plot_filename = os.path.join(output_folder, f'{rider_name}_lap_time_plot.png')
     plt.savefig(plot_filename, dpi=150)
     plt.close()
     
@@ -167,7 +173,7 @@ def generate_fastest_lap_comparison_plot(rider_id, summary_df, output_folder='pl
     
     # Sort riders by fastest lap time ascending for a neat bar chart
     sorted_df = summary_df.sort_values('fastest_lap_s').reset_index(drop=True)
-    
+    print(sorted_df)
     # Plot config
     plt.figure(figsize=(8, 5))
     
@@ -194,18 +200,6 @@ def generate_fastest_lap_comparison_plot(rider_id, summary_df, output_folder='pl
         va='bottom',
         fontsize=8
     )
-
-    # Add numeric labels above bars
-    # for idx, bar in enumerate(bars):
-    #     height = bar.get_height()
-    #     plt.text(
-    #         bar.get_x() + bar.get_width()/2,  # center of the bar
-    #         height + 0.2,                    # slight offset above top
-    #         f"{height:.2f}",                 # formatted fastest lap time
-    #         ha='center',
-    #         va='bottom',
-    #         fontsize=8
-    #     )
     
     # X-axis with rider IDs (or abbreviate if large)
     rider_labels = sorted_df['transponder_id'].astype(str)
@@ -220,7 +214,8 @@ def generate_fastest_lap_comparison_plot(rider_id, summary_df, output_folder='pl
     plt.title('Fastest Lap Comparison')
     plt.tight_layout()
     
-    plot_filename = os.path.join(output_folder, f'{rider_id}_fastest_lap_comparison.png')
+    rider_name = names.get(rider_id, rider_id)  # Get the name from the dictionary, fallback to rider_id if not found
+    plot_filename = os.path.join(output_folder, f'{rider_name}_fastest_lap_comparison.png')
     plt.savefig(plot_filename, dpi=150)
     plt.close()
     
@@ -257,10 +252,10 @@ def generate_speed_over_time_plot(rider_id, df, track_length=250, output_folder=
         # Option A: rolling mean
         # speed_smoothed = speed_m_s.rolling(window=3, min_periods=1, center=True).mean()
         # Option B: Gaussian filter
-        
+        rider_name = names.get(rider_id, rider_id)  # Get the name from the dictionary, fallback to rider_id if not found
         if tid == rider_id:
             # current rider in green
-            plt.plot(t, speed_m_s, color='green', linewidth=2.0, label=f'Rider {rider_id}')
+            plt.plot(t, speed_m_s, color='green', linewidth=2.0, label=f'{rider_name}')
         else:
             # all others in gray with alpha
             plt.plot(t, speed_m_s, color='gray', alpha=0.3, linewidth=1.0)
@@ -271,7 +266,7 @@ def generate_speed_over_time_plot(rider_id, df, track_length=250, output_folder=
     plt.legend()
     plt.tight_layout()
     
-    plot_filename = os.path.join(output_folder, f'{rider_id}_speed_time_plot.png')
+    plot_filename = os.path.join(output_folder, f'{rider_name}_speed_time_plot.png')
     plt.savefig(plot_filename, dpi=150)
     plt.close()
     
@@ -335,7 +330,7 @@ def create_rider_pdf_report(
     output_dir=OUTPUT_DIR, event_name=None, event_date=datetime.now().strftime('%Y-%m-%d')
 ):
     image_width = 160
-
+    rider_name = names.get(rider_id, rider_id)  # Get the name from the dictionary, fallback to rider_id if not found
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     
@@ -357,7 +352,7 @@ def create_rider_pdf_report(
     pdf.set_font('Arial', 'B', 14)
     pdf.cell(0, 10, f'{event_name} - {event_date}', ln=True, align='C')
     pdf.ln(5)
-    pdf.cell(0, 10, f'Summary for {rider_id}', ln=True, align='C')
+    pdf.cell(0, 10, f'Summary for {rider_name}', ln=True, align='C')
     pdf.ln(5)
 
     # -- Key Stats --
@@ -421,10 +416,10 @@ def create_rider_pdf_report(
         pdf.cell(0, 10, "No speed-time plot available.", ln=True)
     
     # Save final PDF
-    output_path = os.path.join(output_dir, f"rider_report_{rider_id}.pdf")
+    output_path = os.path.join(output_dir, f"rider_report_{rider_name}.pdf")
     pdf.output(output_path)
 
-def create_general_report(group_name,summary_df, group_stats,badman, diesel_engine, 
+def create_general_report(group_name,summary_df,badman, diesel_engine,electric_engine,
     output_dir=OUTPUT_DIR, event_name=None, event_date=datetime.now().strftime('%Y-%m-%d')):
     """
     Creates a general report for the whole session of the group
@@ -468,21 +463,30 @@ def create_general_report(group_name,summary_df, group_stats,badman, diesel_engi
 
     pdf.set_font('Arial', '', 12)
     pdf.set_fill_color(200, 220, 255)  # Light blue for key statistics
-    pdf.cell(0, 8, f'Worst lap: {badman.iloc[0,0]} - {badman.iloc[0,1]:.2f}s', ln=True, align='C', fill=True)
+    pdf.cell(0, 8, f'Worst lap: {names.get(badman.iloc[0,0],badman.iloc[0,0])} - {badman.iloc[0,1]:.2f}s', ln=True, align='C', fill=True)
     pdf.ln(4)
+    best_rider = summary_df.nsmallest(1, 'avg_lap_time_s')
+    pdf.cell(0, 8, f'Best Rider: {names.get(best_rider.iloc[0,0],best_rider.iloc[0,0])} - {best_rider.iloc[0,4]:.2f}s - {best_rider.iloc[0,1]} laps', ln=True, align='C', fill=True)
+    pdf.ln(4)
+    print("Create diesel engine")
     if diesel_engine.empty:
         pdf.cell(0, 8, 'No diesel engine data available.', ln=True, align='C', fill=True)
     else:
-        pdf.cell(0, 8, f'Most Consistent Rider: {diesel_engine.iloc[0,0]} - {diesel_engine.iloc[0,2]:.2f}s', ln=True, align='C', fill=True)
+        pdf.cell(0, 8, f'Diesel: {names.get(diesel_engine.iloc[0,0],diesel_engine.iloc[0,0])} - {diesel_engine.iloc[0,2]:.2f}s', ln=True, align='C', fill=True)
     pdf.ln(4)
-    best_rider = summary_df.nsmallest(1, 'avg_lap_time_s')
-    pdf.cell(0, 8, f'Best Rider: {best_rider.iloc[0,0]} - {best_rider.iloc[0,4]:.2f}s - {best_rider.iloc[0,1]} laps', ln=True, align='C', fill=True)
+    print("create electric engine")
+    if electric_engine.empty:
+        pdf.cell(0, 8, 'No electric engine data available.', ln=True, align='C', fill=True)
+    else:
+        pdf.cell(0, 8, f'Tesla: {names.get(electric_engine.iloc[0,0],electric_engine.iloc[0,0])} - {electric_engine.iloc[0,1]:.2f}s', ln=True, align='C', fill=True)
+
     pdf.ln(10)
     
     image_x = (pdf.w - image_width) / 2 # To center the plot
     image_y = pdf.get_y()
 
     # Top 3  Riders
+    print("top 3 best riders")
     top_riders = summary_df.nlargest(3,'total_laps').reset_index(drop = True)
     pdf.set_font("Arial", "B", 14)
     pdf.set_fill_color(0, 102, 204)  # Blue for title
@@ -504,23 +508,25 @@ def create_general_report(group_name,summary_df, group_stats,badman, diesel_engi
     third_y = image_y + 65  # Adjust to align with third place
 
     # Draw rider names above the correct podium positions
-    pdf.text(first_x, first_y, f"{top_riders.iloc[0, 0]} ({top_riders.iloc[0, 1]} laps)")
+    pdf.text(first_x, first_y, f"{names.get(top_riders.iloc[0, 0],top_riders.iloc[0, 0])} ({top_riders.iloc[0, 1]} laps)")
     # Make sure there are at least two riders
     if len(top_riders) > 1:
-        pdf.text(second_x, second_y, f"{top_riders.iloc[1, 0]} ({top_riders.iloc[1, 1]} laps)")
+        pdf.text(second_x, second_y, f"{names.get(top_riders.iloc[1, 0],top_riders.iloc[1, 0])} ({top_riders.iloc[1, 1]} laps)")
     # Make sure there are at least three riders
     if len(top_riders) > 2:
-        pdf.text(third_x, third_y, f"{top_riders.iloc[2, 0]} ({top_riders.iloc[2, 1]} laps)")
+        pdf.text(third_x, third_y, f"{names.get(top_riders.iloc[2, 0],top_riders.iloc[2, 0])} ({top_riders.iloc[2, 1]} laps)")
 
-    # Create the table
+    # Replace transponder_id with names in the DataFrame
+    summary_df['transponder_id'] = summary_df['transponder_id'].apply(lambda x: names.get(x, x))
     sorted_by_nr_laps = summary_df.sort_values(by='total_laps', ascending=False).reset_index(drop=True)
     sorted_by_nr_laps.insert(0, '#', range(1, len(sorted_by_nr_laps) + 1))
     
+    print(sorted_by_nr_laps)
     pdf.add_page()
     pdf.add_table(
         sorted_by_nr_laps.values.tolist(),
         [10, 35, 25, 35, 35, 35],
-        ['#', 'Transponder ID', 'Total Laps', 'Distance [m]', 'Fastest Lap [s]', 'Avg Lap Time [s]']
+        ['#', 'Rider', 'Total Laps', 'Distance [m]', 'Fastest Lap [s]', 'Avg Lap Time [s]']
     )
     
     # Save the file
@@ -532,91 +538,25 @@ def create_general_report(group_name,summary_df, group_stats,badman, diesel_engi
 # ------------------------------------------------------------
 # 6. Main Execution
 # ------------------------------------------------------------
-def generate_reports(csv_file):
-    # Read in the correct data file 
-    csv_file_path =  csv_file
-
-    logoURL = "https://idlab.ugent.be/img/logo.png"
-    # urllib3.request.urlretrieve(logoURL, "logo.png")
-    
-    # Example loop positions (unused in this specific code, but available if you need them)
-    loop_positions = {
-        "L01": 0,
-        "L02": 35,
-        "L03": 50,
-        "L04": 107,
-        "L05": 150,
-        "L06": 160,
-        "L07": 232
-    }
-    
-    # Step 1: Load and preprocess
-    df = load_and_preprocess_data(csv_file_path)
-    if df.empty:
-        print("No data available after preprocessing.")
-        return
-    # Step 2: Compute metrics
-    summary_df, group_stats = compute_metrics(df, track_length=250, loop_filter='L01')
-    badman, diesel_engine = general_stats(df)
-
-    df_filtered = df[df['loop'] == 'L01'] if 'loop' in df.columns else df
-
-    # Step 3 & 4: Generate reports for all riders
-    all_reports = False
-    if all_reports:
-        for idx, row in summary_df.iterrows():
-            rider_id = row['transponder_id']
-            rider_df = df_filtered[df_filtered['transponder_id'] == rider_id]
-            # Generate plot
-            plot_path_lap_times = generate_lap_time_plot(rider_id, rider_df, group_stats, output_folder='report/plots')
-            plot_path_fastest_lap = generate_fastest_lap_comparison_plot(rider_id, summary_df, output_folder='report/plots')
-            # For the Speed Over Time plot, pass the ENTIRE df_filtered,
-            # so we can show the current rider vs. the rest in gray.
-            plot_path_speed_time = generate_speed_over_time_plot(
-                rider_id, df_filtered, track_length=250, output_folder='report/plots'
-            )
-            # Create PDF
-            create_rider_pdf_report(rider_id, row, group_stats, plot_path_lap_times,
-                                    plot_path_fastest_lap, plot_path_speed_time, output_dir='report',
-                                    event_name='IDLab Test Event')
-    else:
-        # Structure: ['transponder_id','total_laps','total_distance_m','fastest_lap_s','avg_lap_time_s']
-        # row[0] gives you the first row, i.e. the first cyclist and his stats
-        row = summary_df.iloc[0]
-        rider_id = row['transponder_id']
-        rider_df = df_filtered[df_filtered['transponder_id'] == rider_id]
-        # Generate plot
-        plot_path_lap_times = generate_lap_time_plot(rider_id, rider_df, group_stats, output_folder='api/static/report/plots')
-        plot_path_fastest_lap = generate_fastest_lap_comparison_plot(rider_id, summary_df, output_folder='api/static/report/plots')
-        # For the Speed Over Time plot, pass the ENTIRE df_filtered,
-        # so we can show the current rider vs. the rest in gray.
-        plot_path_speed_time = generate_speed_over_time_plot(
-            rider_id, df_filtered, track_length=250, output_folder='reports/plots'
-        )
-        # Create PDF
-        create_rider_pdf_report(rider_id, row, group_stats, plot_path_lap_times,
-                                plot_path_fastest_lap, plot_path_speed_time, output_dir=OUTPUT_DIR,
-                                event_name='IDLab Test Event')
-
-        create_general_report('UGent',summary_df,group_stats,badman,diesel_engine,output_dir=OUTPUT_DIR,
-                              event_name='IDLab Test Event')
-    print("Report generation complete.")
-
-def make_specific_report(csv_file: str, rider_id: str):
+def make_specific_report(csv_file: str, rider_id: str, group_name: str = 'UGent', names_dict: dict = {}):
     """
     Generates a PDF report for the specified rider.
     Parameters:
     csv_file (str): Path to the CSV file containing the data.
     rider_id (str): The transponder ID of the rider for whom the report is generated.
     """
+    global names
+    # Step 0 : load the names_dict
+    names = names_dict
     # Step 1: Load and preprocess
     df = load_and_preprocess_data(csv_file)
+    print(df)
     if df.empty:
         print("No data available after preprocessing.")
         return
     # Step 2: Compute metrics
     summary_df, group_stats = compute_metrics(df, track_length=250, loop_filter='L01')
-    badman, diesel_engine = general_stats(df)
+    badman, diesel_engine, electric_engine = general_stats(df)
     df_filtered = df[df['loop'] == 'L01'] if 'loop' in df.columns else df
     # Structure: ['transponder_id','total_laps','total_distance_m','fastest_lap_s','avg_lap_time_s']
     # row[0] gives you the first row, i.e. the first cyclist and his stats
@@ -625,23 +565,18 @@ def make_specific_report(csv_file: str, rider_id: str):
 
     # Check if they want to print the group report
     if rider_id.upper() == "GROUP":
-        create_general_report('UGent',summary_df,group_stats,badman,diesel_engine,output_dir=OUTPUT_DIR,event_name='IDLab Test Event')
+        create_general_report(group_name,summary_df,badman,diesel_engine,electric_engine,output_dir=OUTPUT_DIR,event_name=f'{group_name} Company Event')
     else:
-        print("Report generation for rider:", rider_id)
         # Generate the plots 
-        print("Plot Lap Times")
         plot_path_lap_times = generate_lap_time_plot(rider_id, rider_df, group_stats, output_folder='api/static/report/plots')
-        print("Plot Fastest Lap Comparison")
-        plot_path_fastest_lap = generate_fastest_lap_comparison_plot(rider_id, rider_summary, output_folder='api/static/report/plots')
+        plot_path_fastest_lap = generate_fastest_lap_comparison_plot(rider_id, summary_df, output_folder='api/static/report/plots')
         # For the Speed Over Time plot, pass the ENTIRE df_filtered,
         # so we can show the current rider vs. the rest in gray.
-        print("Plot Speed Over Time")
-        plot_path_speed_time = generate_speed_over_time_plot(rider_id, df_filtered, track_length=250, output_folder='api/report/plots')
+        plot_path_speed_time = generate_speed_over_time_plot(rider_id, df_filtered, track_length=250, output_folder='api/static/report/plots')
         # Create PDF
-        print("Creating PDF report")
         create_rider_pdf_report(rider_id, rider_summary, group_stats, plot_path_lap_times,
                                 plot_path_fastest_lap, plot_path_speed_time, output_dir=OUTPUT_DIR,
-                                event_name='IDLab Test Event')
+                                event_name=f'{group_name} Company Event')
 
 
     print("Report generation complete.")
