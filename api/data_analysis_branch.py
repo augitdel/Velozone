@@ -14,6 +14,15 @@ class DataAnalysis:
         # Macros of the object
         self._min_lap_time = MIN_LAP_TIME
         self._max_lap_time = MAX_LAP_TIME
+        self._loop_positions = {    # in meters
+            'L01': 0,
+            'L02': 35,
+            'L03': 50,
+            'L04': 107,
+            'L05': 150,
+            'L06': 160,
+            'L07': 232
+        }   # full lap distance = 250
 
         # self.fileL01 = self.file.loc[self.file['loop'] == 'L01']
         # self.newlinesL01 = self.newlines.loc[self.newlines['loop'] == 'L01']
@@ -255,12 +264,10 @@ class DataAnalysis:
         # Then, from this subset, select the rider with the lowest coefficient of variation (CV)
         self._diesel = most_consistent_riders.nsmallest(1, 'CV')
 
-        # TODO: incorporate name of the rider in some way
-        # --> done in the frontend
         if self._debug:
             print('diesel_engine updated\n'+'='*40)
     
-    def _electric_motor(self,  window=5, lap_distance=250):
+    def _electric_motor(self,  window=5, track_length=250):
         """
         Function that calculates the highest acceleration of all the transponders
         
@@ -273,45 +280,26 @@ class DataAnalysis:
         ---------
             self.electric: DataFrame containing the transponder ID and peak acceleration for the cyclist with the highest acceleration.
         """
-        # Filter only laps recorded at loop 'L01' for complete lap measurements
-        df_filtered = self._file.loc[self._file['loop'] == 'L01']
         
-        # Drop any rows where 'lapTime' is missing
-        df_filtered = df_filtered.dropna(subset=['lapTime'])
-        
-        # Convert 'lapTime' to numeric values for calculation
-        df_filtered.loc[:,'lapTime'] = pd.to_numeric(df_filtered['lapTime'])
-        
-        # Calculate lap speed (assuming lap distance is provided or normalized)
-        df_filtered.loc[:,'lapSpeed'] = lap_distance / df_filtered['lapTime']
-        
-        # Select relevant columns and drop NaN values
-        df_filtered = df_filtered[['transponder_id', 'utcTimestamp', 'lapSpeed']].dropna()
-        
-        # Convert relevant columns to numeric values
-        df_filtered['utcTimestamp'] = pd.to_numeric(df_filtered['utcTimestamp'])
-        df_filtered['lapSpeed'] = pd.to_numeric(df_filtered['lapSpeed'])
-        
-        # Sort by transponder and timestamp to ensure correct time sequence
-        df_filtered.sort_values(by=['transponder_id', 'utcTimestamp'], inplace=True)
-        
-        # Calculate speed differences over time
-        df_filtered['speed_diff'] = df_filtered.groupby('transponder_id')['lapSpeed'].diff()
-        df_filtered['time_diff'] = df_filtered.groupby('transponder_id')['utcTimestamp'].diff()
-        
-        # Calculate acceleration (change in speed over change in time)
-        df_filtered['acceleration'] = df_filtered['speed_diff'] / df_filtered['time_diff']
-        
-        # Compute rolling maximum acceleration for each transponder
-        df_filtered['rolling_acceleration'] = df_filtered.groupby('transponder_id')['acceleration'].transform(lambda x: x.rolling(window=window, min_periods=1).max())
-        
-        # Find the transponder with the highest peak acceleration
-        peak_acceleration = df_filtered.groupby('transponder_id')['rolling_acceleration'].max().reset_index()
-        peak_acceleration.columns = ['transponder_id', 'peak_acceleration']
-        
-        # Identify the transponder with the absolute highest acceleration
-        self._electric = peak_acceleration.nlargest(1, 'peak_acceleration')
+        loop_distances = {loop: track_length if loop == 'L01' else self._loop_positions[loop] for loop in self._loop_positions}
 
+        df = self._file.copy()
+
+         # Calculate the lap speed for each transponder and loop
+        df['lapSpeed'] = df.apply(lambda row: loop_distances[row['loop']] / row['lapTime'], axis=1)
+
+        # Calculate the acceleration (change in speed over time) for each transponder and loop
+        df['acceleration'] = df.groupby('transponder_id')['lapSpeed'].diff() / df.groupby('transponder_id')['utcTimestamp'].diff()
+
+        # Compute the rolling maximum acceleration for each transponder across all loops
+        df['rolling_acceleration'] = df.groupby('transponder_id')['acceleration'].transform(lambda x: x.rolling(window=window, min_periods=1).max())
+
+        # Identify the transponder with the highest peak acceleration
+        peak_acceleration = df.groupby('transponder_id')['rolling_acceleration'].max().reset_index()
+        peak_acceleration.columns = ['transponder_id', 'peak_acceleration']
+
+        self._electric = peak_acceleration.nlargest(1, 'peak_acceleration')
+        
         if self._debug:
             print('electric_motor updated\n'+'='*40)
 
