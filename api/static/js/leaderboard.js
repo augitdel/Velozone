@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
             diesel.classList.add('diesel');
             diesel.textContent = '';
             if (data.diesel && data.diesel.length > 0) {
-                diesel.textContent = `${getTransponderName(data.diesel[0][0], data)} -- ${data.diesel[0][1].toFixed(2)}s`;
+                diesel.textContent = `${getTransponderName(data.diesel[0][0], data)} -- ${data.diesel[0][4].toFixed(2)}s`;
             } else {
                 diesel.textContent = 'No data available';
             }
