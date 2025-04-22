@@ -34,12 +34,13 @@ class SupabaseClientRealtime:
 
         await self.supabase_rt.auth.set_session(ACCESS_TOKEN, REFRESH_TOKEN)
 
-    async def enable_simulation(self):
-        """Set enable_simulation to True before starting monitoring."""
-        print("Setting enable_simulation to True...")
-        # Disable and re-enable the 'enable simulation' bit to get new data from the simulation (rerun in between)
-        response = await self.supabase_rt.table("development").update({"enable_simulation": True}).eq("id", 1).execute()
-        print(f"Enable_simulation set to True: {response.data}")
+
+    # async def enable_simulation(self):
+    #     """Set enable_simulation to True before starting monitoring."""
+    #     print("Setting enable_simulation to True...")
+    #     # Disable and re-enable the 'enable simulation' bit to get new data from the simulation (rerun in between)
+    #     response = await self.supabase_rt.table("development").update({"enable_simulation": True}).eq("id", 1).execute()
+    #     print(f"Enable_simulation set to True: {response.data}")
 
     async def monitor_table(self, table, callback):
         """Monitor a table for updates and trigger a callback."""
@@ -47,7 +48,7 @@ class SupabaseClientRealtime:
             await self.connect_to_supabase()
 
         # Ensure simulation is enabled before monitoring
-        await self.enable_simulation()
+        #await self.enable_simulation()
 
         await self.supabase_rt.realtime.connect()
 
