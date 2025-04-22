@@ -1,34 +1,180 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f8f9fa;/* Light blue background */
-    color: #007bff; /* Blue text color */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #f8f9fa; /* Change to any solid color you like */
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    margin: 0;
+    z-index: 9999;
+    flex-direction: column;
+    opacity: 1;
 }
-.container {
+
+.loader-content {
     text-align: center;
+    /* color: var(--fg); */
 }
-.title {
-    font-size: 50px;
-    margin-bottom: 20px;
+
+.loading-text {
+    margin-top: 1rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--fg);
 }
-.btn-custom {
-    background-color: #08cc08; /* Yellow button */
-    color: white;
-    padding: 15px 30px;
-    font-size: 20px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
+
+.d-none {
+    display: none !important;
 }
-.btn-custom:hover {
-    background-color: #e0a800; /* Darker yellow on hover */
+
+.card-title{
+    font-size: 3.5rem;
+    color: #007bff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    margin-bottom: 2rem;
 }
-.progress {
-    width: 50%;
-    height: 20px;
+.lead{
+    font-size: 1.5rem;
+    color: #007bff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    margin-bottom: 2rem;
+}
+.bike {
+	display: block;
+	margin: auto;
+	width: 16em;
+	height: auto;
+}
+.bike__body,
+.bike__front,
+.bike__handlebars,
+.bike__pedals,
+.bike__pedals-spin,
+.bike__seat,
+.bike__spokes,
+.bike__spokes-spin,
+.bike__tire {
+	animation: bikeBody 3s ease-in-out infinite;
+	stroke: var(--primary);
+	transition: stroke var(--trans-dur);
+}
+.bike__front {
+	animation-name: bikeFront;
+}
+.bike__handlebars {
+	animation-name: bikeHandlebars;
+}
+.bike__pedals {
+	animation-name: bikePedals;
+}
+.bike__pedals-spin {
+	animation-name: bikePedalsSpin;
+}
+.bike__seat {
+	animation-name: bikeSeat;
+}
+.bike__spokes,
+.bike__tire {
+	stroke: currentColor;
+}
+.bike__spokes {
+	animation-name: bikeSpokes;
+}
+.bike__spokes-spin {
+	animation-name: bikeSpokesSpin;
+}
+.bike__tire {
+	animation-name: bikeTire;
+}
+
+/* Dark theme */
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg: hsl(var(--hue),90%,10%);
+		--fg: hsl(var(--hue),90%,90%);
+	}
+}
+
+/* Animations */
+@keyframes bikeBody {
+	from { stroke-dashoffset: 79; }
+	33%,
+	67% { stroke-dashoffset: 0; }
+	to { stroke-dashoffset: -79; }
+}
+@keyframes bikeFront {
+	from { stroke-dashoffset: 19; }
+	33%,
+	67% { stroke-dashoffset: 0; }
+	to { stroke-dashoffset: -19; }
+}
+@keyframes bikeHandlebars {
+	from { stroke-dashoffset: 10; }
+	33%,
+	67% { stroke-dashoffset: 0; }
+	to { stroke-dashoffset: -10; }
+}
+@keyframes bikePedals {
+	from {
+		animation-timing-function: ease-in;
+		stroke-dashoffset: -25.133;
+	}
+	33%,
+	67% {
+		animation-timing-function: ease-out;
+		stroke-dashoffset: -21.991;
+	}
+	to {
+		stroke-dashoffset: -25.133;
+	}
+}
+@keyframes bikePedalsSpin {
+	from { transform: rotate(0.1875turn); }
+	to { transform: rotate(3.1875turn); }
+}
+@keyframes bikeSeat {
+	from { stroke-dashoffset: 5; }
+	33%,
+	67% { stroke-dashoffset: 0; }
+	to { stroke-dashoffset: -5; }
+}
+@keyframes bikeSpokes {
+	from {
+		animation-timing-function: ease-in;
+		stroke-dashoffset: -31.416;
+	}
+	33%,
+	67% {
+		animation-timing-function: ease-out;
+		stroke-dashoffset: -23.562;
+	}
+	to {
+		stroke-dashoffset: -31.416;
+	}
+}
+@keyframes bikeSpokesSpin {
+	from { transform: rotate(0); }
+	to { transform: rotate(3turn); }
+}
+@keyframes bikeTire {
+	from {
+		animation-timing-function: ease-in;
+		stroke-dashoffset: 56.549;
+		transform: rotate(0);
+	}
+	33% {
+		stroke-dashoffset: 0;
+		transform: rotate(0.33turn);
+	}
+	67% {
+		animation-timing-function: ease-out;
+		stroke-dashoffset: 0;
+		transform: rotate(0.67turn);
+	}
+	to {
+		stroke-dashoffset: -56.549;
+		transform: rotate(1turn);
+	}
 }

@@ -7,6 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='stylesheet/namen.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='stylesheet/session_active.css') }}" rel = "stylesheet">
+    <link href="{{ url_for('static', filename='stylesheet/generate_report.css') }}" rel = "stylesheet">
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon/icon.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon/apple-icon.png') }}">
@@ -19,7 +20,8 @@
     <div class="container">
         <div class="section-title">Generate Report</div>
         <a href="{{ url_for('home') }}" class="btn btn-secondary mb-3">Back</a>
-
+        
+        <!-- Logo's -->
         <div class="logos text-center mb-4">
             <a href="https://www.sport.vlaanderen/" target="_blank" style="display: block;">
                 <img src="{{ url_for('static', filename='img/logo-sport-vlaanderen.png') }}" alt="Sport Vlaanderen Logo">
@@ -33,32 +35,70 @@
                 <img src="{{ url_for('static', filename='img/logo-cycling-vlaanderen-horizontal.jpg') }}" alt="Cycling Vlaanderen Logo">
             </a>
         </div>
-    </div>
-
+        <!-- Data -->
         <div class="section-card">
-            <div class="row">
+            <div class="row">            
                 <div class="col-md-6 mx-auto text-center">
                     {%if is_session_active %}
                         <h2 class="mt-2 text-muted">First end the session before generating a report</h2>
                         <button id="generate-btn" class="btn btn-primary btn-lg w-100 mt-3 hidden" hidden>Generate Report</button>
                     {%elif is_session_stopped %}
-                    <h2 class="mt-2 text-muted">Click the button below to generate a detailed report of your track cycling session.</h2>
-                        <button id="generate-btn" class="btn btn-primary btn-lg w-100 mt-3">Generate Report</button>
+                    <h2 class="mt-2 text-muted">Select your name and press the button</h2>
+                    <!-- Send the chosen rider to the python backend -->
+                    <label for="rider-select" class="form-label"></label>
+                    <select id="rider-select" name="rider_name" class="form-select">
+                        {% for rider in riders %}
+                            <option value="{{ rider }}">{{ names_dict.get(rider, rider) }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="button" class="btn btn-primary btn-lg w-100 mt-3" id="generate-btn">Generate Report</button>
                     {%else%}
                         <h2 class="mt-2 text-muted">First start a session and generate data before making the report</h2>
                         <button id="generate-btn" class="btn btn-primary btn-lg w-100 mt-3 hidden" hidden disabled>Generate Report</button>
                     {% endif %}
                 </div>
-            </div>
+            </div>  
         </div>
-
     </div>
-    <script type = "text/javascript">
-        document.getElementById('generate-btn').onclick = function() {
-            window.location.href = "{{ url_for('download_report') }}";
-        }
-    </script>
+
+    <!-- Fullscreen loading screen -->
+    <div id="loading-screen" class="loading-screen d-none">
+        <div class="loader-content">
+            <h1 class="card-title" id="title">Report is being generated</h1>
+            <p class="lead" id="loading-text">One moment please...</p>
+            <svg class="bike" id="bike-loader" viewBox="0 0 48 30" width="48px" height="30px">
+                <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+                    <g transform="translate(9.5,19)">
+                        <circle class="bike__tire" r="9" stroke-dasharray="56.549 56.549" />
+                        <g class="bike__spokes-spin" stroke-dasharray="31.416 31.416" stroke-dashoffset="-23.562">
+                            <circle class="bike__spokes" r="5" />
+                            <circle class="bike__spokes" r="5" transform="rotate(180,0,0)" />
+                        </g>
+                    </g>
+                    <g transform="translate(24,19)">
+                        <g class="bike__pedals-spin" stroke-dasharray="25.133 25.133" stroke-dashoffset="-21.991" transform="rotate(67.5,0,0)">
+                            <circle class="bike__pedals" r="4" />
+                            <circle class="bike__pedals" r="4" transform="rotate(180,0,0)" />
+                        </g>
+                    </g>
+                    <g transform="translate(38.5,19)">
+                        <circle class="bike__tire" r="9" stroke-dasharray="56.549 56.549" />
+                        <g class="bike__spokes-spin" stroke-dasharray="31.416 31.416" stroke-dashoffset="-23.562">
+                            <circle class="bike__spokes" r="5" />
+                            <circle class="bike__spokes" r="5" transform="rotate(180,0,0)" />
+                        </g>
+                    </g>
+                    <polyline class="bike__seat" points="14 3,18 3" stroke-dasharray="5 5" />
+                    <polyline class="bike__body" points="16 3,24 19,9.5 19,18 8,34 7,24 19" stroke-dasharray="79 79" />
+                    <path class="bike__handlebars" d="m30,2h6s1,0,1,1-1,1-1,1" stroke-dasharray="10 10" />
+                    <polyline class="bike__front" points="32.5 2,38.5 19" stroke-dasharray="19 19" />
+                </g>
+            </svg>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/session_active.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/generate_report.js') }}"></script>
 </body>
 </html>

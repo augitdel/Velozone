@@ -6,6 +6,7 @@ function startCompetition() {
     const today = new Date().toISOString().split("T")[0];
     
     // Form-waarden ophalen
+    const groupName = document.getElementById("groupName").value;
     const startTime = document.getElementById("startTime").value;
     const duration = document.getElementById("duration").value;
     const participants = document.getElementById("participants").value;
@@ -26,7 +27,8 @@ function startCompetition() {
             startDate: today,  // Automatisch gegenereerde datum
             startTime: startTime,
             duration: duration,
-            participants: participants
+            participants: participants,
+            groupName: groupName
         }),
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",

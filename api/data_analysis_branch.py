@@ -1,11 +1,12 @@
 # Import necessary libraries
 import pandas as pd
 import numpy as np
+import os
 
 class DataAnalysis:
     # IMPORTANT: As per convention the class properties and methods prefixed with an underscore are considered private and should not be accessed directly from outside the class.
     # However, some of the properties can be read and set with getters and setters.
-    def __init__(self, MIN_LAP_TIME=13, MAX_LAP_TIME=50, debug=False):        
+    def __init__(self,names_dict = {}, MIN_LAP_TIME=13, MAX_LAP_TIME=50, debug=False):        
         columns_incomming_DF = ['transponder_id','loop','utcTimestamp','utcTime','lapTime','lapSpeed','maxSpeed','cameraPreset','cameraPan','cameraTilt','cameraZoom','eventName','recSegmentId','trackedRider']
         self._file = pd.DataFrame(columns=columns_incomming_DF)
         self._newlines = pd.DataFrame(columns=columns_incomming_DF)
@@ -13,6 +14,15 @@ class DataAnalysis:
         # Macros of the object
         self._min_lap_time = MIN_LAP_TIME
         self._max_lap_time = MAX_LAP_TIME
+        self._loop_positions = {    # in meters
+            'L01': 0,
+            'L02': 35,
+            'L03': 50,
+            'L04': 107,
+            'L05': 150,
+            'L06': 160,
+            'L07': 232
+        }   # full lap distance = 250
 
         # self.fileL01 = self.file.loc[self.file['loop'] == 'L01']
         # self.newlinesL01 = self.newlines.loc[self.newlines['loop'] == 'L01']
@@ -26,6 +36,8 @@ class DataAnalysis:
         # Debug flag
         self._debug = debug
 
+        # Store the names_dict
+        self._names_dict = names_dict
         # if not new_DF.empty:
         #     self.update(new_DF)
 
@@ -101,7 +113,7 @@ class DataAnalysis:
         self._average_lap_time()
         self._fastest_lap()
         self.slowest_lap()
-        self._badman()
+        self._update_badman()
         self._diesel_engine()
         self._electric_motor()
         print("ALL UPDATES DONE")
@@ -119,7 +131,7 @@ class DataAnalysis:
         
         if diff:
             setdf = {'transponder_id': list(diff),
-            'transponder_name': ['' for _ in diff], 
+            'transponder_name': [self._names_dict.get(trans_id, trans_id) for trans_id in diff], 
             'L01_laptime_list': [[] for _ in diff],
             'fastest_lap_time': [np.nan for _ in diff], 
             'average_lap_time' : [np.nan for _ in diff], 
@@ -129,8 +141,16 @@ class DataAnalysis:
             # print(f'setdf:\n {setdf}')
             df_from_setdf = pd.DataFrame(setdf).set_index('transponder_id')
             self._info_per_transponder = pd.concat([self._info_per_transponder, df_from_setdf], ignore_index=False)
- 
 
+    def _update_names_dict(self, new_names_dict: dict):
+        """
+        Function that updates the names_dict with the new names and ensures the transponder_name column
+        in self._info_per_transponder matches the updated names.
+        """
+        self._names_dict = new_names_dict.copy()
+        # Update the transponder_name column in self._info_per_transponder to reflect the updated names
+        self._info_per_transponder['transponder_name'] = self._info_per_transponder.index.map(lambda trans_id: self._names_dict.get(trans_id, trans_id))
+        
     def _update_L01_laptimes(self):
         """
         Function that updates the lap times of the L01 loop for each transponder in self.info_per_transponder DataFrame
@@ -187,7 +207,7 @@ class DataAnalysis:
         if self._debug:
             print('slowest_lap_time updated\n'+'='*40)
 
-    def _badman(self):
+    def _update_badman(self):
         """
             Function that calculates the slowest rider of the session and stores it in self.slowest_rider.
         """
@@ -244,12 +264,10 @@ class DataAnalysis:
         # Then, from this subset, select the rider with the lowest coefficient of variation (CV)
         self._diesel = most_consistent_riders.nsmallest(1, 'CV')
 
-        # TODO: incorporate name of the rider in some way
-        # --> done in the frontend
         if self._debug:
             print('diesel_engine updated\n'+'='*40)
     
-    def _electric_motor(self,  window=5, lap_distance=250):
+    def _electric_motor(self,  window=5, track_length=250):
         """
         Function that calculates the highest acceleration of all the transponders
         
@@ -262,58 +280,59 @@ class DataAnalysis:
         ---------
             self.electric: DataFrame containing the transponder ID and peak acceleration for the cyclist with the highest acceleration.
         """
-        # Filter only laps recorded at loop 'L01' for complete lap measurements
-        df_filtered = self._file.loc[self._file['loop'] == 'L01']
         
-        # Drop any rows where 'lapTime' is missing
-        df_filtered = df_filtered.dropna(subset=['lapTime'])
-        
-        # Convert 'lapTime' to numeric values for calculation
-        df_filtered.loc[:,'lapTime'] = pd.to_numeric(df_filtered['lapTime'])
-        
-        # Calculate lap speed (assuming lap distance is provided or normalized)
-        df_filtered.loc[:,'lapSpeed'] = lap_distance / df_filtered['lapTime']
-        
-        # Select relevant columns and drop NaN values
-        df_filtered = df_filtered[['transponder_id', 'utcTimestamp', 'lapSpeed']].dropna()
-        
-        # Convert relevant columns to numeric values
-        df_filtered['utcTimestamp'] = pd.to_numeric(df_filtered['utcTimestamp'])
-        df_filtered['lapSpeed'] = pd.to_numeric(df_filtered['lapSpeed'])
-        
-        # Sort by transponder and timestamp to ensure correct time sequence
-        df_filtered.sort_values(by=['transponder_id', 'utcTimestamp'], inplace=True)
-        
-        # Calculate speed differences over time
-        df_filtered['speed_diff'] = df_filtered.groupby('transponder_id')['lapSpeed'].diff()
-        df_filtered['time_diff'] = df_filtered.groupby('transponder_id')['utcTimestamp'].diff()
-        
-        # Calculate acceleration (change in speed over change in time)
-        df_filtered['acceleration'] = df_filtered['speed_diff'] / df_filtered['time_diff']
-        
-        # Compute rolling maximum acceleration for each transponder
-        df_filtered['rolling_acceleration'] = df_filtered.groupby('transponder_id')['acceleration'].transform(lambda x: x.rolling(window=window, min_periods=1).max())
-        
-        # Find the transponder with the highest peak acceleration
-        peak_acceleration = df_filtered.groupby('transponder_id')['rolling_acceleration'].max().reset_index()
-        peak_acceleration.columns = ['transponder_id', 'peak_acceleration']
-        
-        # Identify the transponder with the absolute highest acceleration
-        self._electric = peak_acceleration.nlargest(1, 'peak_acceleration')
+        loop_distances = {loop: track_length if loop == 'L01' else self._loop_positions[loop] for loop in self._loop_positions}
 
+        df = self._file.copy()
+
+         # Calculate the lap speed for each transponder and loop
+        df['lapSpeed'] = df.apply(lambda row: loop_distances[row['loop']] / row['lapTime'], axis=1)
+
+        # Calculate the acceleration (change in speed over time) for each transponder and loop
+        df['acceleration'] = df.groupby('transponder_id')['lapSpeed'].diff() / df.groupby('transponder_id')['utcTimestamp'].diff()
+
+        # Compute the rolling maximum acceleration for each transponder across all loops
+        df['rolling_acceleration'] = df.groupby('transponder_id')['acceleration'].transform(lambda x: x.rolling(window=window, min_periods=1).max())
+
+        # Identify the transponder with the highest peak acceleration
+        peak_acceleration = df.groupby('transponder_id')['rolling_acceleration'].max().reset_index()
+        peak_acceleration.columns = ['transponder_id', 'peak_acceleration']
+
+        self._electric = peak_acceleration.nlargest(1, 'peak_acceleration')
+        
         if self._debug:
             print('electric_motor updated\n'+'='*40)
-    
-    def update_transponder_names(self, transponder_names: pd.DataFrame):
+
+    def save_to_csv(self):
         """
-        Update the transponder names in the info_per_transponder DataFrame.
+        Save the current state of the DataFrame to a CSV file.
 
         Parameters:
-            transponder_names (pd.DataFrame): DataFrame containing two columns: 'transponder_id' and 'transponder_name'. 'transponder_id' should be set as the index of this dataframe.
+            filename (str): The name of the file to save the DataFrame to.
         """
-        self._info_per_transponder['transponder_name'] = self._info_per_transponder.index.map(transponder_names['transponder_name'])
+        filename = 'api\static\csv\lap_times.csv'
+        if os.path.exists(filename):
+            os.remove(filename)  # Remove the existing file
+            if self._debug:
+                print(f"Existing file {filename} removed.")
 
-
+        self._file.to_csv(filename, index=False)
+        if self._debug:
+            print(f'DataFrame saved to {filename}')
+    
+    def reset(self):
+        """
+        Reset the DataFrame to its initial state.
+        """
+        self._file = pd.DataFrame(columns=self._file.columns)
+        self._newlines = pd.DataFrame(columns=self._newlines.columns)
+        self._info_per_transponder = pd.DataFrame(columns=self._info_per_transponder.columns)
+        self._badman = pd.DataFrame()
+        self._diesel = pd.DataFrame()
+        self._electric = pd.DataFrame()
+        if self._debug:
+            print('DataFrame reset to initial state')
+            
     # GETTERS AND SETTERS
     @property
     def slowest_rider(self):
@@ -337,7 +356,7 @@ class DataAnalysis:
     
     @property
     def badman(self):
-        return getattr(self, '_slowest_laptime', None)
+        return getattr(self, '_badman', None)
     
     @property
     def min_lap_time(self):

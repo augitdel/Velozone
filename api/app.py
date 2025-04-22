@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, url_for, redirect, session, s
 from flask_cors import CORS
 from flask_session import Session
 from data_analysis_branch import DataAnalysis
+from report_generator import make_specific_report
 from Supabase_table_monitoring import start_monitor_thread, get_and_clear_dataframe
 from threading import Thread
 import pandas as pd
@@ -16,7 +17,6 @@ CORS(app)
 
 #PDF directory configuration
 PDF_DIR = os.path.join(app.root_path, "tmp")
-PDF_PATH = os.path.join(PDF_DIR, "rider_report_UGent.pdf")
 
 # Configure session management
 # app.config["SESSION_TYPE"] = "redis"
@@ -32,6 +32,10 @@ session_data = DataAnalysis(debug=False)
 # Initialize the names dictionary 
 names_dict = {}
 participants = 0
+# PDF-generation
+report_dir = None
+group_name = 'UGent'  # Default group name
+pdf_name = 'rider_report_UGent.pdf'  # Default PDF name
 
 # Home screen
 @app.route('/') 
@@ -48,7 +52,8 @@ def home():
         if data:
             names_dict = {item['transponder_id']: item['name'] for item in data}
             print(f'names_dict: {names_dict}')
-            # session['transponders'] = names_dict
+            # Update the session_data with the new names
+            session_data._update_names_dict(names_dict)
             return jsonify({"message": "Transponder data opgeslagen!", "data": names_dict}), 200 
         else:
             return jsonify({"error": "Geen data ontvangen"}), 400
@@ -89,13 +94,14 @@ def leaderboard():
 def start_session():
     global session_data
     global participants
+    global group_name
     if request.method == 'POST':
         # Retrieve data from the form submitted in the frontend (JavaScript)
         start_date = request.form['startDate']
         start_time = request.form['startTime']
         duration = request.form['duration']
         participants = request.form['participants']
- 
+        group_name = request.form['groupName']
         session['session_active'] = True
         session['session_stopped'] = False
         #Store the data in the session
@@ -103,7 +109,8 @@ def start_session():
               'start_date': start_date,
               'start_time': start_time,
               'duration': duration,
-             'participants': participants
+             'participants': participants,
+             'group_name': group_name
         }
         # Print the data in the server console if needed
         print("Competition started with the following details:")
@@ -111,8 +118,29 @@ def start_session():
         print(f"Start Time: {start_time}")
         print(f"Duration: {duration} hours")
         print(f"Participants: {participants}")
+
+        # Reset all the variables in the session_data object
+        session_data.reset()
+        # Remove all pdf's from the folder api/tmp
+        tmp_dir = os.path.join(app.root_path, 'tmp')
+        for file in os.listdir(tmp_dir):
+            file_path = os.path.join(tmp_dir, file)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except Exception as e:
+                print(f"Error deleting file {file_path}: {e}")
+
+        # Remove all files from the folder api/static/report/plots
+        plots_dir = os.path.join(app.root_path, 'static/report/plots')
+        for file in os.listdir(plots_dir):
+            file_path = os.path.join(plots_dir, file)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except Exception as e:
+                print(f"Error deleting file {file_path}: {e}")
         return redirect(url_for('home'))
-    
     session_active = session.get('session_active', False)
     return render_template('start_session.html',is_session_active = session_active)
 
@@ -125,6 +153,8 @@ def stop_session():
         # Set the bits
         session['session_active'] = False
         session['session_stopped'] = True
+        # Save self._file from session_data to a csv-file
+        session_data.save_to_csv()
         return redirect(url_for('home'))
     session_active = session.get('session_active', False)
     return render_template('stop_session.html', is_session_active = session_active)
@@ -134,16 +164,41 @@ def stop_session():
 def refresh_session():
     pass
 
-@app.route('/generate_report')
+############## REPORT GENERATION ##############
+@app.route('/generate_report', methods=['POST', 'GET'])
 def generate_report():
+    # Get the status bits
+    global report_dir
+    global pdf_name
+    if request.method == 'POST':
+        print("POST request received, start creating the report")
+        # Get the selected rider from the form
+        data = request.get_json()
+        rider_id = data.get('rider_name')
+        rider_name = names_dict.get(rider_id,rider_id)
+        if rider_id:
+            try:
+                # Alter the report directory to the correct one
+                print(group_name)
+                if rider_id == 'GROUP':
+                    report_dir = os.path.join(app.root_path, f'tmp/rider_report_{group_name}.pdf')
+                    pdf_name = f'rider_report_{group_name}.pdf'
+                else:
+                    report_dir = os.path.join(app.root_path, f'tmp/rider_report_{rider_name}.pdf')
+                    pdf_name = f'rider_report_{rider_name}.pdf'
+                # Make the report 
+                make_specific_report('api/static/csv/lap_times.csv', rider_id, group_name, names_dict)  
+                return jsonify({'status': 'processing', 'message': f'Started Generating Report for {rider_name}'}), 200
+            except Exception as e:
+                print(f"Error generating report: {e}")
+                return jsonify({'status': 'error', 'message': 'Failed to generate report'}), 500
+        else:
+            return jsonify({'status': 'error', 'message': 'No rider selected'}), 400
     session_active = session.get('session_active', False)
     session_stopped = session.get('session_stopped', False)
-    return render_template('generate_report.html', is_session_active = session_active, is_session_stopped = session_stopped) 
-
-@app.route('/names')
-def names():
-    session_active = session.get('session_active', False)
-    return render_template('names.html',is_session_active = session_active)
+    # Get the riders from the session_data object
+    riders = ['GROUP'] + session_data.info_per_transponder.index.tolist()
+    return render_template('generate_report.html', is_session_active = session_active, is_session_stopped = session_stopped, riders = riders, names_dict = names_dict) 
 
 @app.route('/download_report')
 def download_report():
@@ -152,11 +207,11 @@ def download_report():
 @app.route('/check_pdf_status')
 def check_pdf_status():
     """Check if the PDF file is generated"""
-    print(os.path.exists(PDF_PATH))
     # Return the pdf if it is generated
-    if os.path.exists(PDF_PATH):
+    print(report_dir)
+    if os.path.exists(report_dir):
         print("report generation done!")
-        return jsonify({"status": "ready", "pdf_url": "/static/tmp/rider_report_UGent.pdf"})
+        return jsonify({"status": "ready", "pdf_url": f"{report_dir}"})
     else:
         print("can not find report folder")
         return jsonify({"status": "pending"})
@@ -165,7 +220,13 @@ def check_pdf_status():
 def download_pdf():
     """Allow users to download the PDF"""
     print("searching for pdf")
-    return send_from_directory(PDF_DIR, "rider_report_UGent.pdf", as_attachment=True)
+    return send_from_directory(PDF_DIR, pdf_name, as_attachment=True)
+##############################################
+
+@app.route('/names')
+def names():
+    session_active = session.get('session_active', False)
+    return render_template('names.html',is_session_active = session_active)
 
 @app.route('/api/sessions/active')
 def get_session_status():
@@ -183,33 +244,41 @@ def get_session_stopped():
 def fetch_supabase():
     # Get the data from the supabase
     changed_file = get_and_clear_dataframe()
-    # Update the sessio_data with new lines from supabase and all available couples of transponders with the corresponding names in a dictionary
-    # print(f"changed_file:\n {changed_file}")
 
     # Update with the new data
-
     if not changed_file.empty:
         session_data.update(changed_file)
         print("New Data found!")
 
     info_per_transponder = session_data.info_per_transponder
-    # avg_lap : [(name,avg_lap_time)]
-    avg_lap = info_per_transponder[['average_lap_time']].reset_index().values.tolist()
+    print(info_per_transponder)
+    if not info_per_transponder.empty:
+        # avg_lap : [(name,avg_lap_time)]
+        avg_lap = info_per_transponder[['average_lap_time', 'total_L01_laps']].sort_values(by='average_lap_time').reset_index().values.tolist()
+        # fast_lap: [(name, fast_lap)]
+        fast_lap = info_per_transponder.nsmallest(5, 'fastest_lap_time')[['fastest_lap_time']].reset_index().values.tolist()
+        #  Slowest_lap: (name, slow_lap)
+        slow_lap = info_per_transponder.nlargest(1,'slowest_lap_time')[['slowest_lap_time']].reset_index().values.tolist()
+        #  Badman --> check how the data enters
+        badman = session_data.badman.reset_index().values.tolist()
+        #  Diesel --> check how the data enters
+        diesel = session_data.diesel.values.tolist()
+        #  Electric --> check how the data enters
+        electric = session_data.electric.values.tolist()
+        if len(electric) > 0 and pd.isna(electric[0][1]):
+            electric = None
+    else:
+        avg_lap = None
+        fast_lap = None
+        slow_lap = None
+        badman = None
+        diesel = None
+        electric = None
     print(f"avg_lap: {avg_lap}")
-    # # fast_lap: [(name, fast_lap)]
-    fast_lap = info_per_transponder.nsmallest(5, 'fastest_lap_time')[['fastest_lap_time']].reset_index().values.tolist()
     print(f"fast_lap: {fast_lap}")
-    # # Slowest_lap: (name, slow_lap)
-    slow_lap = info_per_transponder.nlargest(1,'slowest_lap_time')[['slowest_lap_time']].reset_index().values.tolist()
     print(f"slow_lap: {slow_lap}")
-    # # Badman --> check how the data enters
-    badman = session_data.badman.reset_index().values.tolist()
     print(f"badman: {badman}")
-    # # Diesel --> check how the data enters
-    diesel = session_data.diesel.values.tolist()
     print(f"diesel: {diesel}")
-    # # Electric --> check how the data enters
-    electric = session_data.electric.values.tolist()
     print(f"electric: {electric}")
 
     response_data = {
@@ -218,13 +287,12 @@ def fetch_supabase():
             'slow_lap': slow_lap if slow_lap is not None else [],
             'badman_lap': badman if badman is not None else [],
             'diesel': diesel if diesel is not None else [],
-            'electric': electric if electric is not None else [],
+            'electrical': electric if electric is not None else [],
             'transponder_names' : names_dict if names_dict else {},
             'participants': participants if participants else 0,
         }
-    
-    print("END OF APP.PY")
     return jsonify(response_data)
+
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static/favicon'), 'favicon.ico', mimetype='image/vnd.microsoft.icon') 
